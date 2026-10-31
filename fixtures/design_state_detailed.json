@@ -741,7 +741,7 @@
     "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
     "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
     "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
-    "CadQuery OpenCASCADE B-Rep Loft Engine",
+    "Spiral Parametric STEP AP214 B-Rep & Watertight STL Loft Generator",
     "ISO 10303-21 (STEP AP214) Product Data Representation",
     "Timoshenko beam FEA (NumPy direct stiffness)",
     "Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping)",
@@ -1536,7 +1536,7 @@
         "knowledge/tables/aircraft_typical.yaml"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:42+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 0,
@@ -1546,7 +1546,7 @@
         "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:42+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 0,
@@ -1558,7 +1558,7 @@
         "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:42+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 0,
@@ -1569,7 +1569,7 @@
         "Raymer 2ed, Table 6.3 (p. 110)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:42+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 0,
@@ -1580,7 +1580,7 @@
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:42+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 0,
@@ -1607,7 +1607,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:43+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 1,
@@ -1634,7 +1634,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:43+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 2,
@@ -1661,7 +1661,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:43+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 2,
@@ -1694,14 +1694,14 @@
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:43+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     },
     {
       "lap": 2,
       "stage": "detailed",
       "message": "Detailed design (CAD + FEA): spar FEA complete (Timoshenko beam FEA (NumPy direct stiffness)). Peak von Mises = 304.5 MPa vs Beam Theory = 306.6 MPa (99.3% agreement).",
       "citations": [
-        "CadQuery OpenCASCADE B-Rep Loft Engine",
+        "Spiral Parametric STEP AP214 B-Rep & Watertight STL Loft Generator",
         "ISO 10303-21 (STEP AP214) Product Data Representation",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3",
@@ -1712,7 +1712,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T15:17:44+00:00"
+      "timestamp": "2026-10-31T16:04:42+00:00"
     }
   ],
   "components": {
@@ -1892,6 +1892,9 @@
           }
         ]
       },
+      "horizontal_tail": null,
+      "landing_gear": null,
+      "unavailable_reason": null,
       "artifact_urls": {
         "step": "/artifacts/spar.step",
         "stl": "/artifacts/spar.stl",
@@ -1900,20 +1903,26 @@
     },
     "main_landing_gear": {
       "component_id": "main_landing_gear",
-      "name": "Main Landing Gear Strut",
-      "available": false,
-      "status": "coming_soon",
+      "name": "Main Landing Gear Oleo Strut",
+      "available": true,
+      "status": "pending",
       "cad": null,
       "fea": null,
+      "horizontal_tail": null,
+      "landing_gear": null,
+      "unavailable_reason": null,
       "artifact_urls": {}
     },
     "horizontal_tail": {
       "component_id": "horizontal_tail",
-      "name": "Horizontal Tail Spar",
-      "available": false,
-      "status": "coming_soon",
+      "name": "Horizontal Tail Spar (I-Section)",
+      "available": true,
+      "status": "pending",
       "cad": null,
       "fea": null,
+      "horizontal_tail": null,
+      "landing_gear": null,
+      "unavailable_reason": null,
       "artifact_urls": {}
     },
     "engine_mount": {
@@ -1923,6 +1932,9 @@
       "status": "coming_soon",
       "cad": null,
       "fea": null,
+      "horizontal_tail": null,
+      "landing_gear": null,
+      "unavailable_reason": "Raymer 2ed gives the mount loads (Sec. 14.5, p. 348) but no piston-engine weight (manufacturer data only) and no truss geometry, and 4130 tube struts below the critical slenderness ratio of 91.5 (p. 375) need a chart read (Fig. 14.32). Not analysed rather than guessed.",
       "artifact_urls": {}
     },
     "fuselage_frames": {
@@ -1932,6 +1944,9 @@
       "status": "coming_soon",
       "cad": null,
       "fea": null,
+      "horizontal_tail": null,
+      "landing_gear": null,
+      "unavailable_reason": "Raymer 2ed describes ring-frame carry-through only qualitatively (Sec. 8.3, Fig. 8.8, pp. 162-163); it gives no frame sizing method. Not analysed rather than guessed.",
       "artifact_urls": {}
     }
   },

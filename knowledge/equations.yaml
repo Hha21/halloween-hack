@@ -95,3 +95,45 @@ equations:
     source: "Raymer 2ed, Eq. 14.37 (p. 385)"
     tool: "spiral.tools.spar.size_spar"
     verified: true
+
+  maneuver_speed:
+    name: "Manoeuvre (pull-up) speed"
+    latex: "V_p = V_s + K_p (V_L - V_s), \\quad K_p = 0.15 + \\frac{5400}{W + 3300}"
+    source: "Raymer 2ed, Eqs. 14.12-14.13 (p. 345)"
+    tool: "spiral.tools.tail.horizontal_tail_spar"
+    verified: false
+
+  tail_normal_force_load:
+    name: "Arbitrary horizontal-tail load at manoeuvre speed, spanwise proportional to chord"
+    latex: "P_{\\text{tail}} = |C_n| \\, q_p \\, S_{HT}, \\quad w(y) = \\frac{P_{\\text{tail}}}{S_{HT}} c(y)"
+    source: "Raymer 2ed, Sec. 14.3 (p. 347)"
+    tool: "spiral.tools.tail.horizontal_tail_spar"
+    verified: false
+
+  shock_absorber_stroke:
+    name: "Shock-absorber stroke"
+    latex: "S = \\frac{V_{\\text{vertical}}^2}{2 g \\eta N_{\\text{gear}}} - \\frac{\\eta_T}{\\eta} S_T"
+    source: "Raymer 2ed, Eq. 11.12 (p. 243)"
+    tool: "spiral.tools.landing_gear.size_main_landing_gear"
+    verified: false
+
+  oleo_diameter:
+    name: "Oleo external diameter"
+    latex: "D_{\\text{oleo}} = 1.3 \\sqrt{\\frac{4 L_{\\text{oleo}}}{P \\pi}} \\approx 0.04 \\sqrt{L_{\\text{oleo}}}"
+    source: "Raymer 2ed, Eq. 11.13 (p. 244)"
+    tool: "spiral.tools.landing_gear.size_main_landing_gear"
+    verified: false
+
+  gear_leg_landing_load:
+    name: "Landing load per main gear leg (two legs)"
+    latex: "F_s = W N_{\\text{gear}} / 2"
+    source: "Raymer 2ed, Eq. 11.14 (p. 245)"
+    tool: "spiral.tools.landing_gear.size_main_landing_gear"
+    verified: false
+
+  vertical_kinetic_energy:
+    name: "Vertical kinetic energy at touchdown"
+    latex: "KE_{\\text{vertical}} = \\frac{1}{2} \\frac{W_{\\text{landing}}}{g} V_{\\text{vertical}}^2"
+    source: "Raymer 2ed, Eq. 11.8 (p. 242)"
+    tool: "spiral.tools.landing_gear.size_main_landing_gear"
+    verified: false

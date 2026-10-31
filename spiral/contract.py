@@ -325,6 +325,53 @@ class FeaResult(_Serialisable):
 
 
 # ---------------------------------------------------------------------------
+# 4b. Secondary structural components (spiral.tools.tail, spiral.tools.landing_gear)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class HorizontalTailResult(_Serialisable):
+    """Output of horizontal_tail_spar(): Raymer's tail load case, then the shared I-beam sizing."""
+
+    stall_speed_ms: float
+    level_speed_ms: float  # V_L in Eq. 14.12 (cruise speed from the spec)
+    kp: float
+    maneuver_speed_ms: float
+    air_density_kg_m3: float
+    dynamic_pressure_pa: float
+    normal_force_coefficient: float  # C_n, the governing (downward) value
+    tail_area_m2: float
+    tail_span_m: float
+    root_chord_m: float
+    tip_chord_m: float
+    thickness_to_chord: float
+    limit_tail_load_n: float
+    ultimate_tail_load_n: float
+    loads: SparLoadsResult
+    spar: SparSizingResult
+
+
+@dataclass
+class LandingGearResult(_Serialisable):
+    """Output of size_main_landing_gear(): oleo-pneumatic main gear strut (Raymer 2ed, Ch. 11)."""
+
+    landing_mass_kg: float
+    sink_speed_ms: float
+    gear_load_factor: float
+    shock_efficiency: float
+    main_gear_load_share: float
+    main_strut_count: int
+    static_load_per_strut_n: float
+    landing_load_per_strut_n: float
+    vertical_kinetic_energy_j: float
+    stroke_required_m: float  # Eq. 11.12, tire deflection neglected
+    stroke_m: float  # with margin and minimum applied
+    oleo_length_m: float
+    oleo_diameter_m: float
+    oleo_internal_pressure_pa: float
+
+
+# ---------------------------------------------------------------------------
 # 5. 3D Aircraft Geometry (Tharm: spiral.tools.geometry)
 # ---------------------------------------------------------------------------
 
@@ -392,10 +439,13 @@ class ComponentStatus(_Serialisable):
 
     component_id: str
     name: str
-    available: bool  # True for "main_wing_spar", False ("coming soon") for others
-    status: str = "pending"  # "pending" | "running_cad" | "running_fea" | "completed" | "coming_soon"
+    available: bool  # False -> "coming soon"; `unavailable_reason` says why
+    status: str = "pending"  # "pending" | "running_loads" | "running_cad" | "running_fea" | "completed" | "coming_soon"
     cad: SparCadResult | None = None
     fea: FeaResult | None = None
+    horizontal_tail: HorizontalTailResult | None = None  # component "horizontal_tail"
+    landing_gear: LandingGearResult | None = None  # component "main_landing_gear"
+    unavailable_reason: str | None = None
     # What the frontend downloads/fetches: "step", "stl", "stress_mesh" -> "/artifacts/<file>"
     artifact_urls: dict[str, str] = field(default_factory=dict)
 
@@ -410,27 +460,36 @@ def default_components() -> dict[str, ComponentStatus]:
         ),
         "main_landing_gear": ComponentStatus(
             component_id="main_landing_gear",
-            name="Main Landing Gear Strut",
-            available=False,
-            status="coming_soon",
+            name="Main Landing Gear Oleo Strut",
+            available=True,
+            status="pending",
         ),
         "horizontal_tail": ComponentStatus(
             component_id="horizontal_tail",
-            name="Horizontal Tail Spar",
-            available=False,
-            status="coming_soon",
+            name="Horizontal Tail Spar (I-Section)",
+            available=True,
+            status="pending",
         ),
         "engine_mount": ComponentStatus(
             component_id="engine_mount",
             name="Engine Mount Truss",
             available=False,
             status="coming_soon",
+            unavailable_reason=(
+                "Raymer 2ed gives the mount loads (Sec. 14.5, p. 348) but no piston-engine weight "
+                "(manufacturer data only) and no truss geometry, and 4130 tube struts below the critical "
+                "slenderness ratio of 91.5 (p. 375) need a chart read (Fig. 14.32). Not analysed rather than guessed."
+            ),
         ),
         "fuselage_frames": ComponentStatus(
             component_id="fuselage_frames",
             name="Wing Carry-Through Fuselage Frames",
             available=False,
             status="coming_soon",
+            unavailable_reason=(
+                "Raymer 2ed describes ring-frame carry-through only qualitatively (Sec. 8.3, Fig. 8.8, pp. 162-163); "
+                "it gives no frame sizing method. Not analysed rather than guessed."
+            ),
         ),
     }
 
@@ -475,6 +534,8 @@ class DesignState(_Serialisable):
 #   POST /api/spiral/stream          SpiralRequest  -> SSE: lap/log ..., then converged | infeasible | error
 #   POST /api/components/spar        StateRequest   -> DesignState (components.main_wing_spar filled)
 #   POST /api/components/spar/stream StateRequest   -> SSE: component_step/log ..., then component_done | error
+#   POST /api/components/{id}        StateRequest   -> DesignState (components.<id> filled)
+#   POST /api/components/{id}/stream StateRequest   -> SSE: component_step/log ..., then component_done | error
 #   POST /api/report                 StateRequest   -> ReportResponse
 #   GET  /artifacts/{filename}                      -> files named in ComponentStatus.artifact_urls
 
@@ -537,7 +598,7 @@ class InfeasibleEvent(_Serialisable):
 @dataclass
 class ComponentStepEvent(_Serialisable):
     component_id: str
-    step: str  # "cad" | "fea"
+    step: str  # "loads" | "sizing" | "cad" | "fea"
     status: str  # "running" | "done"
 
 
