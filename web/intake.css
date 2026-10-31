@@ -371,3 +371,325 @@
 #screen-intake .intake-summary.is-entering .intake-summary-legend .prov-badge { animation: intake-stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 1.1s backwards; }
 #screen-intake .intake-summary.is-entering .intake-summary-legend .prov-badge:nth-child(3) { animation-delay: 1.3s; }
 #screen-intake .intake-summary.is-entering .intake-summary-legend .prov-badge:nth-child(4) { animation-delay: 1.5s; }
+
+/* =====================================================================
+ * Screen 1 as a chat landing (intake.js buildChat). Quiet chrome, one column,
+ * composer docked at the bottom, full spec tucked into a disclosure.
+ * ===================================================================== */
+body:has(#screen-intake.active) .screen-tabs button:not(.active) { opacity: 0.5; }
+body:has(#screen-intake.active) .screen-tabs button:not(.active):hover { opacity: 1; }
+body:has(#screen-intake.active) .topbar { background: rgba(12, 18, 27, 0.88); border-bottom-color: transparent; }
+
+#screen-intake.active { display: block; position: relative; min-height: calc(100vh - 90px); }
+#screen-intake .chat-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 50% 38%, rgba(56, 189, 248, 0.1), transparent 70%),
+    radial-gradient(40% 35% at 70% 75%, rgba(167, 139, 250, 0.07), transparent 70%);
+}
+#screen-intake .chat-bg canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+#screen-intake .chat-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  min-height: calc(100vh - 110px);
+  display: flex;
+  flex-direction: column;
+}
+#screen-intake .chat-thread { flex: 1; display: flex; flex-direction: column; gap: 18px; padding: 2vh 0 1rem; }
+
+/* empty state */
+#screen-intake .chat-empty { margin: auto 0; padding-top: 6vh; text-align: center; display: flex; flex-direction: column; align-items: center; }
+#screen-intake.chat-started .chat-empty { display: none; }
+#screen-intake .spiral-hero { width: 92px; height: 92px; margin-bottom: 1.4rem; overflow: visible; }
+#screen-intake .sp-path { fill: none; stroke: var(--text); stroke-width: 20; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+#screen-intake .sp-dot { fill: var(--cyan); transform-box: fill-box; transform-origin: center; }
+#screen-intake .spiral-hero .sp-path { animation: intake-draw 1.8s cubic-bezier(0.6, 0, 0.3, 1) 0.1s backwards; }
+#screen-intake .spiral-hero .sp-dot { animation: intake-pop 0.55s cubic-bezier(0.2, 1.7, 0.4, 1) 1.8s backwards, intake-dot-glow 2.8s ease-in-out 2.5s infinite; }
+#screen-intake .chat-greeting {
+  margin: 0 0 0.6rem;
+  font-size: clamp(2rem, 3.4vw, 2.9rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text);
+  animation: intake-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s backwards;
+}
+#screen-intake .chat-sub { margin: 0 0 2rem; max-width: 56ch; color: var(--muted); font-size: 1rem; animation: intake-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s backwards; }
+#screen-intake .chat-suggestions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; animation: intake-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.8s backwards; }
+#screen-intake .suggest-card {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+  padding: 0.85rem 0.95rem; border-radius: 14px;
+  background: rgba(24, 34, 49, 0.72); border: 1px solid var(--border-hi); color: var(--text);
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+#screen-intake .suggest-card:hover { transform: translateY(-2px); border-color: #4f6580; background: rgba(30, 42, 60, 0.85); }
+#screen-intake .suggest-card .sc-title { font-size: 0.95rem; font-weight: 650; }
+#screen-intake .suggest-card .sc-meta { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+#screen-intake .suggest-card.is-dramatic { background: linear-gradient(130deg, rgba(242, 84, 109, 0.22), rgba(245, 165, 36, 0.08) 75%), rgba(24, 34, 49, 0.72); border-color: rgba(242, 84, 109, 0.6); }
+#screen-intake .suggest-card.is-dramatic .sc-title { color: #ffd6dd; }
+#screen-intake .suggest-card.is-dramatic .sc-meta { color: #f8b4a8; }
+#screen-intake .suggest-card.is-dramatic:hover { border-color: #ff7d93; box-shadow: 0 8px 28px rgba(242, 84, 109, 0.2); }
+
+/* messages */
+#screen-intake .chat-msg { display: flex; gap: 12px; animation: intake-rise 0.4s ease backwards; }
+#screen-intake .chat-user { justify-content: flex-end; }
+#screen-intake .chat-user .chat-body {
+  max-width: 80%;
+  padding: 0.7rem 1rem;
+  border-radius: 18px 18px 4px 18px;
+  background: #1f2b3d;
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+#screen-intake .chat-user .echo-mark { padding: 0 0.15rem; }
+#screen-intake .chat-avatar { flex: none; width: 30px; height: 30px; margin-top: 2px; }
+#screen-intake .spiral-avatar { width: 30px; height: 30px; }
+#screen-intake .chat-assistant .chat-body { flex: 1; min-width: 0; color: var(--text-2); font-size: 1rem; line-height: 1.65; }
+#screen-intake .reply-text { margin: 0.2rem 0 0.8rem; color: var(--text); }
+#screen-intake .typing { color: #d3c8ff; font-weight: 600; padding-top: 4px; }
+#screen-intake .typing .dots { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+#screen-intake .typing .dots i { width: 6px; height: 6px; border-radius: 50%; background: #c4b5fd; animation: intake-typing 1.1s ease-in-out infinite; }
+#screen-intake .typing .dots i:nth-child(2) { animation-delay: 0.15s; }
+#screen-intake .typing .dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes intake-typing { 0%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+#screen-intake .reveal { animation: intake-rise 0.5s ease 0.1s backwards; }
+#screen-intake .chat-actions.reveal { animation-delay: 0.35s; }
+
+/* key-value chips, coloured by where the value came from */
+#screen-intake .kv-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0.8rem; }
+#screen-intake .kv-chip {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid;
+  font-variant-numeric: tabular-nums; cursor: help;
+  transition: box-shadow 0.15s;
+}
+#screen-intake .kv-k { font-size: 0.75rem; color: var(--muted); }
+#screen-intake .kv-v { font-size: 0.95rem; font-weight: 650; color: var(--text); }
+#screen-intake .kv-chip.is-linked { box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.6); }
+#screen-intake .chat-warn { margin: 0 0 0.8rem; padding: 0.45rem 0.75rem; border-radius: 10px; font-size: 0.86rem; color: #fbd38a; background: rgba(245, 165, 36, 0.08); border: 1px solid rgba(245, 165, 36, 0.3); }
+
+/* full spec disclosure */
+#screen-intake .spec-details { margin: 0 0 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: rgba(18, 26, 38, 0.8); }
+#screen-intake .spec-details > summary { cursor: pointer; padding: 0.6rem 0.9rem; font-size: 0.88rem; color: var(--text); list-style: none; }
+#screen-intake .spec-details > summary::-webkit-details-marker { display: none; }
+#screen-intake .spec-details > summary::before { content: "\25B8"; display: inline-block; margin-right: 0.5rem; color: var(--muted); transition: transform 0.15s; }
+#screen-intake .spec-details[open] > summary::before { transform: rotate(90deg); }
+#screen-intake .spec-details > summary .muted { margin: 0; }
+#screen-intake .spec-details .intake-summary { margin: 0 0.9rem; }
+#screen-intake .spec-details .spec-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 0.9rem 0.9rem; margin-top: 0.8rem; }
+
+/* actions */
+#screen-intake .chat-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+#screen-intake .chat-run.primary { padding: 0.75rem 1.3rem; font-size: 0.95rem; border-radius: 999px; animation: intake-cta 2.4s ease-in-out 0.8s infinite; }
+#screen-intake .chat-actions .btn.secondary { border-radius: 999px; }
+
+/* composer */
+#screen-intake .chat-composer {
+  position: sticky;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 1rem;
+  padding: 8px 8px 8px 16px;
+  border-radius: 24px;
+  background: rgba(24, 34, 49, 0.92);
+  border: 1px solid var(--border-hi);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+#screen-intake .chat-composer:focus-within { border-color: rgba(56, 189, 248, 0.7); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15), 0 10px 40px rgba(0, 0, 0, 0.35); }
+#screen-intake #chat-input {
+  flex: 1;
+  resize: none;
+  min-height: 0;
+  max-height: 200px;
+  padding: 0.6rem 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+#screen-intake #chat-input:focus { box-shadow: none; outline: none; }
+#screen-intake #chat-input::placeholder { color: var(--muted); }
+#screen-intake .chat-send {
+  flex: none; width: 40px; height: 40px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: var(--cyan); color: var(--accent-ink);
+  font-size: 1.15rem; font-weight: 800;
+}
+#screen-intake .chat-send:hover { filter: brightness(1.1); }
+#screen-intake .chat-hint { text-align: center; font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0.4rem; }
+
+@media (max-width: 860px) {
+  #screen-intake .chat-suggestions { grid-template-columns: minmax(0, 1fr); }
+  #screen-intake .spec-details .spec-cards-grid { grid-template-columns: minmax(0, 1fr); }
+}
+#screen-intake .kv-chip.prov-user .kv-k,
+#screen-intake .kv-chip.prov-user .kv-v { color: #0c121b; }
+#screen-intake .kv-chip::before { font-weight: 700; opacity: 0.85; }
+
+/* ---------- Suggestions: 2 x 2 with the textbook card ---------- */
+#screen-intake .chat-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#screen-intake .suggest-card.is-ask {
+  background: linear-gradient(130deg, rgba(96, 165, 250, 0.18), rgba(167, 139, 250, 0.07) 75%), rgba(24, 34, 49, 0.72);
+  border-color: rgba(96, 165, 250, 0.55);
+}
+#screen-intake .suggest-card.is-ask .sc-title { color: #d6e7fd; }
+#screen-intake .suggest-card.is-ask .sc-title::before { content: "\00A7\00A0"; color: #a9cdfd; }
+#screen-intake .suggest-card.is-ask .sc-meta { color: #a9c4e6; }
+#screen-intake .suggest-card.is-ask:hover { border-color: #7fb4fa; box-shadow: 0 8px 28px rgba(96, 165, 250, 0.18); }
+
+/* ---------- Textbook answers ---------- */
+#screen-intake .answer-md { color: var(--text); }
+#screen-intake .answer-md p { margin: 0.15rem 0 0.75rem; }
+#screen-intake .answer-md h4 { margin: 0.9rem 0 0.35rem; font-size: 1rem; font-weight: 650; color: var(--text); }
+#screen-intake .answer-md h4:first-child { margin-top: 0.15rem; }
+#screen-intake .answer-md ul, #screen-intake .answer-md ol { margin: 0 0 0.75rem; padding-left: 1.25rem; }
+#screen-intake .answer-md li { margin: 0.15rem 0; }
+#screen-intake .answer-md strong { color: #fff; }
+#screen-intake .answer-md code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  color: #d7e9fb;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  overflow-wrap: anywhere;
+}
+#screen-intake .answer-md .md-table-wrap { margin: 0.4rem 0 0.9rem; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+#screen-intake .answer-md table { width: 100%; border-collapse: collapse; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+#screen-intake .answer-md th { text-align: left; font-weight: 600; font-size: 0.8rem; color: var(--text-2); background: var(--panel-alt); padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border-hi); }
+#screen-intake .answer-md td { padding: 0.45rem 0.7rem; border-top: 1px solid var(--border); color: var(--text-2); vertical-align: top; }
+#screen-intake .answer-md tbody tr:first-child td { border-top: none; }
+#screen-intake .answer-md td.verdict-ok { color: #6ee7b7; font-weight: 600; white-space: nowrap; }
+
+/* Citation chips: a green check = the critic confirmed the item against the book page */
+#screen-intake .cite-head { margin: 0.2rem 0 0.5rem; font-size: 0.8rem; color: var(--muted); }
+#screen-intake .cite-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+#screen-intake .cite-item { border-radius: 12px; max-width: 100%; }
+#screen-intake .cite-item[open] { flex-basis: 100%; background: rgba(18, 26, 38, 0.9); border: 1px solid var(--border-hi); }
+#screen-intake .cite-pill {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 0.32rem 0.75rem 0.32rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  background: rgba(96, 165, 250, 0.1);
+  color: #d6e7fd;
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+#screen-intake .cite-pill::-webkit-details-marker { display: none; }
+#screen-intake .cite-pill:hover { border-color: rgba(127, 180, 250, 0.8); }
+#screen-intake .cite-mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #a9cdfd;
+  border: 1px solid rgba(96, 165, 250, 0.6);
+}
+#screen-intake .cite-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#screen-intake .cite-kind { font-weight: 500; font-size: 0.75rem; color: var(--muted); }
+#screen-intake .cite-item.is-verified .cite-pill { border-color: rgba(52, 211, 153, 0.55); background: rgba(52, 211, 153, 0.09); color: #d3f7e7; }
+#screen-intake .cite-item.is-verified .cite-mark { background: #34d399; border-color: #34d399; color: #03140d; }
+#screen-intake .cite-item[open] .cite-pill { border-color: transparent; background: transparent; }
+#screen-intake .cite-detail { padding: 0.1rem 0.9rem 0.8rem; }
+#screen-intake .cite-title { font-weight: 600; color: var(--text); margin-top: 0.2rem; }
+#screen-intake .cite-latex {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #e6f1fb;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+#screen-intake .cite-para { margin: 0.45rem 0; color: var(--text-2); font-size: 0.92rem; }
+#screen-intake .cite-meta { font-size: 0.76rem; color: var(--muted); }
+#screen-intake .cite-item[open] .cite-detail { animation: intake-rise 0.3s ease backwards; }
+
+/* [n] markers, tex fragments, kind-specific details */
+#screen-intake .cite-ref {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 1px 0 3px;
+  padding: 0 4px;
+  vertical-align: 2px;
+  border-radius: 9px;
+  border: 1px solid rgba(52, 211, 153, 0.6);
+  background: rgba(52, 211, 153, 0.14);
+  color: #b9f3da;
+  font: 700 0.68rem/1 var(--font-sans);
+  cursor: pointer;
+}
+#screen-intake .cite-ref:hover { background: #34d399; color: #03140d; }
+#screen-intake .answer-md .tex { font-family: var(--font-mono); font-size: 0.88em; color: #d7e9fb; white-space: nowrap; }
+#screen-intake .answer-source { margin: -0.2rem 0 0.6rem; font-size: 0.78rem; color: var(--muted); }
+#screen-intake .cite-num { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+#screen-intake .cite-value { font-size: 1.15rem; font-weight: 650; color: var(--text); margin: 0.3rem 0; font-variant-numeric: tabular-nums; }
+#screen-intake .cite-table-wrap { margin: 0.5rem 0 0.3rem; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+#screen-intake .cite-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+#screen-intake .cite-table th { text-align: left; font-weight: 600; font-size: 0.76rem; color: var(--text-2); background: var(--panel-alt); padding: 0.4rem 0.6rem; }
+#screen-intake .cite-table td { padding: 0.38rem 0.6rem; border-top: 1px solid var(--border); color: var(--text-2); }
+#screen-intake .cite-table tr.is-hl td { background: rgba(52, 211, 153, 0.1); color: var(--text); font-weight: 600; }
+#screen-intake .cite-table tr.is-hl td:first-child { box-shadow: inset 3px 0 0 #34d399; }
+#screen-intake .cite-more { font-size: 0.74rem; color: var(--muted); margin-bottom: 0.3rem; }
+#screen-intake .cite-item.flash { animation: intake-flash 1.2s ease; }
+@keyframes intake-flash { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); } 100% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); } }
+
+/* Legibility over the 3D background: assistant replies sit on a translucent, blurred panel */
+#screen-intake .chat-assistant .chat-body {
+  padding: 0.75rem 1rem 0.8rem;
+  border-radius: 4px 18px 18px 18px;
+  background: rgba(12, 18, 27, 0.78);
+  border: 1px solid rgba(49, 67, 88, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+#screen-intake .chat-assistant .typing { padding-top: 0; }
+#screen-intake .chat-user .chat-body { background: rgba(31, 43, 61, 0.92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+#screen-intake .chat-greeting, #screen-intake .chat-sub { text-shadow: 0 2px 18px rgba(12, 18, 27, 0.9), 0 0 2px rgba(12, 18, 27, 0.8); }
+#screen-intake .chat-sub { color: var(--text-2); }
+#screen-intake .chat-hint { text-shadow: 0 1px 8px rgba(12, 18, 27, 0.95); }
+#screen-intake .spiral-hero { filter: drop-shadow(0 0 14px rgba(12, 18, 27, 0.95)) drop-shadow(0 0 4px rgba(12, 18, 27, 0.9)); }
+
+/* Compact chips (all five on one row at laptop widths), staggered entrance */
+#screen-intake .kv-chips { gap: 6px; }
+#screen-intake .kv-chip { padding: 0.28rem 0.62rem; gap: 6px; }
+#screen-intake .kv-k { font-size: 0.72rem; }
+#screen-intake .kv-v { font-size: 0.9rem; }
+#screen-intake .kv-chips.reveal { animation: none; }
+#screen-intake .kv-chips.reveal .kv-chip { animation: intake-stamp 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) backwards; }
+#screen-intake .kv-chips.reveal .kv-chip:nth-child(2) { animation-delay: 0.08s; }
+#screen-intake .kv-chips.reveal .kv-chip:nth-child(3) { animation-delay: 0.16s; }
+#screen-intake .kv-chips.reveal .kv-chip:nth-child(4) { animation-delay: 0.24s; }
+#screen-intake .kv-chips.reveal .kv-chip:nth-child(5) { animation-delay: 0.32s; }

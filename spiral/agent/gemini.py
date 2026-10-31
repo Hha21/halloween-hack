@@ -28,7 +28,9 @@ from spiral.tools.lookup import lookup
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
-DEFAULT_MODEL = "gemini-3.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash"  # fast reader: intake
+DEFAULT_LEAD_MODEL = "gemini-4-argon"  # reasoning agents: design lead, research (Ask Raymer), report writer
+LAST_MODEL = DEFAULT_MODEL  # the model that actually answered the latest call (for honest labels)
 GEMINI_TIMEOUT_MS = 30_000
 
 try:  # optional: the repo must import without the server dependencies
@@ -62,8 +64,20 @@ def gemini_unavailable_reason() -> str | None:
     return None
 
 
-def _generate_json(system_prompt: str, user_text: str, schema: dict[str, Any]) -> dict[str, Any]:
-    """One Gemini call with structured JSON output. Raises on any failure."""
+def gemini_lead_model() -> str:
+    """Model for the reasoning agents (design lead, research, report): Gemini 4 Argon by default."""
+    return os.environ.get("GEMINI_LEAD_MODEL", "").strip() or DEFAULT_LEAD_MODEL
+
+
+def _generate_json(
+    system_prompt: str, user_text: str, schema: dict[str, Any], model: str | None = None
+) -> dict[str, Any]:
+    """One Gemini call with structured JSON output. Raises on any failure.
+
+    `model` defaults to the fast reader; if a different model (e.g. the lead) fails, the call is
+    retried once on the reader. LAST_MODEL records which model actually answered.
+    """
+    global LAST_MODEL
     from google import genai
     from google.genai import types
 
@@ -71,20 +85,30 @@ def _generate_json(system_prompt: str, user_text: str, schema: dict[str, Any]) -
         api_key=os.environ["GEMINI_API_KEY"].strip(),
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
-    response = client.models.generate_content(
-        model=gemini_model(),
-        contents=user_text,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            response_mime_type="application/json",
-            response_json_schema=schema,
-            thinking_config=types.ThinkingConfig(thinking_level="low"),
-        ),
-    )
-    data = json.loads(response.text or "")
-    if not isinstance(data, dict):
-        raise ValueError("Gemini returned JSON that is not an object")
-    return data
+    candidates = [model or gemini_model()]
+    if candidates[0] != gemini_model():
+        candidates.append(gemini_model())
+    last_error: Exception | None = None
+    for name in candidates:
+        try:
+            response = client.models.generate_content(
+                model=name,
+                contents=user_text,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                    response_json_schema=schema,
+                    thinking_config=types.ThinkingConfig(thinking_level="low"),
+                ),
+            )
+            data = json.loads(response.text or "")
+            if not isinstance(data, dict):
+                raise ValueError("Gemini returned JSON that is not an object")
+            LAST_MODEL = name
+            return data
+        except Exception as exc:  # noqa: BLE001 - try the next model, then re-raise
+            last_error = exc
+    raise last_error  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------------------
@@ -377,6 +401,113 @@ def parse_intake_description(description: str) -> ToolResult[MissionSpec]:
     return result
 
 
+# ---------------------------------------------------------------------------
+# Ask the textbook: retrieval over the critic-checked knowledge base, answer only from it
+# ---------------------------------------------------------------------------
+
+_ASK_KINDS = ("equations", "tables", "rules_of_thumb")
+_NO_KB = (
+    "The textbook knowledge base isn't loaded in this copy. It is built locally from the scanned book by "
+    "`scripts/extract_knowledge.py` and never committed, for copyright reasons."
+)
+
+
+def _ask_items(hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    from spiral.tools.lookup import citation
+
+    items = []
+    for n, h in enumerate(hits, 1):
+        entry: dict[str, Any] = {"n": n, "citation": citation(h), "status": h.get("status"), "kind": h.get("kind"),
+                                 "book_page": h.get("book_page")}
+        if h.get("kind") == "equations":
+            entry.update(name=h.get("name", ""), latex=h.get("latex", ""), applicability=h.get("applicability", ""))
+        elif h.get("kind") == "tables":
+            entry.update(title=h.get("title", ""), columns=h.get("columns", []), rows=(h.get("rows") or [])[:14])
+        else:
+            entry.update(quantity=h.get("quantity", ""), value=h.get("value", ""), units=h.get("units", ""),
+                         applies_to=h.get("applies_to", ""), paraphrase=h.get("paraphrase", ""))
+        items.append(entry)
+    return items
+
+
+def _ask_number_problems(text: str, items: list[dict[str, Any]], question: str) -> list[str]:
+    """Numbers in the answer that don't appear in the items (or the question), as printed.
+
+    Book tables give bare numbers ("17") while answers add units ("17 lb/ft^2"), so this compares
+    values only, not dimensions: every number must be copied from a cited item.
+    """
+    def nums(s: str) -> set[float]:
+        out = set()
+        for m in re.findall(r"(?<![A-Za-z_])-?\d[\d,]*(?:\.\d+)?|(?<![\d])\.\d+", s):
+            try:
+                out.add(round(float(m.replace(",", "")), 6))
+            except ValueError:
+                pass
+        return out
+
+    allowed = nums(json.dumps(items, ensure_ascii=False)) | nums(question)
+    body = re.sub(r"\[\d+(?:\s*,\s*\d+)*\]", "", text)  # citation markers
+    body = re.sub(r"\$[^$]*\$", "", body)  # inline LaTeX symbols like $C_{HT}$
+    return [f"{v:g}" for v in sorted(nums(body)) if v not in allowed and abs(v) not in allowed]
+
+
+def _ask_fallback(items: list[dict[str, Any]]) -> str:
+    lines = ["Here is what Raymer (2nd ed.) has on that:"]
+    for it in items[:3]:
+        what = it.get("name") or it.get("title") or it.get("paraphrase") or it.get("quantity") or "item"
+        lines.append(f"- {what} [{it['n']}]")
+    return "\n".join(lines)
+
+
+def answer_textbook_question(question: str) -> dict[str, Any]:
+    """Answer a design question from the extracted, critic-checked Raymer items, citing each one.
+
+    Python retrieves the items (`search_knowledge`, disputed items excluded); Gemini (prompts/ask.md)
+    writes the answer from them only, citing [n]. The answer is used only if every number in it
+    appears in the items (one retry); otherwise, or offline, a cited list of the top items is returned.
+    """
+    question = question.strip()
+    if not question:
+        return {"answer_markdown": "Ask me anything about conceptual aircraft design.", "citations": [], "source": "none"}
+    try:
+        from spiral.tools.lookup import search_knowledge
+
+        hits = search_knowledge(question, kinds=_ASK_KINDS, limit=6).value
+    except ToolError:
+        return {"answer_markdown": _NO_KB, "citations": [], "source": "unavailable"}
+    if not hits:
+        return {"answer_markdown": "I couldn't find that in Raymer's conceptual design book.", "citations": [], "source": "search"}
+
+    items = _ask_items(hits)
+    answer, used, source = _ask_fallback(items), [it["n"] for it in items[:3]], "retrieval only"
+    if gemini_unavailable_reason() is None:
+        try:
+            system_prompt = (PROMPTS_DIR / "ask.md").read_text(encoding="utf-8")
+            schema = {
+                "type": "object",
+                "properties": {"answer": {"type": "string"}, "used": {"type": "array", "items": {"type": "integer"}}},
+                "required": ["answer", "used"],
+            }
+            base = "Question: " + question + "\n\nItems (JSON):\n" + json.dumps(items, ensure_ascii=False, indent=1)
+            user_text = base
+            for _attempt in range(2):
+                data = _generate_json(system_prompt, user_text, schema, model=gemini_lead_model())
+                text = str(data.get("answer") or "").strip()[:1500]
+                cited = [n for n in (data.get("used") or []) if isinstance(n, int) and 1 <= n <= len(items)]
+                problems = _ask_number_problems(text, items, question) if text else ["empty answer"]
+                if not problems:
+                    answer, used, source = text, cited or used, f"Gemini ({LAST_MODEL})"
+                    break
+                user_text = base + "\n\nYour previous answer was rejected; these numbers are not in the items: " + "; ".join(problems)
+        except Exception:  # noqa: BLE001 - keep the retrieval-only answer
+            pass
+    return {
+        "answer_markdown": answer,
+        "citations": [items[n - 1] for n in dict.fromkeys(used)],
+        "source": source,
+    }
+
+
 def _describe_option(c: SpecRelaxationProposal) -> str:
     """One clause describing a computed option, e.g. 'range 5,570 -> 4,670 km (2,719 kg)'."""
     mtow = f"{c.estimated_mtow_kg:,.0f} kg" if c.estimated_mtow_kg else "inside the limit"
@@ -475,7 +606,7 @@ def _gemini_choose_relaxation(state: DesignState, options: list[SpecRelaxationPr
     base = "Digest (JSON):\n" + json.dumps(digest, indent=1)
     user_text = base
     for _attempt in range(2):
-        data = _generate_json(system_prompt, user_text, schema)
+        data = _generate_json(system_prompt, user_text, schema, model=gemini_lead_model())
         choice = data.get("choice")
         text = str(data.get("reasoning") or "").strip()[:1100]
         problems = _number_problems(text, allowed) if text else ["empty answer"]
@@ -1093,7 +1224,7 @@ def _gemini_narrative(state: DesignState) -> tuple[dict[str, str] | None, str]:
     user_text = base_text
     problems: list[str] = []
     for _attempt in range(2):
-        narrative = _clean_narrative(_generate_json(system_prompt, user_text, report_schema()), state)
+        narrative = _clean_narrative(_generate_json(system_prompt, user_text, report_schema(), model=gemini_lead_model()), state)
         if not narrative["executive_summary"]:
             problems = ["empty executive_summary"]
         else:
@@ -1130,7 +1261,7 @@ def generate_report_markdown(state: DesignState) -> str:
         except Exception as exc:  # noqa: BLE001 - the report must never fail because of Gemini
             narrative, why_not = None, f"Gemini call failed ({type(exc).__name__}: {str(exc)[:120]})"
         if narrative is not None:
-            report = _narrative_report(state, narrative, source=f"Gemini ({gemini_model()})")
+            report = _narrative_report(state, narrative, source=f"Gemini ({LAST_MODEL})")
         else:
             state.warnings.append(f"{REPORT_WARNING_PREFIX}{why_not}; showing the computed sections only.")
             report = _deterministic_report(state, note="No narrative: see Warnings. Every section is computed from the design state.")

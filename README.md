@@ -1,16 +1,93 @@
-# Spiral: Escaping the Aircraft Design Spiral
+<p align="center"><img src="docs/spiral-hero.svg" alt="Spiral: describe an aircraft, watch the design spiral close" width="100%"></p>
 
-*Halloween at Imperial: Gemini Edition.*
+# Spiral
 
-You describe an aircraft in plain English. An agent turns the description into a structured spec. It then runs the conceptual and preliminary design spiral until MTOW converges: weight closure, then Schrenk spar loads, then I-beam spar sizing, then the spar mass goes back into the weight closure. Finally it carries the main wing spar to CAD and FEA. Every number traces to an equation, a table row in the textbook, a simulation, or a flagged assumption.
+**Describe an aircraft in plain English. Spiral sizes it, closes the design spiral, and shows where every number came from.**
+
+*Halloween at Imperial: Gemini Edition · **Track 1: Frontier Agents with Gemini**, built with **Gemini 4 Argon**.*
+
+**▶ [Live demo](https://hha21.github.io/halloween-hack/web/)**: the full front end in your browser, replaying recorded Gemini runs; no install, no key. **🎬 [Demo video](docs/spiral-demo.mp4)**
+
+An agent turns your description into a structured spec. It then runs the conceptual and preliminary design spiral until MTOW converges: weight closure, then Schrenk spar loads, then I-beam spar sizing, then the spar mass goes back into the weight closure. Finally it carries the main wing spar to CAD and FEA. If the design can't close, Python finds the single-field changes that would close it, and Gemini, as design lead, picks one by what you asked for. Every number traces to an equation, a table row in the textbook, a simulation, or a flagged assumption.
 
 The core rule: **Gemini decides and writes; Python computes.** Gemini never supplies a number.
+
+| **391 pages** | **692 · 118 · 886** | **596** | **~100** | **within ~10%** |
+|:---:|:---:|:---:|:---:|:---:|
+| of Raymer 2nd ed., read as page images by Gemini | equations · tables · rules of thumb extracted | equations confirmed by an independent critic model | numbers in every run, each with its source | of a real Cessna 172S for the default tourer: MTOW, wing area, span, power |
+
+## See it run
+
+<p align="center"><img src="docs/demo.gif" alt="Spiral demo: describe the aircraft, the London to New York run goes over the class limit, Gemini proposes a fix, the spiral converges, then CAD, FEA and the report" width="100%"></p>
+
+<table>
+<tr>
+<td width="33%" valign="top"><img src="docs/screens/01-landing.png" alt="Landing screen" width="100%"><br><sub><b>1.</b> Describe the aircraft</sub></td>
+<td width="33%" valign="top"><img src="docs/screens/02-intake-reply.png" alt="Intake reply" width="100%"><br><sub><b>2.</b> Intake: your words, Gemini inferred, cited defaults</sub></td>
+<td width="33%" valign="top"><img src="docs/screens/03-infeasible.png" alt="Infeasible run" width="100%"><br><sub><b>3.</b> Over the class limit: the design lead proposes a fix</sub></td>
+</tr>
+<tr>
+<td width="33%" valign="top"><img src="docs/screens/04-converged.png" alt="Converged design" width="100%"><br><sub><b>4.</b> The spiral converges</sub></td>
+<td width="33%" valign="top"><img src="docs/screens/05-fea.png" alt="Spar FEA" width="100%"><br><sub><b>5.</b> Main wing spar: CAD and FEA</sub></td>
+<td width="33%" valign="top"><img src="docs/screens/06-report.png" alt="Design report" width="100%"><br><sub><b>6.</b> Report, with the textbook items behind the numbers</sub></td>
+</tr>
+</table>
+
+<p align="center"><img src="docs/screens/00-ask-raymer.png" alt="Ask Raymer: an answer grounded in critic-verified textbook items" width="70%"><br><sub><b>Ask Raymer:</b> the research agent answers only from critic-verified textbook items, with citations.</sub></p>
+
+## Agentic CAD: Gemini 4 Argon drives Blender
+
+<p align="center"><img src="docs/blender/airframe.png" alt="Light aircraft modelled in Blender by a Gemini 4 Argon agent from the converged design" width="80%"></p>
+
+Once the spiral closes, an airframe agent turns the numbers into a 3D model. **Gemini 4 Argon writes a Blender Python script** from the converged design (span, chords, fuselage, tails, wing position). **Python runs Blender headless** to build the model, export a `.glb` and render it. Then it **measures the model independently**: Spiral's own world bounding box, not the model's self-report, checked against the design. Any failure goes back to Argon to fix, in a verification loop of up to 3 attempts (`spiral/agent/blender_agent.py`, `POST /api/components/airframe`, the "Agentic CAD" panel on Screen 3).
+
+The run that produced this render (`scripts/blender_build.py`):
+
+| Attempt | Result | Time | What happened |
+|---|---|---|---|
+| 1 | ✗ | 62.6 s | Argon's script had a `SyntaxError`; Blender exited with code 1, so no model. The error went back to Argon. |
+| 2 | ✓ | 46.2 s | Fixed script built, exported and rendered. Span **11.051 m vs design 11.051 m**, length **8.25 m vs 8.25 m**. |
+
+Argon's final script: [`docs/blender/airframe.py`](docs/blender/airframe.py).
+
+## Run it
+
+```bash
+python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt && cp .env.example .env   # add your GEMINI_API_KEY to .env
+.venv/bin/uvicorn server.app:app   # then open http://localhost:8000
+```
+
+No key? Open `web/index.html?demo` through any static server to replay recorded runs (for example `python3 -m http.server 8080`, then http://localhost:8080/web/index.html?demo), or set `SPIRAL_OFFLINE=1` to run the full app on its deterministic fallbacks. Full setup is under [Setup](#setup).
+
+## How it works
+
+<p align="center"><img src="docs/pipeline.svg" alt="How every number earns its source: Raymer scan, Gemini extraction, independent critic, verified YAML rows, a number on screen with its badge; then the intake agent, the Python sizing loop, the design lead and the report writer" width="100%"></p>
+
+```mermaid
+flowchart TD
+    A["Plain English"] --> B["Intake agent · Gemini<br/>reads, quotes your words"]
+    B --> C["Python: units and checks<br/>+ cited defaults"]
+    C --> S1
+    subgraph SP [Design spiral]
+        S1["Conceptual sizing"] --> S2["Schrenk loads"] --> S3["Spar sizing"] --> S4["Spar mass fed back"]
+        S4 -->|"until #124;ΔMTOW#124; #60; 0.5%"| S1
+    end
+    S4 --> Q{"Closes under<br/>the limits?"}
+    Q -->|Converged| E["Detailed CAD + FEA"] --> F["Report"]
+    Q -->|Infeasible| G["Python computes<br/>the options that close"] --> H["Gemini design lead<br/>chooses by intent"]
+    H -->|re-run| S1
+    subgraph KP [Knowledge pipeline]
+        K["Raymer 2nd ed. scan"] --> L["Gemini extraction"] --> M["Independent critic model"] --> N["Verified YAML citations"]
+    end
+    N -.-> SP
+    N -.-> O["Every number's badge"]
+```
 
 The full architecture and the frozen contract are in [DESIGN_SPEC.md](DESIGN_SPEC.md).
 
 ## How Gemini is used
 
-The default model is `gemini-3.5-flash` (set with `GEMINI_MODEL`). Intake, the infeasibility explanation and the report each have a deterministic offline fallback. It runs when `SPIRAL_OFFLINE=1` is set, when there is no API key, or when a call fails, so the app and the tests work without Gemini.
+Models: the reasoning agents (the design lead that chooses a relaxation, the research agent behind *Ask Raymer*, and the report writer) run on **`gemini-4-argon`** (`GEMINI_LEAD_MODEL`), falling back to the reader model if Argon is unavailable. The intake agent runs on `gemini-3.5-flash` (`GEMINI_MODEL`). The textbook critic ran on `gemini-3.1-pro-preview`. Intake, the infeasibility explanation and the report each have a deterministic offline fallback. It runs when `SPIRAL_OFFLINE=1` is set, when there is no API key, or when a call fails, so the app and the tests work without Gemini.
 
 | Stage | What Gemini does | What Python does |
 |---|---|---|

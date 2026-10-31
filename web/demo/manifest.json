@@ -1,0 +1,57 @@
+{
+ "recorded_from": "live server + Gemini (gemini-3.5-flash); see scripts/record_demo.py",
+ "scenarios": {
+  "touring": {
+   "intake": "intake_touring.json",
+   "spiral": "spiral_touring.sse",
+   "spiral_sync": "state_touring.json",
+   "spar": "spar_touring.sse",
+   "spar_sync": "state_detailed_touring.json",
+   "report": "report_touring.json"
+  },
+  "london": {
+   "intake": "intake_london.json",
+   "spiral": "spiral_london.sse",
+   "spiral_sync": "state_london.json",
+   "spar": "spar_london.sse",
+   "spar_sync": "state_detailed_london.json",
+   "report": "report_london.json"
+  },
+  "london_relaxed": {
+   "spiral": "spiral_london_relaxed.sse",
+   "spiral_sync": "state_london_relaxed.json",
+   "spar": "spar_london_relaxed.sse",
+   "spar_sync": "state_detailed_london_relaxed.json",
+   "report": "report_london_relaxed.json"
+  },
+  "high_ar": {
+   "intake": "intake_high_ar.json",
+   "spiral": "spiral_high_ar.sse",
+   "spiral_sync": "state_high_ar.json",
+   "spar": "spar_high_ar.sse",
+   "spar_sync": "state_detailed_high_ar.json",
+   "report": "report_high_ar.json"
+  }
+ },
+ "ask": [
+  {
+   "match": "tail volume",
+   "question": "What tail volume coefficients suit a GA single?",
+   "file": "ask_1.json"
+  },
+  {
+   "match": "wing loading",
+   "question": "What wing loading is typical for a general aviation single engine?",
+   "file": "ask_2.json"
+  },
+  {
+   "match": "reserve",
+   "question": "How much reserve fuel should I allow?",
+   "file": "ask_3.json"
+  }
+ ],
+ "rules": {
+  "intake": "description contains 'London' or 'New York' -> london; '13.5' or 'survey' -> high_ar; else touring",
+  "spiral/spar/report": "range_m >= 5e6 and passenger_count <= 1 -> london_relaxed; range_m >= 5e6 -> london; aspect_ratio >= 13 -> high_ar; else touring"
+ }
+}

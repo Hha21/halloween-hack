@@ -157,6 +157,20 @@ def book_item(cite: str) -> dict[str, Any] | None:
     return None if best is None else {k: v for k, v in best.items() if k != "_tokens"}
 
 
+_STOPWORDS = {
+    "a", "an", "the", "of", "for", "to", "in", "on", "at", "by", "with", "and", "or", "is", "are", "be", "do",
+    "does", "what", "which", "how", "why", "when", "should", "can", "could", "would", "i", "my", "we", "our",
+    "it", "its", "this", "that", "suit", "suits", "use", "good", "give", "me", "tell", "about", "value", "values",
+}
+
+
+def _hit(term: str, tokset: set[str]) -> bool:
+    """Term match, ignoring a plural s ("coefficients" matches "coefficient" and vice versa)."""
+    if term in tokset or term + "s" in tokset:
+        return True
+    return len(term) > 3 and term.endswith("s") and term[:-1] in tokset
+
+
 def citation(item: dict[str, Any]) -> str:
     """Human-readable citation for one extracted item, e.g. 'Raymer 2ed, Table 3.1 (p. 13)'."""
     label = {"equations": "Eq.", "tables": "Table", "figures": "Fig."}.get(item.get("kind", ""), "")
@@ -176,7 +190,7 @@ def search_knowledge(
     Scores by query-term overlap (exact number matches such as '3.1' count double). Items the critic
     marked disputed or rejected are excluded unless `include_disputed`.
     """
-    terms = set(_tokens(query))
+    terms = {t for t in _tokens(query) if t not in _STOPWORDS}
     if not terms:
         raise ToolError("Empty knowledge query", tool_name="search_knowledge", recoverable=True)
     items = _knowledge_items()
@@ -194,7 +208,7 @@ def search_knowledge(
             continue
         toks = item["_tokens"]
         tokset = set(toks)
-        score = sum((2.0 if "." in t else 1.0) for t in terms if t in tokset)
+        score = sum((2.0 if "." in t else 1.0) for t in terms if _hit(t, tokset))
         if score:
             scored.append((score / (1.0 + 0.002 * len(toks)), item))
     scored.sort(key=lambda pair: -pair[0])

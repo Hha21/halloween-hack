@@ -122,9 +122,9 @@ def mtow_class_limit() -> tuple[float, str]:
 
 def _lead_name() -> str:
     """Who chose the relaxation: Gemini when it is available, else the deterministic rule."""
-    from spiral.agent.gemini import gemini_model, gemini_unavailable_reason
+    from spiral.agent import gemini
 
-    return f"Gemini {gemini_model()}" if gemini_unavailable_reason() is None else "rule: smallest change"
+    return f"Gemini {gemini.LAST_MODEL}" if gemini.gemini_unavailable_reason() is None else "rule: smallest change"
 
 
 def _intake_log(spec: MissionSpec) -> AgentLogEntry:
@@ -193,7 +193,7 @@ def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
 
 def nearest_feasible_passengers(spec: MissionSpec) -> SpecRelaxationProposal | None:
     """Most passengers (fewer than now) at which the full spiral converges, everything else unchanged."""
-    for passengers in range(spec.passenger_count - 1, -1, -1):
+    for passengers in range(int(round(spec.passenger_count)) - 1, -1, -1):  # JSON may send 1.0
         state = run_design_spiral(replace(spec, passenger_count=passengers), propose_relaxation=False)
         if state.converged and state.latest_sizing is not None:
             return SpecRelaxationProposal(

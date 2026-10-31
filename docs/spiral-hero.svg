@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Spiral: describe an aircraft, watch the design spiral close">
+<title>Spiral: describe an aircraft, watch the design spiral close</title>
+<defs>
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#38bdf8" stroke-opacity=".06" stroke-width="1"/></pattern>
+<radialGradient id="g1" cx="112" cy="116" r="260" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+<radialGradient id="g2" cx="900" cy="230" r="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a78bfa" stop-opacity=".12"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+<linearGradient id="fadeY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b14" stop-opacity="0"/><stop offset=".75" stop-color="#070b14" stop-opacity="0"/><stop offset="1" stop-color="#070b14" stop-opacity=".9"/></linearGradient>
+<linearGradient id="sp" x1="52" y1="56" x2="172" y2="176" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+<linearGradient id="tt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#7dd3fc"/></linearGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<clipPath id="c1"><rect x="68" y="272" height="26" width="0"><animate attributeName="width" dur="14s" repeatCount="indefinite" calcMode="discrete" values="0.0;12.2;22.4;32.6;42.8;53.0;63.2;73.4;83.6;93.8;104.0;114.2;124.4;134.6;144.8;155.0;165.2;175.4;185.6;195.8;206.0;216.2;226.4;236.6;246.8;257.0;267.2;277.4;287.6;297.8;308.0;318.2;328.4;338.6;348.8;359.0;369.2;379.4;389.6;399.8;410.0;420.2;430.4;440.6;450.8;461.0;540.0;0.0" keyTimes="0.0000;0.2020;0.2039;0.2059;0.2078;0.2098;0.2117;0.2137;0.2157;0.2176;0.2196;0.2215;0.2235;0.2254;0.2274;0.2293;0.2313;0.2333;0.2352;0.2372;0.2391;0.2411;0.2430;0.2450;0.2470;0.2489;0.2509;0.2528;0.2548;0.2567;0.2587;0.2607;0.2626;0.2646;0.2665;0.2685;0.2704;0.2724;0.2743;0.2763;0.2783;0.2802;0.2822;0.2841;0.2861;0.2880;0.2900;0.9950"/></rect></clipPath>
+<clipPath id="c2"><rect x="68" y="302" height="26" width="0"><animate attributeName="width" dur="14s" repeatCount="indefinite" calcMode="discrete" values="0.0;12.2;22.4;32.6;42.8;53.0;63.2;73.4;83.6;93.8;104.0;114.2;124.4;134.6;144.8;155.0;165.2;175.4;185.6;195.8;206.0;216.2;226.4;236.6;246.8;257.0;267.2;277.4;287.6;297.8;308.0;318.2;328.4;338.6;348.8;359.0;369.2;379.4;389.6;399.8;410.0;420.2;430.4;440.6;450.8;461.0;540.0;0.0" keyTimes="0.0000;0.2920;0.2939;0.2959;0.2978;0.2998;0.3017;0.3037;0.3057;0.3076;0.3096;0.3115;0.3135;0.3154;0.3174;0.3193;0.3213;0.3233;0.3252;0.3272;0.3291;0.3311;0.3330;0.3350;0.3370;0.3389;0.3409;0.3428;0.3448;0.3467;0.3487;0.3507;0.3526;0.3546;0.3565;0.3585;0.3604;0.3624;0.3643;0.3663;0.3683;0.3702;0.3722;0.3741;0.3761;0.3780;0.3800;0.9950"/></rect></clipPath>
+</defs>
+<style>
+text{font-family:-apple-system, "Segoe UI", Helvetica, Arial, sans-serif}
+.m{font-family:ui-monospace, Menlo, Consolas, monospace}
+.a{animation-duration:14s;animation-iteration-count:infinite;animation-fill-mode:both;transform-box:fill-box;transform-origin:50% 50%}
+.blink{animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.pulse{animation:pulse 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes pulse{50%{transform:scale(1.35);opacity:.55}}
+@keyframes spB{0%,0%{stroke-dashoffset:100;opacity:1}13%{stroke-dashoffset:0;opacity:1}95.5%{stroke-dashoffset:0;opacity:1}99.5%,100%{stroke-dashoffset:0;opacity:0}}
+#spB{animation-name:spB;animation-timing-function:cubic-bezier(.65,0,.35,1);stroke-dasharray:100;stroke-dashoffset:100}
+@keyframes spD{0%,0%{stroke-dashoffset:100;opacity:1}13%{stroke-dashoffset:0;opacity:1}95.5%{stroke-dashoffset:0;opacity:1}99.5%,100%{stroke-dashoffset:0;opacity:0}}
+#spD{animation-name:spD;animation-timing-function:cubic-bezier(.65,0,.35,1);stroke-dasharray:100;stroke-dashoffset:100}
+@keyframes ring{0%,12.5%{opacity:0;transform:scale(.15)}13.5%{opacity:.9}21%,100%{opacity:0;transform:scale(1.4)}}#ring{animation-name:ring;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes core{0%,12.5%{opacity:0;transform:scale(.6)}15.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#core{animation-name:core;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes ttl{0%,12%{opacity:0;transform:translateY(14px)}16.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#ttl{animation-name:ttl;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes tg1{0%,14.5%{opacity:0;transform:translateY(10px)}18.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#tg1{animation-name:tg1;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes tg2{0%,16%{opacity:0;transform:translateY(10px)}20%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#tg2{animation-name:tg2;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes box{0%,17%{opacity:0;transform:translateY(10px)}20.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#box{animation-name:box;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+#hg{animation-name:hg}@keyframes hg{0%,39%{opacity:0}42%{opacity:.9}95.5%{opacity:.9}99.5%,100%{opacity:0}}
+@keyframes h1{0%,39%{fill:#e2e8f0}41.5%{fill:#7dd3fc}100%{fill:#7dd3fc}}
+#h1{animation-name:h1}
+@keyframes h2{0%,41%{fill:#e2e8f0}43.5%{fill:#7dd3fc}100%{fill:#7dd3fc}}
+#h2{animation-name:h2}
+#cur{animation-name:cur}@keyframes cur{0%,19.5%{opacity:0}20%,38.5%{opacity:1}39%,100%{opacity:0}}
+@keyframes q1{0%,41.5%{opacity:0;transform:scale(.6)}44.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#q1{animation-name:q1;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes q2{0%,43%{opacity:0;transform:scale(.6)}46%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#q2{animation-name:q2;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes q3{0%,44.5%{opacity:0;transform:translateY(0px)}47.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#q3{animation-name:q3;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes pan{0%,44%{opacity:0;transform:translateY(10px)}47.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#pan{animation-name:pan;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes lim{0%,47%{opacity:0;transform:translateY(0px)}50%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#lim{animation-name:lim;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes ar{0%,56%{opacity:0;transform:translateY(0px)}60%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#ar{animation-name:ar;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@keyframes rl{0%,49%{stroke-dashoffset:100;opacity:1}57%{stroke-dashoffset:0;opacity:1}95.5%{stroke-dashoffset:0;opacity:1}99.5%,100%{stroke-dashoffset:0;opacity:0}}
+#rl{animation-name:rl;animation-timing-function:cubic-bezier(.65,0,.35,1);stroke-dasharray:100;stroke-dashoffset:100}
+@keyframes p0{0%,49.0%{opacity:0;transform:scale(.6)}51.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#p0{animation-name:p0;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes p1{0%,51.6%{opacity:0;transform:scale(.6)}54.1%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#p1{animation-name:p1;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes p2{0%,54.2%{opacity:0;transform:scale(.6)}56.7%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#p2{animation-name:p2;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes p3{0%,56.8%{opacity:0;transform:scale(.6)}59.3%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#p3{animation-name:p3;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes ov{0%,58%{opacity:0;transform:scale(.7)}60%{opacity:1;transform:none}66%{opacity:1;transform:none}68%,100%{opacity:0;transform:none}}
+#ov{animation-name:ov;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes gem{0%,61%{opacity:0;transform:scale(.6)}64.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#gem{animation-name:gem;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes gl{0%,66%{stroke-dashoffset:100;opacity:1}73%{stroke-dashoffset:0;opacity:1}95.5%{stroke-dashoffset:0;opacity:1}99.5%,100%{stroke-dashoffset:0;opacity:0}}
+#gl{animation-name:gl;animation-timing-function:cubic-bezier(.65,0,.35,1);stroke-dasharray:100;stroke-dashoffset:100}
+@keyframes ge{0%,72.5%{opacity:0;transform:scale(.6)}75.0%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#ge{animation-name:ge;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes cv{0%,73.5%{opacity:0;transform:scale(.6)}76.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#cv{animation-name:cv;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes s0{0%,77.0%{opacity:0;transform:scale(.6)}80.0%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#s0{animation-name:s0;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes s1{0%,79.6%{opacity:0;transform:scale(.6)}82.6%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#s1{animation-name:s1;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes s2{0%,82.2%{opacity:0;transform:scale(.6)}85.2%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#s2{animation-name:s2;animation-timing-function:cubic-bezier(.34,1.56,.64,1)}
+@keyframes ft{0%,85%{opacity:0;transform:translateY(6px)}88.5%{opacity:1;transform:none}95.5%{opacity:1;transform:none}99.5%,100%{opacity:0}}
+#ft{animation-name:ft;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.a,.a *{animation:none!important;opacity:1!important;stroke-dashoffset:0!important}}
+</style>
+<rect width="1200" height="520" fill="#070b14"/>
+<rect width="1200" height="520" fill="url(#grid)"/>
+<rect width="1200" height="520" fill="url(#g1)"/>
+<rect width="1200" height="520" fill="url(#g2)"/>
+<rect width="1200" height="520" fill="url(#fadeY)"/>
+
+<path id="spB" class="a" d="M72.0,71.3 L78.4,66.9 L85.3,63.4 L92.5,60.8 L99.9,59.3 L107.4,58.7 L114.8,59.1 L122.1,60.4 L129.1,62.6 L135.6,65.7 L141.7,69.6 L147.1,74.2 L151.9,79.5 L155.9,85.2 L159.0,91.4 L161.4,97.9 L162.8,104.5 L163.4,111.2 L163.1,117.9 L161.9,124.4 L160.0,130.7 L157.2,136.6 L153.8,142.0 L149.7,146.9 L145.0,151.2 L139.9,154.8 L134.5,157.6 L128.7,159.7 L122.8,161.1 L116.8,161.6 L110.9,161.4 L105.1,160.4 L99.5,158.7 L94.3,156.3 L89.5,153.2 L85.1,149.6 L81.3,145.5 L78.1,141.0 L75.6,136.2 L73.7,131.2 L72.5,126.0 L72.0,120.7 L72.2,115.5 L73.1,110.4 L74.6,105.6 L76.6,101.0 L79.3,96.8 L82.4,93.0 L86.0,89.6 L89.9,86.9 L94.0,84.6 L98.4,83.0 L102.9,81.9 L107.5,81.5 L112.0,81.7 L116.4,82.4 L120.6,83.7 L124.5,85.5 L128.2,87.7 L131.4,90.4 L134.3,93.4 L136.6,96.8 L138.5,100.4 L139.9,104.1 L140.8,107.9 L141.2,111.8 L141.1,115.6 L140.4,119.3 L139.3,122.9 L137.8,126.2 L135.9,129.3 L133.7,132.0 L131.1,134.4 L128.3,136.4 L125.3,137.9 L122.2,139.1 L119.0,139.8 L115.8,140.1 L112.6,140.0 L109.5,139.4 L106.6,138.5 L103.9,137.2 L101.4,135.7 L99.2,133.8 L97.3,131.7 L95.7,129.4 L94.4,126.9 L93.5,124.4 L93.0,121.8 L92.8,119.3 L92.9,116.7 L93.4,114.3 L94.2,112.0 L95.2,109.8 L96.5,107.9 L98.0,106.2 L99.7,104.7 L101.5,103.5 L103.4,102.6 L105.4,101.9 L107.4,101.5 L109.3,101.4 L111.3,101.6 L113.1,102.0 L114.8,102.6 L116.4,103.4 L117.9,104.4 L119.1,105.6 L120.1,106.9 L121.0,108.2 L121.6,109.7 L122.0,111.1 L122.2,112.6 L122.2,114.0 L122.1,115.4 L121.7,116.6 L121.2,117.8 L120.6,118.9 L119.8,119.8 L119.0,120.6 L118.1,121.3 L117.1,121.8 L116.1,122.1 L115.2,122.3 L114.2,122.3 L113.3,122.3 L112.5,122.1 L111.7,121.7 L111.0,121.4 L110.4,120.9 L109.9,120.4 L109.5,119.8 L109.3,119.2 L109.1,118.7 L109.0,118.1 L109.0,117.6 L109.1,117.1 L109.2,116.6 L109.5,116.2 L109.7,115.9 L110.0,115.7 L110.3,115.5 L110.6,115.4 L110.9,115.3 L111.2,115.3 L111.4,115.4 L111.6,115.5 L111.8,115.6 L111.9,115.7 L112.0,115.9 L112.0,116.0" pathLength="100" fill="none" stroke="#38bdf8" stroke-width="6" stroke-opacity=".35" filter="url(#soft)" stroke-linecap="round"/>
+<path id="spD" class="a" d="M72.0,71.3 L78.4,66.9 L85.3,63.4 L92.5,60.8 L99.9,59.3 L107.4,58.7 L114.8,59.1 L122.1,60.4 L129.1,62.6 L135.6,65.7 L141.7,69.6 L147.1,74.2 L151.9,79.5 L155.9,85.2 L159.0,91.4 L161.4,97.9 L162.8,104.5 L163.4,111.2 L163.1,117.9 L161.9,124.4 L160.0,130.7 L157.2,136.6 L153.8,142.0 L149.7,146.9 L145.0,151.2 L139.9,154.8 L134.5,157.6 L128.7,159.7 L122.8,161.1 L116.8,161.6 L110.9,161.4 L105.1,160.4 L99.5,158.7 L94.3,156.3 L89.5,153.2 L85.1,149.6 L81.3,145.5 L78.1,141.0 L75.6,136.2 L73.7,131.2 L72.5,126.0 L72.0,120.7 L72.2,115.5 L73.1,110.4 L74.6,105.6 L76.6,101.0 L79.3,96.8 L82.4,93.0 L86.0,89.6 L89.9,86.9 L94.0,84.6 L98.4,83.0 L102.9,81.9 L107.5,81.5 L112.0,81.7 L116.4,82.4 L120.6,83.7 L124.5,85.5 L128.2,87.7 L131.4,90.4 L134.3,93.4 L136.6,96.8 L138.5,100.4 L139.9,104.1 L140.8,107.9 L141.2,111.8 L141.1,115.6 L140.4,119.3 L139.3,122.9 L137.8,126.2 L135.9,129.3 L133.7,132.0 L131.1,134.4 L128.3,136.4 L125.3,137.9 L122.2,139.1 L119.0,139.8 L115.8,140.1 L112.6,140.0 L109.5,139.4 L106.6,138.5 L103.9,137.2 L101.4,135.7 L99.2,133.8 L97.3,131.7 L95.7,129.4 L94.4,126.9 L93.5,124.4 L93.0,121.8 L92.8,119.3 L92.9,116.7 L93.4,114.3 L94.2,112.0 L95.2,109.8 L96.5,107.9 L98.0,106.2 L99.7,104.7 L101.5,103.5 L103.4,102.6 L105.4,101.9 L107.4,101.5 L109.3,101.4 L111.3,101.6 L113.1,102.0 L114.8,102.6 L116.4,103.4 L117.9,104.4 L119.1,105.6 L120.1,106.9 L121.0,108.2 L121.6,109.7 L122.0,111.1 L122.2,112.6 L122.2,114.0 L122.1,115.4 L121.7,116.6 L121.2,117.8 L120.6,118.9 L119.8,119.8 L119.0,120.6 L118.1,121.3 L117.1,121.8 L116.1,122.1 L115.2,122.3 L114.2,122.3 L113.3,122.3 L112.5,122.1 L111.7,121.7 L111.0,121.4 L110.4,120.9 L109.9,120.4 L109.5,119.8 L109.3,119.2 L109.1,118.7 L109.0,118.1 L109.0,117.6 L109.1,117.1 L109.2,116.6 L109.5,116.2 L109.7,115.9 L110.0,115.7 L110.3,115.5 L110.6,115.4 L110.9,115.3 L111.2,115.3 L111.4,115.4 L111.6,115.5 L111.8,115.6 L111.9,115.7 L112.0,115.9 L112.0,116.0" pathLength="100" fill="none" stroke="url(#sp)" stroke-width="2.6" stroke-linecap="round"/>
+<circle id="ring" class="a" cx="112" cy="116" r="26" fill="none" stroke="#38bdf8" stroke-width="2"/>
+<g id="core" class="a"><circle class="pulse" cx="112" cy="116" r="9" fill="#38bdf8" opacity=".35" filter="url(#soft)"/><circle cx="112" cy="116" r="5" fill="#e0f2fe" filter="url(#glow)"/><circle cx="112" cy="116" r="3" fill="#fff"/></g>
+<text id="ttl" class="a" x="196" y="134" font-size="68" font-weight="700" letter-spacing="-1.5" fill="url(#tt)">Spiral</text>
+<text id="tg1" class="a" x="199" y="175" font-size="20" fill="#cbd5e1">Describe the aircraft.</text>
+<text id="tg2" class="a" x="199" y="201" font-size="20" fill="#cbd5e1">Watch the design <tspan fill="#38bdf8" font-weight="600">spiral close.</tspan></text>
+<g id="box" class="a"><rect x="48" y="222" width="556" height="190" rx="16" fill="#0b1324" fill-opacity=".92" stroke="#94a3b8" stroke-opacity=".18"/>
+<circle cx="76" cy="248" r="4" fill="#38bdf8" filter="url(#glow)"/>
+<text x="90" y="252" font-size="12" letter-spacing="1.6" fill="#94a3b8" font-weight="600">DESCRIBE THE AIRCRAFT</text>
+<text x="580" y="252" font-size="12" text-anchor="end" fill="#a78bfa">✦ intake agent · Gemini</text>
+<line x1="68" y1="266" x2="584" y2="266" stroke="#94a3b8" stroke-opacity=".12"/></g>
+<text class="m" x="70" y="290" font-size="17" fill="#e2e8f0" clip-path="url(#c1)">Four-seat tourer, London to New York non-stop,</text>
+<g clip-path="url(#c2)"><text id="hg" class="m a" x="70" y="320" font-size="17" fill="none" filter="url(#glow)"><tspan fill="#38bdf8">5,570 km range</tspan>, 45 min reserve, <tspan fill="#38bdf8">cruise 115 kt</tspan>…</text>
+<text class="m" x="70" y="320" font-size="17" fill="#e2e8f0"><tspan id="h1" class="a">5,570 km range</tspan>, 45 min reserve, <tspan id="h2" class="a">cruise 115 kt</tspan>…</text></g>
+<g id="cur" class="a"><rect class="blink" x="70" y="275" width="9" height="19" rx="1.5" fill="#38bdf8" opacity=".85"><animate attributeName="x" dur="14s" repeatCount="indefinite" calcMode="discrete" values="70.0;82.2;92.4;102.6;112.8;123.0;133.2;143.4;153.6;163.8;174.0;184.2;194.4;204.6;214.8;225.0;235.2;245.4;255.6;265.8;276.0;286.2;296.4;306.6;316.8;327.0;337.2;347.4;357.6;367.8;378.0;388.2;398.4;408.6;418.8;429.0;439.2;449.4;459.6;469.8;480.0;490.2;500.4;510.6;520.8;531.0;541.2;70.0;82.2;92.4;102.6;112.8;123.0;133.2;143.4;153.6;163.8;174.0;184.2;194.4;204.6;214.8;225.0;235.2;245.4;255.6;265.8;276.0;286.2;296.4;306.6;316.8;327.0;337.2;347.4;357.6;367.8;378.0;388.2;398.4;408.6;418.8;429.0;439.2;449.4;459.6;469.8;480.0;490.2;500.4;510.6;520.8;531.0;541.2;70.0" keyTimes="0.0000;0.2020;0.2039;0.2059;0.2078;0.2098;0.2117;0.2137;0.2157;0.2176;0.2196;0.2215;0.2235;0.2254;0.2274;0.2293;0.2313;0.2333;0.2352;0.2372;0.2391;0.2411;0.2430;0.2450;0.2470;0.2489;0.2509;0.2528;0.2548;0.2567;0.2587;0.2607;0.2626;0.2646;0.2665;0.2685;0.2704;0.2724;0.2743;0.2763;0.2783;0.2802;0.2822;0.2841;0.2861;0.2880;0.2900;0.2905;0.2920;0.2939;0.2959;0.2978;0.2998;0.3017;0.3037;0.3057;0.3076;0.3096;0.3115;0.3135;0.3154;0.3174;0.3193;0.3213;0.3233;0.3252;0.3272;0.3291;0.3311;0.3330;0.3350;0.3370;0.3389;0.3409;0.3428;0.3448;0.3467;0.3487;0.3507;0.3526;0.3546;0.3565;0.3585;0.3604;0.3624;0.3643;0.3663;0.3683;0.3702;0.3722;0.3741;0.3761;0.3780;0.3800;0.9950"/><animate attributeName="y" dur="14s" repeatCount="indefinite" calcMode="discrete" values="275.0;305.0;275.0" keyTimes="0.0000;0.2905;0.9950"/></rect></g>
+<g id="q1" class="a"><rect x="70" y="352" width="152" height="30" rx="15" fill="#38bdf8" fill-opacity=".12" stroke="#38bdf8" stroke-opacity=".55"/><text class="m" x="146" y="372" font-size="13" text-anchor="middle" fill="#7dd3fc">❝ 5,570 km range</text></g>
+<g id="q2" class="a"><rect x="232" y="352" width="144" height="30" rx="15" fill="#38bdf8" fill-opacity=".12" stroke="#38bdf8" stroke-opacity=".55"/><text class="m" x="304" y="372" font-size="13" text-anchor="middle" fill="#7dd3fc">❝ cruise 115 kt</text></g>
+<text id="q3" class="a" x="390" y="372" font-size="13" fill="#94a3b8">→ Python checks the units</text>
+<g id="pan" class="a"><rect x="640" y="40" width="512" height="372" rx="16" fill="#0b1324" fill-opacity=".92" stroke="#94a3b8" stroke-opacity=".18"/>
+<text x="664" y="74" font-size="12" letter-spacing="1.6" fill="#94a3b8" font-weight="600">MTOW PER LAP</text>
+<text class="m" x="1128" y="74" font-size="12" text-anchor="end" fill="#7dd3fc">London → New York</text>
+<line x1="704" y1="114.3" x2="1128" y2="114.3" stroke="#94a3b8" stroke-opacity=".08"/><text class="m" x="696" y="118.3" font-size="11" text-anchor="end" fill="#64748b">3,500</text>
+<line x1="704" y1="185.7" x2="1128" y2="185.7" stroke="#94a3b8" stroke-opacity=".08"/><text class="m" x="696" y="189.7" font-size="11" text-anchor="end" fill="#64748b">3,000</text>
+<line x1="704" y1="257.1" x2="1128" y2="257.1" stroke="#94a3b8" stroke-opacity=".08"/><text class="m" x="696" y="261.1" font-size="11" text-anchor="end" fill="#64748b">2,500</text>
+<line x1="704" y1="310" x2="1128" y2="310" stroke="#94a3b8" stroke-opacity=".25"/></g>
+<g id="lim" class="a"><line x1="704" y1="225.4" x2="1128" y2="225.4" stroke="#f43f5e" stroke-width="1.6" stroke-dasharray="6 5"/><text class="m" x="708" y="217.4" font-size="12" fill="#fb7185">class limit 2,722 kg</text></g>
+<path id="ar" class="a" d="M740,225.4 L740,131.9 L806,122.4 L872,119.7 L938,119.0 L938,225.4Z" fill="#f43f5e" fill-opacity=".10"/>
+<path id="rl" class="a" d="M740,131.9 L806,122.4 L872,119.7 L938,119.0" pathLength="100" fill="none" stroke="#f43f5e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+<g id="p0" class="a"><circle cx="740" cy="131.9" r="5" fill="#070b14" stroke="#f43f5e" stroke-width="2.4"/><text class="m" x="740" y="118.9" font-size="12" text-anchor="middle" fill="#fda4af">3,377</text></g>
+<g id="p1" class="a"><circle cx="806" cy="122.4" r="5" fill="#070b14" stroke="#f43f5e" stroke-width="2.4"/><text class="m" x="806" y="109.4" font-size="12" text-anchor="middle" fill="#fda4af">3,443</text></g>
+<g id="p2" class="a"><circle cx="872" cy="119.7" r="5" fill="#070b14" stroke="#f43f5e" stroke-width="2.4"/><text class="m" x="872" y="106.7" font-size="12" text-anchor="middle" fill="#fda4af">3,462</text></g>
+<g id="p3" class="a"><circle cx="938" cy="119.0" r="5" fill="#070b14" stroke="#f43f5e" stroke-width="2.4"/><text class="m" x="938" y="106.0" font-size="12" text-anchor="middle" fill="#fda4af">3,467 kg</text></g>
+<g id="ov" class="a"><rect x="1010" y="150" width="114" height="26" rx="13" fill="#f43f5e" fill-opacity=".14" stroke="#f43f5e" stroke-opacity=".7"/><text x="1067" y="167.5" font-size="13" font-weight="600" text-anchor="middle" fill="#fb7185">✕ over limit</text></g>
+<g id="gem" class="a"><rect x="664" y="328" width="464" height="68" rx="12" fill="#a78bfa" fill-opacity=".12" stroke="#a78bfa" stroke-opacity=".6"/>
+<text x="686" y="353" font-size="13" font-weight="600" fill="#c4b5fd">✦ Gemini, design lead:</text>
+<text x="686" y="381" font-size="18" fill="#ede9fe">keep the route, fly with 1 passenger</text></g>
+<path id="gl" class="a" d="M938,119.0 C996,119.0 1004,268.3 1062,268.3 L1124,268.3" pathLength="100" fill="none" stroke="#34d399" stroke-width="2.8" stroke-linecap="round" filter="url(#glow)"/>
+<g id="ge" class="a"><circle cx="1124" cy="268.3" r="5" fill="#34d399" filter="url(#glow)"/><text class="m" x="1116" y="257.3" font-size="13" font-weight="700" text-anchor="end" fill="#6ee7b7">2,422 kg</text></g>
+<g id="cv" class="a"><rect x="1000" y="279" width="124" height="26" rx="13" fill="#34d399" fill-opacity=".16" stroke="#34d399" stroke-opacity=".8"/><text x="1062" y="296.5" font-size="13" font-weight="700" text-anchor="middle" fill="#6ee7b7">✓ converged</text></g>
+<g id="s0" class="a"><rect x="193" y="428" width="189" height="36" rx="18" fill="#38bdf8" fill-opacity=".13" stroke="#38bdf8" stroke-opacity=".75"/><text x="288" y="451" font-size="15" font-weight="600" text-anchor="middle" fill="#7dd3fc">❝ from your words</text></g>
+<g id="s1" class="a"><rect x="400" y="428" width="189" height="36" rx="18" fill="#a78bfa" fill-opacity=".13" stroke="#a78bfa" stroke-opacity=".75"/><text x="494" y="451" font-size="15" font-weight="600" text-anchor="middle" fill="#c4b5fd">✦ Gemini inferred</text></g>
+<g id="s2" class="a"><rect x="607" y="428" width="400" height="36" rx="18" fill="#34d399" fill-opacity=".13" stroke="#34d399" stroke-opacity=".75"/><text x="807" y="451" font-size="15" font-weight="600" text-anchor="middle" fill="#6ee7b7">§ Raymer 2ed, Eq. 3.4 (p. 12)  ✓ verified</text></g>
+<text id="ft" class="a" x="600" y="500" font-size="15" text-anchor="middle" letter-spacing=".3" fill="#94a3b8"><tspan fill="#c4b5fd" font-weight="600">Gemini</tspan> reads · <tspan fill="#7dd3fc" font-weight="600">Python</tspan> computes · an independent <tspan fill="#6ee7b7" font-weight="600">critic</tspan> verifies every number</text>
+</svg>

@@ -1,0 +1,28 @@
+{
+ "status": "ok",
+ "model": "gemini-4-argon",
+ "attempts": [
+  {
+   "n": 1,
+   "ok": true,
+   "issues": [],
+   "seconds": 51.7
+  }
+ ],
+ "checks": {
+  "span_m": {
+   "design": 11.051,
+   "model": 11.051,
+   "ok": true
+  },
+  "length_m": {
+   "design": 8.25,
+   "model": 8.25,
+   "ok": true
+  }
+ },
+ "render_url": "demo/artifacts/airframe.png",
+ "glb_url": "demo/artifacts/airframe.glb",
+ "script_url": "demo/artifacts/airframe.py",
+ "recorded": "live run of POST /api/components/airframe (Gemini 4 Argon + Blender 5.0.1, headless)"
+}

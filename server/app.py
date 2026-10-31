@@ -12,12 +12,13 @@ Endpoints (consumed by Tharm's `web/api_client.js`; payload types in spiral/cont
 
 from __future__ import annotations
 
+import asyncio
 import queue
 import threading
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import FastAPI
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -99,15 +100,25 @@ def api_intake(payload: dict[str, Any]) -> dict[str, Any]:
     ).to_dict()
 
 
+_LAST_STATE: DesignState | None = None  # most recent converged spiral state (default for the airframe agent)
+
+
+def _remember(state: DesignState) -> DesignState:
+    global _LAST_STATE
+    if getattr(state, "converged", False):
+        _LAST_STATE = state
+    return state
+
+
 @app.post("/api/spiral/run-sync")
 def api_spiral_run_sync(payload: dict[str, Any]) -> dict[str, Any]:
-    return run_design_spiral(_spec_from(payload)).to_dict()
+    return _remember(run_design_spiral(_spec_from(payload))).to_dict()
 
 
 @app.post("/api/spiral/stream")
 def api_spiral_stream(payload: dict[str, Any]) -> StreamingResponse:
     spec = _spec_from(payload)
-    return _sse(lambda emit: run_design_spiral(spec, on_event=emit))
+    return _sse(lambda emit: _remember(run_design_spiral(spec, on_event=emit)))
 
 
 @app.post("/api/components/spar")
@@ -120,6 +131,32 @@ def api_component_spar(payload: dict[str, Any]) -> dict[str, Any]:
 def api_component_spar_stream(payload: dict[str, Any]) -> StreamingResponse:
     state = _state_from(payload)
     return _sse(lambda emit: run_spar_detailed_design(state, out_dir=str(ARTIFACTS_DIR), on_event=emit))
+
+
+@app.post("/api/components/airframe")
+async def api_component_airframe(payload: dict[str, Any] | None = Body(default=None)) -> dict[str, Any]:
+    """Gemini 4 Argon designs the 3D airframe in Blender, verified against the design dimensions."""
+    from spiral.agent.blender_agent import build_airframe
+
+    def run() -> dict[str, Any]:
+        raw = (payload or {}).get("state")
+        if raw:
+            state = DesignState.from_dict(raw)
+            if state.latest_geometry is None or state.latest_sizing is None:
+                state = run_design_spiral(state.spec)
+        else:
+            state = _LAST_STATE or run_design_spiral(MissionSpec())
+        return build_airframe(state, out_dir=str(ARTIFACTS_DIR))
+
+    return await asyncio.to_thread(run)
+
+
+@app.post("/api/ask")
+def api_ask(payload: dict[str, Any]) -> dict[str, Any]:
+    """Ask the textbook: {question} -> {answer_markdown, citations, source}. Answers cite critic-checked Raymer items."""
+    from spiral.agent.gemini import answer_textbook_question
+
+    return answer_textbook_question(str(payload.get("question", "")))
 
 
 @app.post("/api/report")

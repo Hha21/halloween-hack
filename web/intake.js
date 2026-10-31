@@ -12,7 +12,7 @@
  * app.js owns the shared state; it passes getters/setters in via initIntake().
  */
 
-import { parseIntake } from "./api_client.js";
+import { parseIntake, API_BASE } from "./api_client.js";
 
 let ctx = null;
 let lastIntake = null; // IntakeResponse from the last parse, or null
@@ -109,7 +109,7 @@ function renderSummary() {
   ];
   if (counts["prov-user"]) parts.push(`<span class="prov-badge prov-user">${counts["prov-user"]} edited</span>`);
   const warnings = (lastIntake.warnings || []).map((w) => `<div class="intake-summary-line warn">⚠ ${esc(w)}</div>`).join("");
-  el.innerHTML = `${echoHtml(spec)}<div class="intake-summary-line intake-summary-legend">${parts.join(" ")}</div>${warnings}
+  el.innerHTML = `<div class="intake-summary-line intake-summary-legend">${parts.join(" ")}</div>${warnings}
     <div class="intake-summary-line muted">Hover a badge for its source. Gemini only reads your text; every number is converted, checked or defaulted by Python with a citation.</div>`;
 }
 
@@ -189,6 +189,8 @@ export function renderIntakeCards() {
     .join("");
 
   if (animateNext && !reducedMotion()) countUp(container);
+  const lbl = document.getElementById("spec-summary-label");
+  if (lbl) lbl.innerHTML = disclosureLabel(ctx.getSpec());
   container.querySelectorAll("[data-spec-key]").forEach((el) => {
     el.addEventListener("change", () => {
       const spec = ctx.getSpec();
@@ -376,6 +378,380 @@ function buildHero() {
   }
 }
 
+/* ======================= Chat landing (Screen 1) ======================= */
+const SUGGEST = {
+  touring: { title: "4-seat touring aircraft", meta: "1,000 km, 115 kt cruise. Converges in a few laps." },
+  diverging: { title: "London → New York, non-stop", meta: "5,570 km in a 4-seat tourer. Infeasible: watch Gemini propose a fix." },
+  high_ar: { title: "High-aspect-ratio survey wing", meta: "AR 13.5 slender wing. Trips a textbook range warning." },
+};
+let hero = null;
+let thread = null;
+let busy = false;
+
+const typeOut = (el, text) =>
+  new Promise((resolve) => {
+    if (reducedMotion()) { el.textContent = text; return resolve(); }
+    let i = 0;
+    const step = () => {
+      i = Math.min(text.length, i + 3);
+      el.textContent = text.slice(0, i);
+      if (i < text.length) setTimeout(step, 14); else resolve();
+    };
+    step();
+  });
+
+function scrollChat() {
+  const end = document.getElementById("chat-end");
+  end?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "end" });
+}
+
+function bubble(role, html) {
+  const el = document.createElement("div");
+  el.className = `chat-msg chat-${role}`;
+  el.innerHTML = role === "assistant" ? `<div class="chat-avatar" aria-hidden="true">${spiralSvg("avatar")}</div><div class="chat-body">${html}</div>` : `<div class="chat-body">${html}</div>`;
+  thread.appendChild(el);
+  scrollChat();
+  return el;
+}
+
+function spiralSvg(cls) {
+  return `<svg class="spiral-${cls}" viewBox="0 0 256 256" aria-hidden="true"><path class="sp-path" d="${SPIRAL_D}" pathLength="1"/><circle class="sp-dot" cx="150" cy="139" r="15"/></svg>`;
+}
+
+function specCounts(spec) {
+  const fields = Object.keys(spec || {}).filter((k) => !["name", "raw_description", "defaulted_fields", "stated_fields"].includes(k));
+  const c = { total: fields.length, "prov-from-text": 0, "prov-inferred": 0, "prov-cited": 0, "prov-user": 0 };
+  fields.forEach((f) => (c[origin(f).cls] = (c[origin(f).cls] || 0) + 1));
+  return c;
+}
+
+function disclosureLabel(spec) {
+  const c = specCounts(spec);
+  const edited = c["prov-user"] ? `, ${c["prov-user"]} edited` : "";
+  return `View full spec: ${c.total} parameters <span class="muted">(${c["prov-from-text"]} from you, ${c["prov-inferred"]} inferred, ${c["prov-cited"]} cited defaults${edited})</span>`;
+}
+
+function chip(label, value, field) {
+  const o = origin(field);
+  return `<span class="kv-chip ${o.cls}" data-field="${esc(field)}" title="${esc(o.title)}"><span class="kv-k">${esc(label)}</span><span class="kv-v">${esc(value)}</span></span>`;
+}
+
+function chipsHtml(s) {
+  const kt = (ms) => Math.round(ms / 0.514444);
+  return [
+    chip("Range", `${Math.round(s.range_m / 1000).toLocaleString()} km`, "range_m"),
+    chip("Cruise", `${kt(s.cruise_speed_ms)} kt`, "cruise_speed_ms"),
+    chip("Stall", `${kt(s.stall_speed_ms)} kt`, "stall_speed_ms"),
+    chip("Passengers", `${s.passenger_count}`, "passenger_count"),
+    chip("Reserve", `${Math.round(s.reserve_s / 60)} min`, "reserve_s"),
+  ].join("");
+}
+
+/** Mark the user's own phrases (stated_fields) inside their bubble. */
+function markUserBubble(el, text, spec) {
+  const html = echoHtml({ ...spec, raw_description: text });
+  const body = el.querySelector(".chat-body");
+  if (html && body) body.innerHTML = html.replace(/^<p class="mission-echo"><span class="echo-label">[^<]*<\/span>/, "").replace(/<\/p>$/, "");
+}
+
+/* ---------------------- Ask the textbook (POST /api/ask) ---------------------- */
+const ASK_PREFIX = /^ask raymer:?\s*/i;
+function isQuestion(text) {
+  const t = String(text || "").trim().replace(ASK_PREFIX, "");
+  return /\?\s*$/.test(t) || /^(what|which|how|why|when|should|can)\b/i.test(t);
+}
+
+async function askTextbook(question) {
+  const res = await fetch(`${API_BASE}/api/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  });
+  if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+  return res.json();
+}
+
+/** Small, safe markdown: paragraphs, headings, lists, tables, **bold**, *italic*, `code`. Escapes first. */
+function mdLite(md) {
+  const inline = (t) =>
+    t
+      .split(/(`[^`]+`|\$[^$\n]+\$)/g)
+      .map((part) =>
+        part.length > 1 && part.startsWith("`") && part.endsWith("`")
+          ? `<code>${part.slice(1, -1)}</code>`
+          : part.length > 2 && part.startsWith("$") && part.endsWith("$")
+          ? `<span class="tex">${part.slice(1, -1)}</span>`
+          : part.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*\w])\*([^*\n]+)\*(?![*\w])/g, "$1<em>$2</em>")
+      )
+      .join("");
+  const block = (b) => {
+    const lines = b.split("\n").filter((l) => l.trim() !== "");
+    if (!lines.length) return "";
+    const head = lines[0].match(/^#{1,6}\s+(.*)$/);
+    if (head) return `<h4>${inline(head[1])}</h4>` + block(lines.slice(1).join("\n"));
+    if (lines.length >= 2 && lines.every((l) => /^\s*\|.*\|\s*$/.test(l))) return mdTableHtml(lines.map(inline).join("\n"));
+    if (lines.every((l) => /^\s*[-*•]\s+/.test(l))) return `<ul>${lines.map((l) => `<li>${inline(l.replace(/^\s*[-*•]\s+/, ""))}</li>`).join("")}</ul>`;
+    if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) return `<ol>${lines.map((l) => `<li>${inline(l.replace(/^\s*\d+[.)]\s+/, ""))}</li>`).join("")}</ol>`;
+    return `<p>${lines.map(inline).join("<br>")}</p>`;
+  };
+  return esc(String(md || "")).replace(/\r\n/g, "\n").split(/\n{2,}/).map(block).join("");
+}
+
+const KIND_LABEL = { equations: "Equation", tables: "Table", rules_of_thumb: "Rule of thumb" };
+
+/** A few rows of a cited table; rows mentioning "single engine" are highlighted and kept. */
+function miniTable(columns, rows) {
+  const str = (v) => (v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v));
+  const cols = (Array.isArray(columns) ? columns : []).map(str);
+  const HL = /single[\s-]?engine/i;
+  const all = rows.map((r, i) => {
+    const cells = Array.isArray(r) ? r : r && typeof r === "object" ? (cols.length ? cols.map((c) => r[c]) : Object.values(r)) : [r];
+    return { cells, i, hl: HL.test(cells.map(str).join(" ")) };
+  });
+  const hl = all.filter((x) => x.hl).slice(0, 3);
+  const rest = all.filter((x) => !x.hl).slice(0, Math.max(0, 4 - hl.length));
+  const shown = [...hl, ...rest].sort((a, b) => a.i - b.i);
+  const head = cols.length ? `<thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead>` : "";
+  const body = shown.map((x) => `<tr${x.hl ? ' class="is-hl"' : ""}>${x.cells.map((v) => `<td>${esc(str(v))}</td>`).join("")}</tr>`).join("");
+  const more =
+    all.length > shown.length
+      ? `<div class="cite-more">Showing ${shown.length} of ${all.length} rows${hl.length ? "; single-engine rows highlighted" : ""}</div>`
+      : "";
+  return `<div class="cite-table-wrap"><table class="cite-table">${head}<tbody>${body}</tbody></table></div>${more}`;
+}
+
+function citeDetail(c, verdict) {
+  const has = (v) => v !== undefined && v !== null && v !== "";
+  const kind = KIND_LABEL[c.kind] || "";
+  const page = has(c.book_page) ? `book page ${esc(c.book_page)}` : "";
+  const name = c.name || c.title || c.quantity;
+  const out = [];
+  if (name && name !== c.citation) out.push(`<div class="cite-title">${esc(name)}</div>`);
+  if (has(c.value)) out.push(`<div class="cite-value">${esc(c.value)}${has(c.units) ? ` <span class="muted">${esc(c.units)}</span>` : ""}</div>`);
+  if (c.latex) out.push(`<pre class="cite-latex">${esc(c.latex)}</pre>`);
+  if (Array.isArray(c.rows) && c.rows.length) out.push(miniTable(c.columns, c.rows));
+  const applies = c.applicability || c.applies_to;
+  if (applies) out.push(`<p class="cite-para"><span class="muted">Applies to:</span> ${esc(typeof applies === "string" ? applies : JSON.stringify(applies))}</p>`);
+  if (c.paraphrase) out.push(`<p class="cite-para">${esc(c.paraphrase)}</p>`);
+  out.push(`<div class="cite-meta">${[kind, page, verdict].filter(Boolean).join(", ")}</div>`);
+  return out.join("");
+}
+
+/** One expandable chip per textbook item; a green check means the critic confirmed it against the page. */
+function citeChips(citations) {
+  const list = (Array.isArray(citations) ? citations : []).filter((c) => c && typeof c === "object");
+  if (!list.length) return "";
+  return `<div class="cite-list">${list
+    .map((c, i) => {
+      const status = String(c.status || "");
+      const ok = status.startsWith("verified");
+      const n = c.n ?? i + 1;
+      const kind = KIND_LABEL[c.kind] || "";
+      const label = c.citation || c.title || c.name || `Source ${n}`;
+      const verdict = ok
+        ? status === "verified_minor_fix"
+          ? "critic verified after a minor fix"
+          : "critic verified against the page"
+        : "not verified by the critic";
+      return `<details class="cite-item${ok ? " is-verified" : ""}" data-n="${esc(n)}"><summary class="cite-pill" title="${esc(verdict)}"><span class="cite-mark">${ok ? "✓" : "§"}</span><span class="cite-num">${esc(n)}</span><span class="cite-label">${esc(label)}</span>${kind ? `<span class="cite-kind">${kind}</span>` : ""}</summary><div class="cite-detail">${citeDetail(c, verdict)}</div></details>`;
+    })
+    .join("")}</div>`;
+}
+
+/** Turn [n] / [1, 2] markers into small buttons that open the matching citation. */
+function linkRefs(html, citations) {
+  const known = new Set((Array.isArray(citations) ? citations : []).map((c, i) => String(c?.n ?? i + 1)));
+  if (!known.size) return html;
+  return html.replace(/\[(\d{1,3}(?:\s*,\s*\d{1,3})*)\](?!\()/g, (m, list) => {
+    const ns = list.split(/\s*,\s*/);
+    if (!ns.every((n) => known.has(n))) return m;
+    return ns.map((n) => `<button type="button" class="cite-ref" data-cite="${n}" title="Show source ${n}">${n}</button>`).join("");
+  });
+}
+
+async function ask(text) {
+  busy = true;
+  document.getElementById("screen-intake")?.classList.add("chat-started");
+  clearComposer();
+  const question = String(text).trim().replace(ASK_PREFIX, "").trim() || String(text).trim();
+  bubble("user", esc(text));
+  const botEl = bubble("assistant", `<div class="typing">§ Looking it up in Raymer<span class="dots"><i></i><i></i><i></i></span></div>`);
+  const body = botEl.querySelector(".chat-body");
+  hero?.setMode?.("thinking");
+  ctx.setStatus?.("Asking the textbook...", true);
+  try {
+    const res = await askTextbook(question);
+    const md = typeof res?.answer_markdown === "string" ? res.answer_markdown : typeof res?.answer === "string" ? res.answer : "";
+    const chips = citeChips(res?.citations);
+    if (!md.trim() && !chips) throw Object.assign(new Error("The textbook returned an empty answer"), { status: 0 });
+    const nVer = (Array.isArray(res?.citations) ? res.citations : []).filter((c) => String(c?.status || "").startsWith("verified")).length;
+    const src = typeof res?.source === "string" ? res.source : "";
+    const srcLine =
+      src && src !== "unavailable"
+        ? `<div class="answer-source reveal">${src === "retrieval only" ? "Retrieved straight from the book's extracted items." : `Answered by ${esc(src)}, grounded in the book items below.`}</div>`
+        : "";
+    body.innerHTML = `<div class="answer-md reveal">${linkRefs(mdLite(md), res?.citations)}</div>${srcLine}${
+      chips ? `<div class="cite-head reveal">From the book${nVer ? `: ${nVer} item${nVer === 1 ? "" : "s"} checked against the page by the critic` : ""}</div><div class="reveal">${chips}</div>` : ""
+    }`;
+    hero?.setMode?.("ready");
+    ctx.setStatus?.("Answered from the textbook", false);
+  } catch (err) {
+    const offline = [404, 405, 501, 502, 503].includes(err?.status) || err instanceof TypeError || err instanceof SyntaxError;
+    body.innerHTML = `<p class="reply-text">${
+      offline
+        ? "The textbook is offline right now, so I can't look that up. You can still describe a mission and I'll size it."
+        : `I couldn't get an answer from the textbook (${esc(err?.message || err)}). Try rephrasing the question.`
+    }</p>`;
+    hero?.setMode?.("idle");
+    ctx.setStatus?.(offline ? "Textbook offline" : "Ask failed", false);
+  } finally {
+    busy = false;
+    scrollChat();
+  }
+}
+
+function clearComposer() {
+  const input = document.getElementById("chat-input");
+  if (input) {
+    input.value = "";
+    input.style.height = "";
+  }
+}
+
+async function send(text, overrides = null) {
+  text = String(text || "").trim();
+  if (!text || busy) return;
+  if (!overrides && isQuestion(text)) return ask(text);
+  busy = true;
+  document.getElementById("screen-intake")?.classList.add("chat-started");
+  clearComposer();
+  // retire the previous reply's live form so only one #intake-cards exists
+  thread.querySelectorAll(".chat-live").forEach((n) => n.remove());
+  const userEl = bubble("user", esc(text));
+  const botEl = bubble("assistant", `<div class="typing">✦ Gemini is reading your mission<span class="dots"><i></i><i></i><i></i></span></div>`);
+  hero?.setMode?.("thinking");
+  ctx.setStatus?.("Parsing mission with Gemini...", true);
+  const body = botEl.querySelector(".chat-body");
+  try {
+    const res = await parseIntake(text);
+    lastIntake = res;
+    lastError = null;
+    edited.clear();
+    parsedSpec = structuredClone(res.spec);
+    const spec = res.spec;
+    for (const [k, v] of Object.entries(overrides || {})) {
+      if (spec[k] !== v) {
+        spec[k] = v;
+        if (spec.defaulted_fields) delete spec.defaulted_fields[k];
+        edited.add(k);
+      }
+    }
+    ctx.setSpec(spec);
+    markUserBubble(userEl, text, spec);
+    const c = specCounts(spec);
+    const people = (spec.crew_count || 0) + (spec.passenger_count || 0);
+    const summary = `Here's the mission as I read it: a ${people}-seat aircraft flying ${Math.round(spec.range_m / 1000).toLocaleString()} km at ${Math.round(spec.cruise_speed_ms / 0.514444)} kt. ${c["prov-from-text"]} values come from your words, ${c["prov-inferred"]} I inferred, and ${c["prov-cited"]} are cited textbook defaults.`;
+    body.innerHTML = `<p class="reply-text"></p>`;
+    await typeOut(body.querySelector(".reply-text"), summary);
+    const warns = (res.warnings || []).map((w) => `<div class="chat-warn">⚠ ${esc(w)}</div>`).join("");
+    body.insertAdjacentHTML(
+      "beforeend",
+      `<div class="kv-chips reveal">${chipsHtml(spec)}</div>${warns}
+      <details class="spec-details chat-live reveal"><summary id="spec-summary-label">${disclosureLabel(spec)}</summary><div id="intake-summary" class="intake-summary"></div><div id="intake-cards" class="spec-cards-grid"></div></details>
+      <div class="chat-actions chat-live reveal"><button type="button" class="btn primary chat-run">Run the design spiral →</button><button type="button" class="btn secondary chat-edit">Edit spec</button></div>`
+    );
+    renderIntakeCards();
+    ctx.onSpecChanged?.();
+    hero?.setMode?.("ready");
+    ctx.setStatus?.("Spec parsed: run the design spiral", false);
+  } catch (err) {
+    lastIntake = null;
+    parsedSpec = null;
+    lastError = err?.message || String(err);
+    const fallback = { ...structuredClone(ctx.defaultSpec), ...(overrides || {}), raw_description: text };
+    ctx.setSpec(fallback);
+    ctx.onSpecChanged?.();
+    body.innerHTML = `<p class="reply-text">I couldn't read that mission just now (${esc(lastError)}). I've loaded the baseline touring spec instead, so you can still run the spiral, or try rephrasing.</p>
+      <div class="chat-actions chat-live"><button type="button" class="btn secondary chat-run">Run with the baseline spec</button></div>`;
+    hero?.setMode?.("idle");
+    ctx.setStatus?.("Intake failed: baseline spec loaded", false);
+  } finally {
+    busy = false;
+    scrollChat();
+  }
+}
+
+function buildChat() {
+  const screen = document.getElementById("screen-intake");
+  if (!screen || screen.querySelector(".chat-wrap")) return;
+  const suggestions = Object.keys(ctx.presets || {})
+    .map((k) => {
+      const t = SUGGEST[k] || { title: k, meta: ctx.presets[k].prompt };
+      return `<button type="button" class="suggest-card${k === "diverging" ? " is-dramatic" : ""}" data-preset="${esc(k)}"><span class="sc-title">${esc(t.title)}</span><span class="sc-meta">${esc(t.meta)}</span></button>`;
+    })
+    .join("") +
+    `<button type="button" class="suggest-card is-ask" data-ask="Ask Raymer: what tail volume coefficients suit a GA single?"><span class="sc-title">Ask Raymer</span><span class="sc-meta">What tail volume coefficients suit a GA single?</span></button>`;
+  screen.innerHTML = `
+    <div class="chat-bg" aria-hidden="true"></div>
+    <div class="chat-wrap">
+      <div class="chat-thread" id="chat-thread" aria-live="polite">
+        <div class="chat-empty">
+          ${spiralSvg("hero")}
+          <h1 class="chat-greeting">What are we designing today?</h1>
+          <p class="chat-sub">Describe a mission in plain English. Gemini reads it; Python sizes the aircraft from Raymer and cites every number.</p>
+          <div class="chat-suggestions">${suggestions}</div>
+        </div>
+      </div>
+      <div id="chat-end"></div>
+      <form class="chat-composer" id="chat-form">
+        <textarea id="chat-input" rows="1" placeholder="Describe a mission, or ask Raymer a question…" aria-label="Describe your aircraft mission"></textarea>
+        <button type="submit" id="chat-send" class="chat-send" aria-label="Send">↑</button>
+      </form>
+      <p class="chat-hint">Enter sends, Shift+Enter adds a line. End with a question mark to ask the textbook.</p>
+    </div>`;
+  thread = document.getElementById("chat-thread");
+  const input = document.getElementById("chat-input");
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+  });
+  input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 200) + "px"; });
+  document.getElementById("chat-form").addEventListener("submit", (e) => { e.preventDefault(); send(input.value); });
+  screen.addEventListener("click", (e) => {
+    const ref = e.target.closest(".cite-ref");
+    if (ref) {
+      const item = ref.closest(".chat-msg")?.querySelector(`.cite-item[data-n="${CSS.escape(ref.dataset.cite)}"]`);
+      if (item) {
+        item.open = true;
+        item.classList.remove("flash");
+        void item.offsetWidth;
+        item.classList.add("flash");
+        item.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "nearest" });
+      }
+      return;
+    }
+    const askCard = e.target.closest("[data-ask]");
+    if (askCard) {
+      send(askCard.dataset.ask);
+      return;
+    }
+    const preset = e.target.closest("[data-preset]");
+    if (preset) {
+      const p = ctx.presets?.[preset.dataset.preset];
+      if (p) send(p.prompt, p.overrides);
+      return;
+    }
+    if (e.target.closest(".chat-run")) { ctx.onConfirm?.(); return; }
+    if (e.target.closest(".chat-edit")) {
+      const d = thread.querySelector(".spec-details");
+      if (d) { d.open = true; d.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" }); }
+    }
+  });
+  const layer = screen.querySelector(".chat-bg");
+  import("./hero3d.js")
+    .then((m) => { hero = m.mountHero?.(layer) || null; hero?.setMode?.("idle"); })
+    .catch(() => {});
+}
+
 /**
  * Wire Screen 1. `options`:
  *   getSpec(), setSpec(spec)   shared MissionSpec state (owned by app.js)
@@ -387,22 +763,8 @@ function buildHero() {
 export function initIntake(options) {
   ctx = options;
   installFavicon();
-  buildHero();
-  wireLinking();
   enhanceReportTables();
-  document.querySelectorAll("[data-preset]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const p = ctx.presets?.[btn.dataset.preset];
-      if (!p) return;
-      document.querySelectorAll("[data-preset]").forEach((b) => b.classList.toggle("is-active", b === btn));
-      const input = document.getElementById("prompt-input");
-      if (input) input.value = p.prompt;
-      parse(p.prompt, p.overrides);
-    });
-  });
-  document.getElementById("btn-parse")?.addEventListener("click", () => {
-    parse(document.getElementById("prompt-input")?.value || "");
-  });
-  document.getElementById("btn-run-spiral")?.addEventListener("click", () => ctx.onConfirm?.());
+  buildChat();
+  wireLinking();
   renderIntakeCards();
 }
