@@ -11,6 +11,19 @@ Last updated: 2026-10-31 14:30 GMT. Submission: `main` at 16:00.
 
 ---
 
+## ⚠ R7: URGENT, demo-breaking (14:55): relaxation banner and accept button use the wrong field names
+`web/app.js:193-196` and `:558-561` read `rel.parameter_path`, `rel.current_value`, `rel.proposed_value` and `rel.reason`. None of these exist. `SpecRelaxationProposal` (`spiral/contract.py`, unchanged since 91c92fc) has:
+`field_name` (a MissionSpec field, e.g. `"range_m"` or `"passenger_count"`), `old_value`, `new_value`, `unit` (`"m"` or `"-"`), `reasoning`, `estimated_mtow_kg`.
+On the London–New York twist the banner shows `undefined (undefined → undefined)`, and **accept throws a TypeError** (`undefined.replace`). Suggested fix:
+```js
+// banner (line ~195)
+`Gemini proposes: ${rel.field_name} ${rel.old_value} → ${rel.new_value} ${rel.unit} (closes at ${Math.round(rel.estimated_mtow_kg)} kg) — ${rel.reasoning}`
+// accept (line ~560)
+currentSpec[rel.field_name] = Number(rel.new_value);
+if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[rel.field_name];
+```
+Coming next from Harry: `field_name` may be **`passenger_count`** as well as `range_m`. Python computes both options (e.g. "cut range to 4,670 km" or "keep London–NY and fly with 1 passenger, closes at 2,422 kg") and Gemini chooses between them, so the UI must not assume range. Format by `unit`: `"m"` → km, `"-"` → a plain count.
+
 ## 0. Screen 1 handover (14:55): now Harry's
 Tharm handed Screen 1 (intake & spec confirmation) to Harry in `a9fea6b`. To avoid editing the same lines as Tharm:
 - **New, Harry-owned:** `web/intake.js` (Screen 1 logic: presets → Gemini intake, parse, form, badges, summary strip, confirm button), `web/intake.css`, and `web/theme.css` (visual overrides for all screens).
