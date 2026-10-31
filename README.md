@@ -74,7 +74,7 @@ The stages are `extract` (about 8 min), `critique` (about 11 min), `merge`, then
 python3.12 -m venv .venv && source .venv/bin/activate   # 3.12: CadQuery has no 3.14 wheels
 pip install -r requirements.txt
 cp .env.example .env    # set GEMINI_API_KEY; GEMINI_MODEL=gemini-3.5-flash
-python -m pytest -q     # 25 tests; also: python -m unittest discover -s tests
+python -m pytest -q     # also: python -m unittest discover -s tests
 uvicorn server.app:app --port 8000   # UI + API on http://localhost:8000
 python scripts/generate_fixtures.py  # regenerate fixtures/ (offline by default)
 ```
@@ -143,7 +143,7 @@ SSE event types (`SSE_EVENTS`):
 - The wing is modelled as a cantilever.
 - The web is unstiffened (conservative). Cap crippling is not modelled.
 - Spar mass counts the caps and web only, with no ribs, stiffeners or fittings.
-- At this commit, `spiral/tools/cad.py` and `spiral/tools/fea.py` are placeholders. They write stub STEP/STL files and a preview stress mesh.
+- Detailed design (Tharm): CAD lofts the sized I-section with CadQuery when it is installed, otherwise it writes the STEP and a watertight STL directly. FEA uses Timoshenko beam elements on the tapered spar (NumPy direct stiffness; CalculiX + gmsh only when both binaries are on the PATH). Because it is a beam model, its close agreement with beam theory (about 99% on stress and deflection for the demo spar) is a consistency check, not an independent 3D stress analysis.
 
 ## Work Split
 
