@@ -24,6 +24,9 @@ if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[rel.field_
 ```
 Coming next from Harry: `field_name` may be **`passenger_count`** as well as `range_m`. Python computes both options (e.g. "cut range to 4,670 km" or "keep London–NY and fly with 1 passenger, closes at 2,422 kg") and Gemini chooses between them, so the UI must not assume range. Format by `unit`: `"m"` → km, `"-"` → a plain count.
 
+## R9 (15:28): Three.js vendored, with Harry's OK; small edit in your files
+`web/aircraft3d.js` and `web/fea3d.js` loaded Three.js only from `cdn.jsdelivr.net`, so with no venue wifi the 3D aircraft and FEA spar would silently not render. Three.js r164 (MIT, the same 0.164.1 build, 1.27 MB) is now at `web/vendor/three.module.js`. In both files `loadThree()` imports `./vendor/three.module.js` first and falls back to your CDN URL. Nothing else changed. If you add Three.js add-ons (OrbitControls etc.), vendor them the same way.
+
 ## R8 (15:00): small requests from Harry's front-end design agent (only if time; R7 comes first)
 It restyles everything through `web/theme.css` and can't edit your files, so it asks for:
 1. **Verified stamps:** in `provBadge` (`web/app.js`), add the class `prov-verified` when `p.verified` is true, so a verified value can look different from an unverified one.

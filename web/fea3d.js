@@ -6,11 +6,16 @@
  * never fails even offline.
  */
 
+// Three.js r164 is vendored in web/vendor/ so the 3D works with no network (venue wifi);
+// the CDN is only a fallback if the local copy is missing.
+const THREE_LOCAL = "./vendor/three.module.js";
 const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js";
 let threePromise = null;
 function loadThree() {
   if (!threePromise) {
-    threePromise = import(THREE_CDN).catch(() => null);
+    threePromise = import(THREE_LOCAL)
+      .catch(() => import(THREE_CDN))
+      .catch(() => null);
   }
   return threePromise;
 }
