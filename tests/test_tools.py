@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -160,6 +161,44 @@ class TestEngineeringTools(unittest.TestCase):
                 "components.main_wing_spar.fea.safety_margin_fea",
                 state.provenance,
             )
+
+    def test_components_fea_all_parts_and_offline_optimiser(self) -> None:
+        state = run_design_spiral(MissionSpec())
+        events: list[tuple[str, str, str]] = []
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cad = build_spar_cad(state.latest_spar, out_dir=tmpdir).value
+            fea_res = run_fea(
+                state.latest_spar, state.latest_loads, cad, out_dir=tmpdir,
+                progress=lambda cid, step, status: events.append((cid, step, status)),
+            )
+            self.assertEqual(fea_res.value.solver_name, "Timoshenko beam FEA (NumPy direct stiffness)")
+            mesh = json.loads(Path(str(fea_res.value.stress_mesh_path)).read_text(encoding="utf-8"))
+
+        comps = mesh["components_fea"]
+        expected = ["main_wing_spar", "wing_skin_box", "horizontal_tail", "fuselage_frames", "main_landing_gear", "engine_mount"]
+        self.assertEqual(sorted(comps), sorted(expected))
+        for cid in expected:
+            c = comps[cid]
+            self.assertNotIn("error", c, cid)
+            m = c["baseline"]["metrics"]
+            for key in ("peak_vm_pa", "margin", "mass_kg", "max_deflection_m"):
+                self.assertTrue(math.isfinite(m[key]), f"{cid}.{key}")
+            self.assertGreater(m["mass_kg"], 0.0)
+            self.assertTrue(c["baseline"]["members"][0]["stations"], cid)
+            # Minimise mass: never heavier unless the baseline is below the target margin, never below +0.10
+            opt = c["optimized"]["min_mass"]
+            self.assertGreaterEqual(opt["variant"]["metrics"]["margin"], 0.10 - 1e-6, cid)
+            if m["margin"] >= 0.10:
+                self.assertLessEqual(opt["variant"]["metrics"]["mass_kg"], m["mass_kg"] + 1e-6, cid)
+
+        # Under pytest the optimiser never calls the network
+        self.assertEqual(mesh["ai_optimization"]["source"], "deterministic_fallback")
+        self.assertIn("pytest", mesh["ai_optimization"]["status"])
+        # Progress events: every part solved, the agent skipped offline, then solver verification
+        done = [cid for cid, step, status in events if step == "solve" and status == "done"]
+        self.assertEqual(sorted(done), sorted(expected))
+        self.assertIn(("optimiser", "agent", "skipped"), events)
+        self.assertEqual(events[-1], ("optimiser", "verify", "done"))
 
     def test_extreme_range_raises_tool_error(self) -> None:
         extreme_spec = MissionSpec(range_m=6_000_000.0)

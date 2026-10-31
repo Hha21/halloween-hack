@@ -20,7 +20,7 @@
     <nav class="screen-tabs" aria-label="Design Screens">
       <button data-screen="intake" class="active"><span class="step-num">1</span> Mission input</button>
       <button data-screen="workspace"><span class="step-num">2</span> Conceptual &amp; preliminary</button>
-      <button data-screen="detailed"><span class="step-num">3</span> Detailed: spar CAD &amp; FEA</button>
+      <button data-screen="detailed"><span class="step-num">3</span> Detailed: CAD &amp; FEA</button>
       <button data-screen="report"><span class="step-num">4</span> Traceability report</button>
     </nav>
   </header>
@@ -160,7 +160,7 @@
           <div id="step-verify" class="step-pill">3. Euler-Bernoulli Verification</div>
         </div>
         <div class="detailed-actions">
-          <button id="btn-run-fea" class="btn primary">▶ Stream CAD + 3D FEA Verification</button>
+          <button id="btn-run-fea" class="btn primary">▶ Stream CAD + 3D FEA (all components)</button>
           <a id="dl-step" href="/artifacts/spar.step" download class="btn secondary">⬇ STEP AP214</a>
           <a id="dl-stl" href="/artifacts/spar.stl" download class="btn secondary">⬇ STL Mesh</a>
           <a id="dl-mesh" href="/artifacts/spar_stress_mesh.json" download class="btn secondary">⬇ 3D Stress JSON</a>
@@ -172,7 +172,7 @@
       <div class="detailed-grid">
         <div class="viewport-card panel">
           <div class="viewport-toolbar">
-            <span class="vp-title">3D Cantilever I-Beam von Mises Stress &amp; Deflection</span>
+            <span class="vp-title">3D Fine-Mesh FEA: von Mises Stress &amp; Deflection</span>
             <div class="vp-controls">
               <button class="vp-btn-fea" data-cam="iso">Iso</button>
               <button class="vp-btn-fea" data-cam="root">Root Clamp</button>

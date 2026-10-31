@@ -19,6 +19,7 @@ import {
   renderMassBreakdownChart,
 } from "./charts.js";
 import { AircraftScene, SparFeaScene } from "./scene3d.js";
+import { FEA_COMPONENTS } from "./fea3d.js";
 import { initIntake, renderIntakeCards } from "./intake.js"; // Screen 1: owned by Harry (web/intake.js)
 
 const DEFAULT_SPEC = {
@@ -141,6 +142,9 @@ function switchScreen(screenName) {
   } else if (screenName === "detailed") {
     if (!sparFeaScene) {
       sparFeaScene = new SparFeaScene(document.getElementById("viewport-spar-fea"));
+      sparFeaScene.onSelect = () => {
+        if (currentState?.latest_spar && currentState.components?.main_wing_spar?.status !== "completed") startDetailedSparStream();
+      };
     }
     sparFeaScene.resize();
     renderDetailedView();
@@ -272,27 +276,19 @@ function renderWorkspace() {
   renderLoadsChart(document.getElementById("chart-loads"), loads);
   renderMassBreakdownChart(document.getElementById("chart-mass"), sizing, spar);
 
-  // Component Tree (§4.3)
+  // Component Tree (§4.3): every part with a detailed FEA model; click to open it on Screen 3
   const treeEl = document.getElementById("component-tree");
-  if (treeEl && currentState.components) {
-    treeEl.innerHTML = Object.values(currentState.components)
-      .map((c) => {
-        if (c.available) {
-          return `<div class="comp-item active-comp" id="comp-main-spar">
-            <span><strong>${esc(c.name)}</strong></span>
-            <span class="prov-badge prov-simulation">${esc(c.status)} →</span>
-          </div>`;
-        }
-        return `<div class="comp-item disabled-comp">
-          <span>${esc(c.name)}</span>
-          <span class="prov-badge prov-none">Coming Soon</span>
-        </div>`;
-      })
-      .join("");
-    document.getElementById("comp-main-spar")?.addEventListener("click", () => {
-      switchScreen("detailed");
-      startDetailedSparStream();
-    });
+  if (treeEl) {
+    const solved = currentState.components?.main_wing_spar?.status === "completed";
+    treeEl.innerHTML = FEA_COMPONENTS.map(
+      (c) => `<div class="comp-item active-comp" data-comp="${c.id}">
+        <span><strong>${esc(c.short)}</strong></span>
+        <span class="prov-badge prov-simulation">${solved ? "FEA solved" : "Run FEA"} →</span>
+      </div>`
+    ).join("");
+    treeEl.querySelectorAll("[data-comp]").forEach((el) =>
+      el.addEventListener("click", () => openComponentFea(el.dataset.comp))
+    );
   }
 
   renderFidelityLadder();
@@ -422,6 +418,14 @@ async function startSpiralStream() {
 }
 
 /* ---------------- SCREEN 3: DETAILED SPAR CAD & FEA ---------------- */
+/** Open one structural component on Screen 3; runs CAD + FEA first if it has not run yet. */
+function openComponentFea(id) {
+  if (!currentState?.latest_spar) return;
+  switchScreen("detailed");
+  sparFeaScene?.selectComponent(id);
+  if (currentState.components?.main_wing_spar?.status !== "completed") startDetailedSparStream();
+}
+
 async function renderDetailedView() {
   if (!currentState) return;
   const comp = currentState.components?.main_wing_spar || {};
@@ -470,6 +474,8 @@ async function renderDetailedView() {
   if (sparFeaScene) {
     sparFeaScene.updateSparMesh({ spar, fea, stressMesh });
   }
+  // With multi-component FEA the scene renders KPIs, charts and the station table for the selected part.
+  if (sparFeaScene?.ownsPanels) return;
   if (fea) {
     renderFeaComparisonCharts(
       document.getElementById("chart-fea-stress"),
