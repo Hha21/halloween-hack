@@ -83,6 +83,11 @@ def spar_loads(
         avg_shear = 0.5 * (stations[i].shear_n + stations[i + 1].shear_n)
         stations[i].moment_nm = round(stations[i + 1].moment_nm + avg_shear * dy, 2)
 
+    eq_schrenk = equation("schrenk_lift_distribution")
+
+    def schrenk_prov(what: str) -> Provenance:
+        return Provenance("equation", f"{eq_schrenk['source']}: Schrenk lift, {what}", verified=bool(eq_schrenk.get("verified")))
+
     result = SparLoadsResult(
         n_ult=round(n_ult, 3),
         semi_span_m=round(semi_span_m, 3),
@@ -105,8 +110,17 @@ def spar_loads(
         ],
         warnings=[],
         provenance={
-            "root_shear_n": Provenance("equation", "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root", verified=False),
-            "root_moment_nm": Provenance("equation", "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root", verified=False),
+            "root_shear_n": schrenk_prov("integrated tip to root"),
+            "root_moment_nm": schrenk_prov("integrated tip to root"),
+            "n_ult": Provenance("equation", "n_limit x 1.5 (Raymer 2ed, p. 335; limit from the spec)"),
+            "semi_span_m": Provenance("equation", "b / 2 from conceptual sizing"),
+            "stations[].y_m": Provenance("equation", "Uniform spanwise stations, root to tip"),
+            "stations[].chord_m": Provenance("equation", "Linear taper between root and tip chord"),
+            "stations[].elliptical_lift_n_per_m": schrenk_prov("elliptical part"),
+            "stations[].planform_lift_n_per_m": schrenk_prov("planform part"),
+            "stations[].schrenk_lift_n_per_m": schrenk_prov("average of elliptical and planform"),
+            "stations[].shear_n": schrenk_prov("shear integrated from the tip"),
+            "stations[].moment_nm": schrenk_prov("moment integrated from the tip"),
         },
     )
 
@@ -269,5 +283,19 @@ def size_spar(
             "allowable_yield_stress_pa": mat_prov,
             "safety_margin": prov(eq_bend, "F_cy / sigma_max - 1"),
             "tip_deflection_m": Provenance("equation", "Euler-Bernoulli: double integration of M/(EI) from a clamped root", verified=False),
+            "semi_span_mass_kg": prov(eq_caps, "cap + web volume x density, one wing"),
+            "root_depth_m": Provenance("assumption", "85% of local aerofoil thickness (t/c x chord)", verified=False),
+            "tip_depth_m": Provenance("assumption", "85% of local aerofoil thickness (t/c x chord)", verified=False),
+            "root_cap_width_m": Provenance("assumption", "35% of spar depth", verified=False),
+            "root_cap_thickness_m": prov(eq_caps, "A_cap / cap width, min gauge"),
+            "stations[].y_m": Provenance("equation", "Same stations as the loads"),
+            "stations[].depth_m": Provenance("assumption", "85% of local aerofoil thickness (t/c x chord)", verified=False),
+            "stations[].cap_area_m2": prov(eq_caps, "A_cap = M / (h F_cy)"),
+            "stations[].cap_width_m": Provenance("assumption", "35% of spar depth", verified=False),
+            "stations[].cap_thickness_m": prov(eq_caps, "A_cap / cap width, min gauge"),
+            "stations[].web_thickness_m": prov(eq_buckle, "max(shear strength, no buckling, min gauge)"),
+            "stations[].bending_stress_pa": prov(eq_bend, "sigma = M z / I"),
+            "stations[].shear_stress_pa": prov(eq_shear, "tau = V / (d t_web)"),
+            "stations[].deflection_m": Provenance("equation", "Euler-Bernoulli: double integration of M/(EI)", verified=False),
         },
     )

@@ -55,6 +55,38 @@ def _merge_metadata(state: DesignState, result: ToolResult, prefix: str) -> None
             state.warnings.append(w)
     for key, prov in result.provenance.items():
         state.provenance[f"{prefix}.{key}"] = prov
+    _fill_provenance(state, result, prefix)
+
+
+# Kind of evidence a tool's numbers are, for fields the tool gave no provenance for.
+_DEFAULT_KIND = {"latest_geometry": "assumption", "cad": "simulation", "fea": "simulation"}
+
+
+def _numeric_paths(obj: object, path: str = "") -> list[str]:
+    """Dotted paths of numeric leaves; list items collapse to `name[]` (one badge per column)."""
+    if hasattr(obj, "to_dict"):
+        obj = obj.to_dict()  # type: ignore[union-attr]
+    out: list[str] = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            out += _numeric_paths(v, f"{path}.{k}" if path else str(k))
+    elif isinstance(obj, list):
+        if obj and isinstance(obj[0], dict):
+            out += _numeric_paths(obj[0], f"{path}[]")
+    elif isinstance(obj, (int, float)) and not isinstance(obj, bool):
+        out.append(path)
+    return out
+
+
+def _fill_provenance(state: DesignState, result: ToolResult, prefix: str) -> None:
+    """Give every numeric field a provenance entry. Fields the tool didn't cite get an unverified
+    entry naming the tool's own sources, so the UI shows "unverified" rather than nothing."""
+    sources = "; ".join(result.sources) or "tool output (no source given)"
+    kind = _DEFAULT_KIND.get(prefix.rsplit(".", 1)[-1], "equation")
+    for path in _numeric_paths(result.value):
+        key = f"{prefix}.{path}"
+        if key not in state.provenance:
+            state.provenance[key] = Provenance(kind, f"{sources} (no per-value citation)", verified=False)
 
 
 def _spec_provenance(spec: MissionSpec) -> dict[str, Provenance]:
@@ -79,6 +111,50 @@ def mtow_class_limit() -> tuple[float, str]:
     """(max MTOW in kg, citation) for the aircraft class the statistics describe."""
     row = lookup("aircraft_typical", "ga_single_engine").value["mtow_class_limit"]
     return float(row["max_kg"]), str(row["source"])
+
+
+def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
+    """The configuration choices behind lap 0, each with the table row it comes from."""
+    typical = lookup("aircraft_typical", "ga_single_engine").value
+    material = lookup("materials", spec.spar_material).value
+
+    def cite(*rows: dict) -> list[str]:
+        return [r["source"] + ("" if r.get("verified") else " (unverified)") for r in rows if r]
+
+    def basis(field_name: str) -> str:
+        reason = spec.defaulted_fields.get(field_name)
+        return "from the description" if reason is None else ("inferred" if reason.startswith("Inferred") else "default")
+
+    limit_kg, _ = mtow_class_limit()
+    tails = typical.get("tail_volume_coefficients", {})
+    fus = typical.get("fuselage_length_regression", {})
+    return [
+        AgentLogEntry(
+            lap=0, stage="conceptual",
+            message=(f"Class: single-engine piston general aviation. All statistics use the 'General aviation - single "
+                     f"engine' rows, valid up to an MTOW of {limit_kg:,.0f} kg."),
+            citations=cite(typical.get("mtow_class_limit", {})),
+        ),
+        AgentLogEntry(
+            lap=0, stage="conceptual",
+            message=(f"Wing: {spec.wing_position} wing ({basis('wing_position')}), aspect ratio {spec.aspect_ratio:g} "
+                     f"({basis('aspect_ratio')}), taper {spec.taper_ratio:g} ({basis('taper_ratio')}), "
+                     f"t/c {spec.thickness_to_chord:g} ({basis('thickness_to_chord')})."),
+            citations=cite(typical.get("aspect_ratio", {}), typical.get("taper_ratio", {}), typical.get("thickness_to_chord", {})),
+        ),
+        AgentLogEntry(
+            lap=0, stage="conceptual",
+            message=(f"Tail sized by volume coefficients C_HT = {tails.get('c_ht', 0):g} and C_VT = {tails.get('c_vt', 0):g}; "
+                     f"fuselage length from L = {fus.get('a', 0):g} W0^{fus.get('C', 0):g} (ft, lb)."),
+            citations=cite(tails, fus),
+        ),
+        AgentLogEntry(
+            lap=0, stage="conceptual",
+            message=(f"Structure: +{spec.limit_load_factor:g} g limit ({basis('limit_load_factor')}), x {spec.ultimate_factor:g} "
+                     f"= {spec.n_ult:.2f} g ultimate; main spar in {material.get('name', spec.spar_material)}."),
+            citations=cite(typical.get("limit_load_factor", {}), material),
+        ),
+    ]
 
 
 def nearest_feasible_range(spec: MissionSpec, step_m: float = 10_000.0) -> SpecRelaxationProposal | None:
@@ -164,6 +240,12 @@ def run_design_spiral(
             InfeasibleEvent(reason=reason, proposed_relaxation=state.proposed_relaxation, state=state),
         )
         return state
+
+    try:
+        for entry in _layout_log(spec):
+            log(entry)
+    except (ToolError, KeyError):
+        pass  # the layout log is commentary; never block the spiral on it
 
     spar_mass_feedback_kg: float | None = None
     consecutive_growth_laps = 0

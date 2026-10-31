@@ -40,3 +40,15 @@ ga_single_engine:
     c_vt: 0.04
     source: "Raymer 2ed, Table 6.4 (p. 112)"
     verified: true
+  fuselage_length_regression:
+    a: 4.37
+    C: 0.23
+    note: "Fuselage length (ft) = a * W0(lb)^C (row: General aviation - single engine); used by geometry.py"
+    source: "Raymer 2ed, Table 6.3 (p. 110)"
+    verified: true
+  limit_load_factor:
+    min: 2.5
+    max: 3.8
+    note: "Positive limit load factor range for the GA normal category"
+    source: "Raymer 2ed, Table 14.2 (p. 336)"
+    verified: true

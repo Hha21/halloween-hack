@@ -213,6 +213,20 @@ def conceptual_sizing(
             "fuel_mass_kg": _prov("equation", trapped, "Wf/W0 = 1.06 (1 - Wx/W0)"),
             "fuel_fraction": _prov("equation", trapped, "Wf/W0 = 1.06 (1 - Wx/W0)"),
             "statistical_spar_mass_kg": _prov("assumption", spar_share),
+            "spar_mass_used_kg": (
+                _prov("assumption", spar_share) if spar_mass_kg is None
+                else Provenance("equation", "Sized spar mass from the previous lap (spiral feedback)", verified=False)
+            ),
+            "payload_mass_kg": Provenance("user_input", "Crew + passengers x person mass + baggage (from the spec)"),
+            "mass_breakdown_kg.crew": Provenance("user_input", "crew_count x person_mass_kg (from the spec)"),
+            "mass_breakdown_kg.passengers": Provenance("user_input", "passenger_count x person_mass_kg (from the spec)"),
+            "mass_breakdown_kg.baggage": Provenance("user_input", "baggage_mass_kg (from the spec)"),
+            "mass_breakdown_kg.fuel": _prov("equation", trapped, "Wf/W0 = 1.06 (1 - Wx/W0)"),
+            "mass_breakdown_kg.wing_spar": (
+                _prov("assumption", spar_share) if spar_mass_kg is None
+                else Provenance("equation", "Sized spar mass from the previous lap (spiral feedback)", verified=False)
+            ),
+            "mass_breakdown_kg.remaining_empty": _prov("table", ew, "statistical empty mass less the spar"),
             "segment_fractions.warmup_takeoff": _prov("table", seg),
             "segment_fractions.climb": _prov("table", seg),
             "segment_fractions.landing": _prov("table", seg),

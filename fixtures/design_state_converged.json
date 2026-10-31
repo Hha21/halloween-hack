@@ -913,6 +913,54 @@
       "verified": false,
       "warning": null
     },
+    "latest_sizing.spar_mass_used_kg": {
+      "kind": "equation",
+      "source": "Sized spar mass from the previous lap (spiral feedback)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_sizing.payload_mass_kg": {
+      "kind": "user_input",
+      "source": "Crew + passengers x person mass + baggage (from the spec)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.crew": {
+      "kind": "user_input",
+      "source": "crew_count x person_mass_kg (from the spec)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.passengers": {
+      "kind": "user_input",
+      "source": "passenger_count x person_mass_kg (from the spec)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.baggage": {
+      "kind": "user_input",
+      "source": "baggage_mass_kg (from the spec)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.fuel": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 3.11 (p. 23): Wf/W0 = 1.06 (1 - Wx/W0)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.wing_spar": {
+      "kind": "equation",
+      "source": "Sized spar mass from the previous lap (spiral feedback)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_sizing.mass_breakdown_kg.remaining_empty": {
+      "kind": "table",
+      "source": "Raymer 2ed, Table 3.1 (p. 13): statistical empty mass less the spar",
+      "verified": true,
+      "warning": null
+    },
     "latest_sizing.segment_fractions.warmup_takeoff": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.2 (p. 16)",
@@ -994,13 +1042,67 @@
     "latest_loads.root_shear_n": {
       "kind": "equation",
       "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_loads.root_moment_nm": {
       "kind": "equation",
       "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root",
-      "verified": false,
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.n_ult": {
+      "kind": "equation",
+      "source": "n_limit x 1.5 (Raymer 2ed, p. 335; limit from the spec)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.semi_span_m": {
+      "kind": "equation",
+      "source": "b / 2 from conceptual sizing",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].y_m": {
+      "kind": "equation",
+      "source": "Uniform spanwise stations, root to tip",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].chord_m": {
+      "kind": "equation",
+      "source": "Linear taper between root and tip chord",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].elliptical_lift_n_per_m": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, elliptical part",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].planform_lift_n_per_m": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, planform part",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].schrenk_lift_n_per_m": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, average of elliptical and planform",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].shear_n": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, shear integrated from the tip",
+      "verified": true,
+      "warning": null
+    },
+    "latest_loads.stations[].moment_nm": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, moment integrated from the tip",
+      "verified": true,
       "warning": null
     },
     "latest_spar.mass_both_wings_kg": {
@@ -1050,9 +1152,281 @@
       "source": "Euler-Bernoulli: double integration of M/(EI) from a clamped root",
       "verified": false,
       "warning": null
+    },
+    "latest_spar.semi_span_mass_kg": {
+      "kind": "equation",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: cap + web volume x density, one wing",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.root_depth_m": {
+      "kind": "assumption",
+      "source": "85% of local aerofoil thickness (t/c x chord)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.tip_depth_m": {
+      "kind": "assumption",
+      "source": "85% of local aerofoil thickness (t/c x chord)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.root_cap_width_m": {
+      "kind": "assumption",
+      "source": "35% of spar depth",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.root_cap_thickness_m": {
+      "kind": "equation",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: A_cap / cap width, min gauge",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.stations[].y_m": {
+      "kind": "equation",
+      "source": "Same stations as the loads",
+      "verified": true,
+      "warning": null
+    },
+    "latest_spar.stations[].depth_m": {
+      "kind": "assumption",
+      "source": "85% of local aerofoil thickness (t/c x chord)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.stations[].cap_area_m2": {
+      "kind": "equation",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: A_cap = M / (h F_cy)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.stations[].cap_width_m": {
+      "kind": "assumption",
+      "source": "35% of spar depth",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.stations[].cap_thickness_m": {
+      "kind": "equation",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: A_cap / cap width, min gauge",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.stations[].web_thickness_m": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 14.37 (p. 385): max(shear strength, no buckling, min gauge)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_spar.stations[].bending_stress_pa": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 14.35 (p. 383): sigma = M z / I",
+      "verified": true,
+      "warning": null
+    },
+    "latest_spar.stations[].shear_stress_pa": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 14.36 (p. 384): tau = V / (d t_web)",
+      "verified": true,
+      "warning": null
+    },
+    "latest_spar.stations[].deflection_m": {
+      "kind": "equation",
+      "source": "Euler-Bernoulli: double integration of M/(EI)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.fuselage.length_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.fuselage.diameter_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.fuselage.nose_length_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.fuselage.cabin_length_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.fuselage.tailcone_length_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.span_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.root_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.tip_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.thickness_to_chord": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.x_le_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.z_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.wing.dihedral_deg": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.horizontal_tail.span_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.horizontal_tail.root_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.horizontal_tail.tip_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.horizontal_tail.x_le_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.horizontal_tail.z_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.vertical_tail.height_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.vertical_tail.root_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.vertical_tail.tip_chord_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.vertical_tail.x_le_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.vertical_tail.z_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.propeller.diameter_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_geometry.propeller.x_m": {
+      "kind": "assumption",
+      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
+      "verified": false,
+      "warning": null
     }
   },
   "log": [
+    {
+      "lap": 0,
+      "stage": "conceptual",
+      "message": "Class: single-engine piston general aviation. All statistics use the 'General aviation - single engine' rows, valid up to an MTOW of 2,722 kg.",
+      "citations": [
+        "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
+      ],
+      "level": "info",
+      "timestamp": "2026-10-31T14:16:22+00:00"
+    },
+    {
+      "lap": 0,
+      "stage": "conceptual",
+      "message": "Wing: high wing (default), aspect ratio 7.6 (default), taper 0.45 (default), t/c 0.15 (default).",
+      "citations": [
+        "Raymer 2ed, Table 4.1 (p. 51)",
+        "Raymer 2ed, Ch. 4 (p. 56)",
+        "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
+      ],
+      "level": "info",
+      "timestamp": "2026-10-31T14:16:22+00:00"
+    },
+    {
+      "lap": 0,
+      "stage": "conceptual",
+      "message": "Tail sized by volume coefficients C_HT = 0.7 and C_VT = 0.04; fuselage length from L = 4.37 W0^0.23 (ft, lb).",
+      "citations": [
+        "Raymer 2ed, Table 6.4 (p. 112)",
+        "Raymer 2ed, Table 6.3 (p. 110)"
+      ],
+      "level": "info",
+      "timestamp": "2026-10-31T14:16:22+00:00"
+    },
+    {
+      "lap": 0,
+      "stage": "conceptual",
+      "message": "Structure: +3.8 g limit (default), x 1.5 = 5.70 g ultimate; main spar in Aluminium 2024 (clad), extrusions.",
+      "citations": [
+        "Raymer 2ed, Table 14.2 (p. 336)",
+        "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
+      ],
+      "level": "info",
+      "timestamp": "2026-10-31T14:16:22+00:00"
+    },
     {
       "lap": 0,
       "stage": "preliminary",
@@ -1078,7 +1452,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:00:44+00:00"
+      "timestamp": "2026-10-31T14:16:22+00:00"
     },
     {
       "lap": 1,
@@ -1105,7 +1479,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:00:44+00:00"
+      "timestamp": "2026-10-31T14:16:22+00:00"
     },
     {
       "lap": 2,
@@ -1132,7 +1506,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:00:44+00:00"
+      "timestamp": "2026-10-31T14:16:22+00:00"
     },
     {
       "lap": 2,
@@ -1164,7 +1538,7 @@
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:00:44+00:00"
+      "timestamp": "2026-10-31T14:16:22+00:00"
     }
   ],
   "components": {
