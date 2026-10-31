@@ -61,17 +61,17 @@
       <!-- Infeasible / Divergence Alert Banner -->
       <div id="infeasible-banner" class="infeasible-banner hidden">
         <div class="infeasible-body">
-          <strong id="infeasible-title">⚠ Design Spiral Did Not Close</strong>
+          <strong id="infeasible-title">⚠ Design spiral did not close</strong>
           <p id="infeasible-reason"></p>
           <p id="infeasible-proposal" class="mono"></p>
         </div>
-        <button id="btn-accept-relaxation" class="btn danger">Accept Relaxation &amp; Re-Run Spiral ↻</button>
+        <button id="btn-accept-relaxation" class="btn danger">Accept relaxation and re-run the spiral ↻</button>
       </div>
 
       <div class="workbench-grid">
         <!-- Left Sidebar: Pipeline Stage + Trade-Study Sliders + Component Selector -->
         <aside class="sidebar panel">
-          <h3>Fidelity Ladder</h3>
+          <h3>Fidelity ladder</h3>
           <ul id="stage-list" class="stage-list">
             <li data-stage="conceptual" class="active"><span>01</span> Conceptual: weight closure (Raymer Ch. 3)</li>
             <li data-stage="preliminary"><span>02</span> Preliminary: Schrenk loads &amp; I-beam spar</li>
@@ -79,29 +79,29 @@
             <li data-stage="detailed"><span>04</span> Detailed: 3D CAD loft &amp; FEA check</li>
           </ul>
 
-          <h3>Trade-Study Controls</h3>
+          <h3>Trade-study controls</h3>
           <div class="slider-group">
             <label>Range <span id="lbl-range" class="mono">1000 km</span></label>
             <input type="range" id="sl-range" min="400" max="5500" step="50" value="1000" />
-            <label>Aspect Ratio <span id="lbl-ar" class="mono">7.6</span></label>
+            <label>Aspect ratio <span id="lbl-ar" class="mono">7.6</span></label>
             <input type="range" id="sl-ar" min="5.0" max="15.0" step="0.1" value="7.6" />
-            <label>Cruise Speed <span id="lbl-cruise" class="mono">115 kt</span></label>
+            <label>Cruise speed <span id="lbl-cruise" class="mono">115 kt</span></label>
             <input type="range" id="sl-cruise" min="80" max="180" step="5" value="115" />
-            <label>Spar Alloy</label>
+            <label>Spar alloy</label>
             <select id="sel-material">
-              <option value="al_2024_t3">Al 2024-T3 (345 MPa)</option>
-              <option value="al_7075_t6">Al 7075-T6 (503 MPa)</option>
+              <option value="al_2024_t3">Al 2024-T3 · yield 359 MPa (Raymer T14.3)</option>
+              <option value="al_7075_t6">Al 7075-T6 · yield 441 MPa (Raymer T14.3)</option>
             </select>
-            <label>Wing Position</label>
+            <label>Wing position</label>
             <select id="sel-wing-pos">
-              <option value="high">High Wing</option>
-              <option value="mid">Mid Wing</option>
-              <option value="low">Low Wing</option>
+              <option value="high">High wing</option>
+              <option value="mid">Mid wing</option>
+              <option value="low">Low wing</option>
             </select>
-            <button id="btn-rerun-sliders" class="btn primary full-w">↻ Stream Re-Sized Spiral</button>
+            <button id="btn-rerun-sliders" class="btn primary full-w">↻ Re-run the spiral</button>
           </div>
 
-          <h3>Structural Components (§4.3)</h3>
+          <h3>Structural components</h3>
           <div id="component-tree" class="component-tree"></div>
         </aside>
 
@@ -111,28 +111,28 @@
 
           <div class="viewport-card panel">
             <div class="viewport-toolbar">
-              <span class="vp-title">3D Parametric Aircraft &amp; Internal Main Spar</span>
+              <span class="vp-title">3D parametric aircraft and internal main spar</span>
               <div class="vp-controls">
                 <button class="vp-btn" data-cam="iso">Iso</button>
                 <button class="vp-btn" data-cam="top">Top</button>
                 <button class="vp-btn" data-cam="front">Front</button>
                 <button class="vp-btn" data-cam="side">Side</button>
-                <label class="vp-toggle"><input type="checkbox" id="chk-lift-curtain" checked /> Schrenk Lift Curtain</label>
-                <label class="vp-toggle">Skin X-Ray <input type="range" id="sl-wing-opacity" min="0.15" max="0.9" step="0.05" value="0.5" /></label>
+                <label class="vp-toggle"><input type="checkbox" id="chk-lift-curtain" checked /> Schrenk lift curtain</label>
+                <label class="vp-toggle">Skin x-ray <input type="range" id="sl-wing-opacity" min="0.15" max="0.9" step="0.05" value="0.5" /></label>
               </div>
             </div>
             <div id="viewport-aircraft" class="viewport-canvas"></div>
             <div class="lap-scrubber-bar">
-              <span class="mono">Lap History Scrubber:</span>
+              <span class="mono">Lap history</span>
               <div id="lap-pills" class="lap-pills"></div>
             </div>
           </div>
 
           <div class="charts-card panel">
             <div class="chart-tabs">
-              <button class="chart-tab active" data-chart="convergence">MTOW &amp; Spar Convergence</button>
-              <button class="chart-tab" data-chart="loads">Schrenk Lift &amp; Bending Moment</button>
-              <button class="chart-tab" data-chart="mass">Mass Breakdown</button>
+              <button class="chart-tab active" data-chart="convergence">MTOW and spar convergence</button>
+              <button class="chart-tab" data-chart="loads">Schrenk lift and bending moment</button>
+              <button class="chart-tab" data-chart="mass">Mass breakdown</button>
             </div>
             <div id="chart-convergence" class="chart-pane active"></div>
             <div id="chart-loads" class="chart-pane"></div>
@@ -143,31 +143,30 @@
         <!-- Right Column: Live Streaming Agent Log & Citations -->
         <aside class="right-col panel">
           <div class="log-header">
-            <h3>Traceable Agent Log</h3>
+            <h3>Traceable agent log</h3>
             <span id="lap-badge" class="badge-cyan">Lap 0</span>
           </div>
           <div id="agent-log-list" class="agent-log-list"></div>
           <div id="warnings-box" class="warnings-box"></div>
-          <button id="btn-goto-detailed" class="btn primary full-w">Run Detailed Spar CAD &amp; FEA →</button>
+          <button id="btn-goto-detailed" class="btn primary full-w">Run detailed CAD and FEA →</button>
         </aside>
       </div>
     </section>
 
     <!-- SCREEN 3: DETAILED SPAR CAD & FEA -->
     <section id="screen-detailed" class="screen">
-      <div id="detailed-comp-tabs" class="detailed-comp-tabs"></div>
       <div class="detailed-header panel">
         <div class="step-pipeline">
-          <div id="step-loads" class="step-pill hidden">0. Raymer Load Case</div>
-          <div id="step-cad" class="step-pill">1. Parametric Tapered I-Beam CAD (STEP/STL)</div>
-          <div id="step-fea" class="step-pill">2. 3D Timoshenko + Warping FEA Solver</div>
-          <div id="step-verify" class="step-pill">3. Euler-Bernoulli Verification</div>
+          <div id="step-loads" class="step-pill hidden">0. Raymer load case</div>
+          <div id="step-cad" class="step-pill">1. Spar CAD loft (STEP AP214, STL)</div>
+          <div id="step-fea" class="step-pill">2. Fine-mesh FEA: spar, wing box, frames, engine mount</div>
+          <div id="step-verify" class="step-pill">3. Gemini gauge proposals, solver-verified</div>
         </div>
         <div class="detailed-actions">
-          <button id="btn-run-fea" class="btn primary">▶ Stream CAD + 3D FEA Verification</button>
-          <a id="dl-step" href="/artifacts/spar.step" download class="btn secondary">⬇ STEP AP214</a>
-          <a id="dl-stl" href="/artifacts/spar.stl" download class="btn secondary">⬇ STL Mesh</a>
-          <a id="dl-mesh" href="/artifacts/spar_stress_mesh.json" download class="btn secondary">⬇ 3D Stress JSON</a>
+          <button id="btn-run-fea" class="btn primary">▶ Run CAD + FEA</button>
+          <a id="dl-step" href="/artifacts/spar.step" download class="btn secondary">⬇ Spar STEP</a>
+          <a id="dl-stl" href="/artifacts/spar.stl" download class="btn secondary">⬇ Spar STL</a>
+          <a id="dl-mesh" href="/artifacts/spar_stress_mesh.json" download class="btn secondary">⬇ Stress field JSON</a>
         </div>
       </div>
 
@@ -178,14 +177,14 @@
       <div id="detailed-grid" class="detailed-grid">
         <div class="viewport-card panel">
           <div class="viewport-toolbar">
-            <span id="vp-title-fea" class="vp-title">3D Cantilever I-Beam von Mises Stress &amp; Deflection</span>
+            <span id="vp-title-fea" class="vp-title">3D fine-mesh FEA: von Mises stress &amp; deflection</span>
             <div class="vp-controls">
               <button class="vp-btn-fea" data-cam="iso">Iso</button>
-              <button class="vp-btn-fea" data-cam="root">Root Clamp</button>
-              <button class="vp-btn-fea" data-cam="tip">Wingtip</button>
+              <button class="vp-btn-fea" data-cam="root">Root clamp</button>
+              <button class="vp-btn-fea" data-cam="tip">Tip</button>
               <button class="vp-btn-fea" data-cam="front">Front</button>
-              <label class="vp-toggle"><input type="checkbox" id="chk-fea-wire" checked /> Ghost Undeformed</label>
-              <label class="vp-toggle">Deflection <span id="lbl-defl-scale" class="mono">3.0x</span>
+              <label class="vp-toggle"><input type="checkbox" id="chk-fea-wire" checked /> Undeformed ghost</label>
+              <label class="vp-toggle">Deflection <span id="lbl-defl-scale" class="mono">×3.0</span>
                 <input type="range" id="sl-defl-scale" min="1" max="20" step="0.5" value="3.0" />
               </label>
             </div>
@@ -194,21 +193,21 @@
           <div class="stress-colorbar">
             <span class="mono">0 MPa</span>
             <div class="colorbar-gradient"></div>
-            <span id="lbl-colorbar-max" class="mono">345 MPa (σ_yield)</span>
+            <span id="lbl-colorbar-max" class="mono">allowable</span>
           </div>
         </div>
 
         <div class="fea-charts-col">
           <div class="panel">
-            <h3>Spanwise von Mises Stress vs. Euler-Bernoulli Beam Theory</h3>
+            <h3>von Mises stress along the member</h3>
             <div id="chart-fea-stress"></div>
           </div>
           <div class="panel">
-            <h3 id="h-fea-deflection">Spanwise Wing Deflection: 3D FEA vs. Double Integration</h3>
+            <h3 id="h-fea-deflection">Deflection along the member</h3>
             <div id="chart-fea-deflection"></div>
           </div>
           <div class="panel">
-            <h3>Tapered I-Section Geometry Stations</h3>
+            <h3>Gauges and stations</h3>
             <div id="spar-stations-table" class="table-scroll"></div>
           </div>
         </div>

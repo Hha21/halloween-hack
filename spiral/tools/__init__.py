@@ -5,7 +5,7 @@ landing_gear.
 """
 
 from spiral.tools.cad import build_spar_cad
-from spiral.tools.fea import run_fea
+from spiral.tools.fea import run_fea, run_gear_fea
 from spiral.tools.geometry import aircraft_geometry
 from spiral.tools.landing_gear import size_main_landing_gear
 from spiral.tools.lookup import lookup
@@ -20,6 +20,7 @@ __all__ = [
     "horizontal_tail_spar",
     "lookup",
     "run_fea",
+    "run_gear_fea",
     "size_main_landing_gear",
     "size_spar",
     "spar_loads",

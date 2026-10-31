@@ -7,7 +7,11 @@
    "spiral_sync": "state_touring.json",
    "spar": "spar_touring.sse",
    "spar_sync": "state_detailed_touring.json",
-   "report": "report_touring.json"
+   "report": "report_touring.json",
+   "tail": "tail_touring.sse",
+   "tail_sync": "state_tail_touring.json",
+   "gear": "gear_touring.sse",
+   "gear_sync": "state_gear_touring.json"
   },
   "london": {
    "intake": "intake_london.json",
@@ -15,14 +19,22 @@
    "spiral_sync": "state_london.json",
    "spar": "spar_london.sse",
    "spar_sync": "state_detailed_london.json",
-   "report": "report_london.json"
+   "report": "report_london.json",
+   "tail": "tail_london.sse",
+   "tail_sync": "state_tail_london.json",
+   "gear": "gear_london.sse",
+   "gear_sync": "state_gear_london.json"
   },
   "london_relaxed": {
    "spiral": "spiral_london_relaxed.sse",
    "spiral_sync": "state_london_relaxed.json",
    "spar": "spar_london_relaxed.sse",
    "spar_sync": "state_detailed_london_relaxed.json",
-   "report": "report_london_relaxed.json"
+   "report": "report_london_relaxed.json",
+   "tail": "tail_london_relaxed.sse",
+   "tail_sync": "state_tail_london_relaxed.json",
+   "gear": "gear_london_relaxed.sse",
+   "gear_sync": "state_gear_london_relaxed.json"
   },
   "high_ar": {
    "intake": "intake_high_ar.json",
@@ -30,7 +42,11 @@
    "spiral_sync": "state_high_ar.json",
    "spar": "spar_high_ar.sse",
    "spar_sync": "state_detailed_high_ar.json",
-   "report": "report_high_ar.json"
+   "report": "report_high_ar.json",
+   "tail": "tail_high_ar.sse",
+   "tail_sync": "state_tail_high_ar.json",
+   "gear": "gear_high_ar.sse",
+   "gear_sync": "state_gear_high_ar.json"
   }
  },
  "ask": [

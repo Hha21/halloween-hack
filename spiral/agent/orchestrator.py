@@ -36,6 +36,7 @@ from spiral.tools import (
     conceptual_sizing,
     horizontal_tail_spar,
     run_fea,
+    run_gear_fea,
     size_main_landing_gear,
     size_spar,
     spar_loads,
@@ -461,19 +462,27 @@ def run_spar_detailed_design(
         cad=comp.cad,
         material_key=state.spec.spar_material,
         out_dir=out_dir,
+        # [Tharm, per THARM log] live progress for the Screen 3 solver box: one component_step per part
+        # ("solve") and for the optimiser ("agent" = Gemini proposals, "verify" = solver re-check)
+        progress=lambda cid, step, status: emit("component_step", ComponentStepEvent(component_id=cid, step=step, status=status)),
     )
     _merge_metadata(state, fea_res, f"{prefix}.fea")
     comp.fea = fea_res.value
     if comp.fea.stress_mesh_path:
         comp.artifact_urls["stress_mesh"] = _artifact_url(comp.fea.stress_mesh_path)
     comp.status = "completed"
+    # [Tharm, per THARM log T3] the same run solves the frames and engine mount (components_fea in the spar mesh)
+    for other in _SOLVED_WITH_SPAR:
+        if other in state.components:
+            state.components[other].status = "completed"
+            state.components[other].artifact_urls["stress_mesh"] = comp.artifact_urls.get("stress_mesh", "")
     emit("component_step", ComponentStepEvent(component_id="main_wing_spar", step="fea", status="done"))
 
     entry = AgentLogEntry(
         lap=state.lap,
         stage="detailed",
         message=(
-            f"Detailed design (CAD + FEA): spar FEA complete ({comp.fea.solver_name}). "
+            f"Detailed design (CAD + FEA): spar, wing box, ring frames and engine mount solved ({comp.fea.solver_name}). "
             f"Peak von Mises = {comp.fea.fea_max_von_mises_pa / 1e6:.1f} MPa vs "
             f"Beam Theory = {comp.fea.beam_max_stress_pa / 1e6:.1f} MPa "
             f"({comp.fea.stress_agreement_pct:.1f}% agreement)."
@@ -533,6 +542,7 @@ def run_horizontal_tail_detailed_design(
         material_key=state.spec.spar_material,
         out_dir=out_dir,
         file_stem="tail_spar",
+        progress=lambda pid, step, status: emit("component_step", ComponentStepEvent(component_id=pid, step=step, status=status)),
     )
     _merge_metadata(state, fea_res, f"{prefix}.fea")
     comp.fea = fea_res.value
@@ -565,7 +575,7 @@ def run_landing_gear_detailed_design(
     out_dir: str = "artifacts",
     on_event: EventSink | None = None,
 ) -> DesignState:
-    """Main landing gear oleo strut sizing (Raymer 2ed, Ch. 11). No CAD or FEA: a sizing result only."""
+    """Main landing gear oleo strut sizing (Raymer 2ed, Ch. 11), then FEA of the sized oleo cylinder."""
     if state.latest_sizing is None:
         raise ToolError(
             "Cannot size the landing gear before the preliminary spiral has run.",
@@ -584,8 +594,22 @@ def run_landing_gear_detailed_design(
     gear_res = size_main_landing_gear(state.latest_sizing)
     _merge_metadata(state, gear_res, f"components.{cid}.landing_gear")
     comp.landing_gear = gear_res.value
-    comp.status = "completed"
     emit("component_step", ComponentStepEvent(component_id=cid, step="sizing", status="done"))
+
+    # [Tharm, per THARM log T3] FEA of the sized strut: pressure vessel + Euler column, inputs from the sizing
+    comp.status = "running_fea"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="fea", status="running"))
+    gear_fea = run_gear_fea(
+        state.latest_spar,
+        state.latest_loads,
+        comp.landing_gear,
+        material_key=state.spec.spar_material,
+        out_dir=out_dir,
+        progress=lambda pid, step, status: emit("component_step", ComponentStepEvent(component_id=pid, step=step, status=status)),
+    )
+    comp.artifact_urls["stress_mesh"] = _artifact_url(gear_fea.value)
+    comp.status = "completed"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="fea", status="done"))
 
     gear = comp.landing_gear
     entry = AgentLogEntry(
@@ -605,8 +629,12 @@ def run_landing_gear_detailed_design(
     return state
 
 
+_SOLVED_WITH_SPAR = ("fuselage_frames", "engine_mount")
+
 _COMPONENT_RUNNERS = {
     "main_wing_spar": run_spar_detailed_design,
+    "fuselage_frames": run_spar_detailed_design,  # solved in the main spar run (components_fea)
+    "engine_mount": run_spar_detailed_design,
     "horizontal_tail": run_horizontal_tail_detailed_design,
     "main_landing_gear": run_landing_gear_detailed_design,
 }

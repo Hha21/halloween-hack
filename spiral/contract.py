@@ -473,23 +473,14 @@ def default_components() -> dict[str, ComponentStatus]:
         "engine_mount": ComponentStatus(
             component_id="engine_mount",
             name="Engine Mount Truss",
-            available=False,
-            status="coming_soon",
-            unavailable_reason=(
-                "Raymer 2ed gives the mount loads (Sec. 14.5, p. 348) but no piston-engine weight "
-                "(manufacturer data only) and no truss geometry, and 4130 tube struts below the critical "
-                "slenderness ratio of 91.5 (p. 375) need a chart read (Fig. 14.32). Not analysed rather than guessed."
-            ),
+            available=True,  # [Tharm, per THARM log T3] solved in the main spar run (fea.py components_fea)
+            status="pending",
         ),
         "fuselage_frames": ComponentStatus(
             component_id="fuselage_frames",
             name="Wing Carry-Through Fuselage Frames",
-            available=False,
-            status="coming_soon",
-            unavailable_reason=(
-                "Raymer 2ed describes ring-frame carry-through only qualitatively (Sec. 8.3, Fig. 8.8, pp. 162-163); "
-                "it gives no frame sizing method. Not analysed rather than guessed."
-            ),
+            available=True,  # [Tharm, per THARM log T3] solved in the main spar run (fea.py components_fea)
+            status="pending",
         ),
     }
 

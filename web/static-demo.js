@@ -59,6 +59,10 @@
     spiral_sync: (s) => `state_${s}.json`,
     spar: (s) => `spar_${s}.sse`,
     spar_sync: (s) => `state_detailed_${s}.json`,
+    tail: (s) => `tail_${s}.sse`, // [Tharm, per THARM log T3] per-component recordings
+    tail_sync: (s) => `state_tail_${s}.json`,
+    gear: (s) => `gear_${s}.sse`,
+    gear_sync: (s) => `state_gear_${s}.json`,
     report: (s) => `report_${s}.json`,
   };
 
@@ -447,11 +451,25 @@
         scenario = state.scenario = scenarioForSpec(specOf(body));
         return replaySse(manifest, scenario, "spiral", signal);
       case "/components/spar":
+      case "/components/main_wing_spar":
+      case "/components/fuselage_frames":
+      case "/components/engine_mount":
         scenario = state.scenario = scenarioForSpec(specOf(body));
         return replayJson(manifest, scenario, "spar_sync", signal);
       case "/components/spar/stream":
+      case "/components/main_wing_spar/stream":
+      case "/components/fuselage_frames/stream":
+      case "/components/engine_mount/stream":
         scenario = state.scenario = scenarioForSpec(specOf(body));
         return replaySse(manifest, scenario, "spar", signal);
+      case "/components/horizontal_tail":
+      case "/components/main_landing_gear":
+        scenario = state.scenario = scenarioForSpec(specOf(body));
+        return replayJson(manifest, scenario, route.endsWith("tail") ? "tail_sync" : "gear_sync", signal);
+      case "/components/horizontal_tail/stream":
+      case "/components/main_landing_gear/stream":
+        scenario = state.scenario = scenarioForSpec(specOf(body));
+        return replaySse(manifest, scenario, route.includes("tail") ? "tail" : "gear", signal);
       case "/report":
         scenario = state.scenario = scenarioForSpec(body.state && body.state.spec);
         return replayJson(manifest, scenario, "report", signal);

@@ -15,7 +15,6 @@ const LAYOUTS = {
     { key: "charts", title: "Engineering charts", sel: "#screen-workspace .charts-card", col: "bottom", off: true },
   ],
   "screen-detailed": [
-    { key: "components", title: "Components", sel: "#detailed-comp-tabs", col: "left" },
     { key: "pipeline", title: "Analysis pipeline", sel: "#screen-detailed .detailed-header", col: "left" },
     { key: "kpis", title: "Key results", sel: "#detailed-kpis", col: "left", grow: true },
     { key: "view", title: "View", sel: "#screen-detailed .viewport-toolbar", col: "right" },

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -170,6 +171,45 @@ class TestEngineeringTools(unittest.TestCase):
                 state.provenance,
             )
 
+    def test_components_fea_all_parts_and_offline_optimiser(self) -> None:
+        state = run_design_spiral(MissionSpec())
+        events: list[tuple[str, str, str]] = []
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cad = build_spar_cad(state.latest_spar, out_dir=tmpdir).value
+            fea_res = run_fea(
+                state.latest_spar, state.latest_loads, cad, out_dir=tmpdir,
+                progress=lambda cid, step, status: events.append((cid, step, status)),
+            )
+            self.assertEqual(fea_res.value.solver_name, "Timoshenko beam FEA (NumPy direct stiffness)")
+            mesh = json.loads(Path(str(fea_res.value.stress_mesh_path)).read_text(encoding="utf-8"))
+
+        comps = mesh["components_fea"]
+        # The main spar run solves the parts driven by the wing loads; tail and gear have their own runs
+        expected = ["main_wing_spar", "wing_skin_box", "fuselage_frames", "engine_mount"]
+        self.assertEqual(sorted(comps), sorted(expected))
+        for cid in expected:
+            c = comps[cid]
+            self.assertNotIn("error", c, cid)
+            m = c["baseline"]["metrics"]
+            for key in ("peak_vm_pa", "margin", "mass_kg", "max_deflection_m"):
+                self.assertTrue(math.isfinite(m[key]), f"{cid}.{key}")
+            self.assertGreater(m["mass_kg"], 0.0)
+            self.assertTrue(c["baseline"]["members"][0]["stations"], cid)
+            # Minimise mass: never heavier unless the baseline is below the target margin, never below +0.10
+            opt = c["optimized"]["min_mass"]
+            self.assertGreaterEqual(opt["variant"]["metrics"]["margin"], 0.10 - 1e-6, cid)
+            if m["margin"] >= 0.10:
+                self.assertLessEqual(opt["variant"]["metrics"]["mass_kg"], m["mass_kg"] + 1e-6, cid)
+
+        # Under pytest the optimiser never calls the network
+        self.assertEqual(mesh["ai_optimization"]["source"], "deterministic_fallback")
+        self.assertIn("pytest", mesh["ai_optimization"]["status"])
+        # Progress events: every part solved, the agent skipped offline, then solver verification
+        done = [cid for cid, step, status in events if step == "solve" and status == "done"]
+        self.assertEqual(sorted(done), sorted(expected))
+        self.assertIn(("optimiser", "agent", "skipped"), events)
+        self.assertEqual(events[-1], ("optimiser", "verify", "done"))
+
     def test_extreme_range_raises_tool_error(self) -> None:
         extreme_spec = MissionSpec(range_m=6_000_000.0)
         with self.assertRaises(ToolError):
@@ -233,10 +273,13 @@ class TestSecondaryComponents(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             state = run_design_spiral(self.spec)
             state = run_spar_detailed_design(state, out_dir=tmp)
-            for cid, steps in (("horizontal_tail", ["loads", "cad", "fea"]), ("main_landing_gear", ["sizing"])):
+            for cid, steps in (("horizontal_tail", ["loads", "cad", "fea"]), ("main_landing_gear", ["sizing", "fea"])):
                 events: list[tuple[str, object]] = []
                 state = run_component_detailed_design(state, cid, out_dir=tmp, on_event=lambda t, p: events.append((t, p)))
-                self.assertEqual([p.step for t, p in events if t == "component_step"], [s for s in steps for _ in (0, 1)])
+                pipeline = [p.step for t, p in events if t == "component_step" and p.step in steps]
+                self.assertEqual(pipeline, [s for s in steps for _ in (0, 1)])
+                # Live solver progress for the box: this part solved, then the optimiser verified it
+                self.assertIn((cid, "solve", "done"), [(p.component_id, p.step, p.status) for t, p in events if t == "component_step"])
                 self.assertEqual(events[-1][0], "component_done")
                 self.assertEqual(state.components[cid].status, "completed")
             tail = state.components["horizontal_tail"]
@@ -246,16 +289,28 @@ class TestSecondaryComponents(unittest.TestCase):
             self.assertEqual(Path(tail.cad.step_path).name, "tail_spar.step")
             self.assertTrue((Path(tmp) / "spar.step").exists())
             self.assertTrue((Path(tmp) / "tail_spar_stress_mesh.json").exists())
+            # Each run's stress mesh carries the fine-mesh FEA of exactly the parts it solved
+            for name, part in (("tail_spar_stress_mesh.json", "horizontal_tail"), ("gear_stress_mesh.json", "main_landing_gear")):
+                parts = json.loads((Path(tmp) / name).read_text(encoding="utf-8"))["components_fea"]
+                self.assertEqual(list(parts), [part])
+                self.assertNotIn("error", parts[part])
+                self.assertTrue(math.isfinite(parts[part]["baseline"]["metrics"]["margin"]))
+            self.assertEqual(state.components["main_landing_gear"].artifact_urls["stress_mesh"], "/artifacts/gear_stress_mesh.json")
             again = DesignState.from_dict(json.loads(json.dumps(state.to_dict())))
             self.assertEqual(again.components["main_landing_gear"].landing_gear.stroke_m, state.components["main_landing_gear"].landing_gear.stroke_m)
 
-    def test_uncited_components_stay_coming_soon(self) -> None:
-        for cid in ("engine_mount", "fuselage_frames"):
-            comp = self.state.components[cid]
-            self.assertFalse(comp.available)
-            self.assertTrue(comp.unavailable_reason)
-            with self.assertRaises(ToolError):
-                run_component_detailed_design(self.state, cid)
+    def test_mount_and_frames_cite_their_method(self) -> None:
+        # Analysed in the main spar run: available, with a cited method and every assumed input listed.
+        with tempfile.TemporaryDirectory() as tmp:
+            state = run_component_detailed_design(run_design_spiral(self.spec), "engine_mount", out_dir=tmp)
+            mesh = json.loads((Path(tmp) / "spar_stress_mesh.json").read_text(encoding="utf-8"))["components_fea"]
+            for cid, method in (("engine_mount", "Megson"), ("fuselage_frames", "Roark")):
+                comp = state.components[cid]
+                self.assertTrue(comp.available)
+                self.assertIsNone(comp.unavailable_reason)
+                self.assertEqual(comp.status, "completed")
+                self.assertTrue(any(method in src for src in mesh[cid]["sources"]), cid)
+                self.assertGreaterEqual(len(mesh[cid]["assumptions"]), 3, cid)
 
 
 if __name__ == "__main__":

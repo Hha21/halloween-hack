@@ -8,6 +8,49 @@
 
 ---
 
+## 📣 T3 (Oct 31, ~17:30): local `main` = GitHub `5ac9cdc` + tail/gear + Table 4.3 taper + six-part FEA (local only, not pushed)
+
+`main` was fast-forwarded to `claude/practical-hodgkin-c75653` (cc7963f), the three Table 4.3 commits of `claude/gracious-hawking-5595ed` were cherry-picked on top (same effect as the rebase; that branch is untouched), then `tharm/fea-all-components` was merged and reconciled. One components list everywhere, every analysed part cites its method:
+
+| Part | Solved by | Method and inputs |
+|---|---|---|
+| Main spar | spar run | contract Timoshenko FEA (unchanged) |
+| Wing box | spar run | NACA 2415 thin-wall box, Bredt-Batho torsion (Megson Ch. 18, 23); torque assumption listed |
+| Ring frames + bridge | spar run | closed-ring force method (Roark Ch. 9, Megson Ch. 24); geometry and shear split listed as assumptions |
+| Engine mount | spar run | 3D truss direct stiffness + Euler buckling (Megson Ch. 4, 8); engine mass, thrust, geometry listed as assumptions |
+| Tailplane | tail run | the Raymer-sized tail spar (Eqs. 14.12-14.13, C_n p. 347, Table 4.3) through the same spar FEA; my assumed-load tail box is gone |
+| Main gear | gear run | the Raymer oleo sizing (Eqs. 11.12-11.14) then FEA of that cylinder: pressure vessel (Roark Ch. 13) + Euler column (K = 2); only the wall thickness is sized here |
+
+- `engine_mount` and `fuselage_frames` are `available=True` in the contract and complete with the spar run; `test_uncited_components_stay_coming_soon` became `test_mount_and_frames_cite_their_method`.
+- Screen 3: one part list (the optimiser panel; the separate "Components" panel is removed), the tail/gear "Sizing results" tables stay next to the 3D view, every run (spar/tail/gear) drives the solver box, stress meshes of all finished runs are merged for the viewer.
+- Page 2/3 copy fixes: alloy dropdown now shows the Raymer Table 14.3 yields (359 / 441 MPa, was 345 / 503), KPI badges (table value = tbl, mesh/solver no badge), deformed-shape framing, spar-only labels generalised, "§4.3" dropped, sentence case, "×3.0", beam vs FEA margins labelled.
+
+**For Harry (your files, small and additive):** `spiral/contract.py` (mount/frames available), `spiral/agent/orchestrator.py` (progress events, gear FEA step, mount/frames marked complete by the spar run and routed to it), `web/static-demo.js` (spar aliases + tail/gear replay routes), `web/demo/` (component recordings re-recorded live, chained spar → tail → gear; the static `components` availability block in the spiral/state/report recordings updated to the new contract, model outputs untouched).
+
+**Verification:** 33 tests pass; `node --check` on every `web/*.js`; `/api/components/airframe` still reaches the Blender agent (route sits above the catch-all); browser at 1440×900: live run (spiral → Screen 2 tree → engine mount → spar run 4/4 → tail → gear, Gemini live), `?demo` replay of all three runs, `?classic`, Screen 4 report without any "coming soon".
+
+---
+
+## 📣 T2 (Oct 31, ~16:45): Screen 3 FEA for every airframe part + solver/agent box (branch `tharm/fea-all-components`, local only)
+
+Merged on top of Harry's `origin/main` (`bdb8ee7`) with no conflicts. Not pushed.
+
+- **`spiral/tools/fea.py`:** `spar_stress_mesh.json` gains `components_fea` for six parts: `main_wing_spar` (the contract FEA, unchanged numbers), `wing_skin_box` (NACA 2415 thin-wall box, Bredt-Batho torsion), `horizontal_tail` (NACA 0012 box), `fuselage_frames` (closed-ring force method + carry-through bridge), `main_landing_gear` (curved cantilever tube), `engine_mount` (3D truss, direct stiffness + Euler buckling). Every derived dimension or load is listed in that part's `assumptions`. `ai_optimization`: `THARM_FEA_MODEL` (key `THARM_FEA_API_KEY`, `.env` only) proposes zone gauges for 6 parts × 3 goals in one call; the solver re-solves each proposal and uses it only if it meets the goal within 2% of the grid optimum, otherwise the deterministic grid optimum. Offline, `SPIRAL_OFFLINE` or pytest: deterministic only. `FeaResult` and `solver_name` unchanged. New optional `run_fea(progress=...)` callback.
+- **`web/fea3d.js`:** Three.js swept fine meshes (3k-30k quad elements, Medium/Fine/Ultra-Fine), FE wireframe, undeformed ghost, supports, load arrows, hover probe; "Component & AI optimiser" glass panel (part list, mesh density, goal, before/after, baseline↔optimised scrub); KPIs, charts and station table per part; solver/agent box over the viewport driven by live `component_step` events.
+- **`web/app.js`:** component tree lists the six FEA parts and opens them on Screen 3; Screen 3 panels are delegated to the scene when `components_fea` exists; forwards step events to the box.
+
+**For Harry (your files, small and additive, please review/revert freely):**
+1. `spiral/agent/orchestrator.py`, `run_spar_detailed_design`: passes `progress=` to `run_fea`, which emits extra `component_step` events: `{component_id: <part>, step: "solve"}` per part and `{component_id: "optimiser", step: "agent" | "verify"}` (status `running|done|skipped|error`). Existing `cad`/`fea` events unchanged; `app.js` only drives the pipeline pills from `main_wing_spar` `cad`/`fea`.
+2. `web/demo/`: re-recorded only `spar_*.sse`, `state_detailed_*.json` and `artifacts/<scenario>/spar.*` (live Gemini runs from the new backend), reusing `scripts/record_demo.py` helpers. Intake, spiral, report, ask and airframe recordings untouched.
+3. `overhaul.js` `missionHud`: not edited; `fea3d.js` rewrites the Screen 3 `.ov-hud-id` text to the selected part (fails soft if absent).
+4. `overhaul.css` folds `#detailed-kpis` children 2, 4, 5: the new KPI order keeps peak σ, margin (hero), mass and deflection visible.
+
+**Not merged:** branch `claude/practical-hodgkin-c75653` (T1 tail/gear sizing, `/api/components/{id}`) conflicts in `server/app.py`, `web/app.js`, `web/index.html`; needs a gear-concept decision (oleo strut vs. spring tube) before combining.
+
+**Verification:** `.venv/bin/python -m pytest -q` 29 passed (new `test_components_fea_all_parts_and_offline_optimiser`); `node --check` clean; browser on the merged build: live run (parts light up, agent call, "8/18 accepted", box folds into the panel), all six parts switch KPIs/charts/table, optimise + scrub, `?demo` replay renders offline, no console errors.
+
+---
+
 ## 📣 Active Coordination for Harry / Harry's Agent (Oct 31, 14:40 GMT)
 
 ### 1. Clear Division of Labor & Screen Ownership
