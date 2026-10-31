@@ -11,7 +11,13 @@ from __future__ import annotations
 
 import math
 
-from spiral.contract import AircraftGeometry, ConceptualSizingResult, MissionSpec, ToolResult
+from spiral.contract import (
+    AircraftGeometry,
+    ConceptualSizingResult,
+    MissionSpec,
+    Provenance,
+    ToolResult,
+)
 
 
 def aircraft_geometry(
@@ -99,4 +105,26 @@ def aircraft_geometry(
             f"Wing configuration: {spec.wing_position} wing",
         ],
         warnings=[],
+        provenance={
+            "fuselage": Provenance(
+                kind="equation",
+                source="Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
+            ),
+            "wing": Provenance(
+                kind="equation",
+                source="Raymer 6ed, Ch. 4 (Trapezoidal Planform & Dihedral)",
+            ),
+            "horizontal_tail": Provenance(
+                kind="equation",
+                source="Raymer 6ed, Table 6.4 (C_HT = 0.70 Tail Volume)",
+            ),
+            "vertical_tail": Provenance(
+                kind="equation",
+                source="Raymer 6ed, Table 6.4 (C_VT = 0.04 Tail Volume)",
+            ),
+            "propeller": Provenance(
+                kind="table",
+                source="knowledge/tables/aircraft_typical.yaml#ga_single_engine",
+            ),
+        },
     )

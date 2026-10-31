@@ -3,68 +3,235 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spiral — Autonomous Aircraft Design & FEA</title>
+  <title>SPIRAL — Autonomous Conceptual-to-FEA Aircraft Design Workbench</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">
-      <strong>SPIRAL</strong>
-      <span class="subtitle">Autonomous Conceptual-to-FEA Aircraft Design</span>
+    <div class="brand-wrap">
+      <div class="brand-logo">◈ SPIRAL</div>
+      <div class="brand-meta">
+        <span class="subtitle">Autonomous Conceptual-to-FEA Aircraft Design</span>
+        <span id="status-pill" class="status-pill">● Ready</span>
+      </div>
     </div>
-    <nav class="screen-tabs">
-      <button data-screen="intake" class="active">1. Intake</button>
-      <button data-screen="workspace">2. Workspace &amp; 3D</button>
-      <button data-screen="detailed">3. Detailed Spar &amp; FEA</button>
-      <button data-screen="report">4. Report</button>
+    <nav class="screen-tabs" aria-label="Design Screens">
+      <button data-screen="intake" class="active"><span class="step-num">1</span> Intake &amp; Spec</button>
+      <button data-screen="workspace"><span class="step-num">2</span> Design Spiral &amp; 3D</button>
+      <button data-screen="detailed"><span class="step-num">3</span> Spar CAD &amp; FEA</button>
+      <button data-screen="report"><span class="step-num">4</span> Traceability Report</button>
     </nav>
   </header>
 
-  <main class="container">
-    <!-- Screen 1: Project Intake -->
+  <main class="app-shell">
+    <!-- SCREEN 1: PROJECT INTAKE & SPEC REVIEW -->
     <section id="screen-intake" class="screen active">
-      <h2>Screen 1: Project Intake</h2>
-      <p>Describe the aircraft you are designing in plain English:</p>
-      <textarea id="prompt-input" rows="3">Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.</textarea>
-      <div class="actions">
-        <button id="btn-parse" class="primary">Parse Spec with Gemini</button>
-        <button id="btn-run-spiral" class="primary">Confirm Spec &amp; Run Design Spiral →</button>
+      <div class="intake-hero panel">
+        <div class="intake-header">
+          <div>
+            <h2>1. Mission Intake &amp; Specification</h2>
+            <p class="muted">Describe your aircraft mission in plain English or pick a benchmark scenario. Every defaulted parameter is tagged with its textbook provenance.</p>
+          </div>
+          <div class="preset-group">
+            <span class="preset-label">Demo Scenarios:</span>
+            <button class="chip-btn" data-preset="touring">4-Seat Touring (1,000 km · Converges)</button>
+            <button class="chip-btn chip-warn" data-preset="diverging">2,500 km Range Twist (Diverges → AI Relaxation)</button>
+            <button class="chip-btn chip-info" data-preset="high_ar">High-AR Survey Wing (AR 13.5 → Heuristic Warning)</button>
+          </div>
+        </div>
+
+        <textarea id="prompt-input" rows="2">Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.</textarea>
+
+        <div class="intake-actions">
+          <button id="btn-parse" class="btn secondary">✦ Parse Mission with Gemini</button>
+          <button id="btn-run-spiral" class="btn primary">Confirm Spec &amp; Stream Design Spiral →</button>
+        </div>
       </div>
-      <pre id="spec-preview" class="code-box">// Parsed MissionSpec JSON will appear here</pre>
+
+      <div id="intake-cards" class="spec-cards-grid"></div>
     </section>
 
-    <!-- Screen 2: Workspace (3D Render + Convergence Plot + Agent Log) -->
+    <!-- SCREEN 2: DESIGN SPIRAL WORKSPACE -->
     <section id="screen-workspace" class="screen">
-      <h2>Screen 2: Design Spiral Workspace (Owner: Tharm)</h2>
-      <div class="workspace-grid">
-        <div class="panel" id="viewport-3d">
-          <h3>3D Aircraft Geometry Preview (Three.js Placeholder)</h3>
-          <pre id="geometry-preview" class="code-box">// AircraftGeometry primitives per lap</pre>
+      <!-- Infeasible / Divergence Alert Banner -->
+      <div id="infeasible-banner" class="infeasible-banner hidden">
+        <div class="infeasible-body">
+          <strong id="infeasible-title">⚠ Design Spiral Did Not Close</strong>
+          <p id="infeasible-reason"></p>
+          <p id="infeasible-proposal" class="mono"></p>
         </div>
-        <div class="panel">
-          <h3>MTOW &amp; Spar Mass Convergence</h3>
-          <pre id="convergence-preview" class="code-box">// Lap history (mtow_kg, spar_mass_kg, mtow_change_pct)</pre>
-          <h3>Traceable Agent Log</h3>
-          <pre id="log-preview" class="code-box">// Citations, assumptions, and warnings</pre>
+        <button id="btn-accept-relaxation" class="btn danger">Accept Relaxation &amp; Re-Run Spiral ↻</button>
+      </div>
+
+      <div class="workbench-grid">
+        <!-- Left Sidebar: Pipeline Stage + Trade-Study Sliders + Component Selector -->
+        <aside class="sidebar panel">
+          <h3>Fidelity Ladder</h3>
+          <ul id="stage-list" class="stage-list">
+            <li data-stage="conceptual" class="active"><span>01</span> Conceptual Sizing (Raymer Ch.3)</li>
+            <li data-stage="preliminary"><span>02</span> Schrenk Loads &amp; I-Beam Spar</li>
+            <li data-stage="convergence"><span>03</span> Weight-Growth Loop Closure</li>
+            <li data-stage="detailed"><span>04</span> 3D CAD Loft &amp; FEA Check</li>
+          </ul>
+
+          <h3>Trade-Study Controls</h3>
+          <div class="slider-group">
+            <label>Range <span id="lbl-range" class="mono">1000 km</span></label>
+            <input type="range" id="sl-range" min="400" max="5500" step="50" value="1000" />
+            <label>Aspect Ratio <span id="lbl-ar" class="mono">7.5</span></label>
+            <input type="range" id="sl-ar" min="5.0" max="15.0" step="0.5" value="7.5" />
+            <label>Cruise Speed <span id="lbl-cruise" class="mono">115 kt</span></label>
+            <input type="range" id="sl-cruise" min="80" max="180" step="5" value="115" />
+            <label>Spar Alloy / Composite</label>
+            <select id="sel-material">
+              <option value="al_2024_t3">Al 2024-T3 (345 MPa)</option>
+              <option value="al_7075_t6">Al 7075-T6 (503 MPa)</option>
+              <option value="cfrp_ud">CFRP UD Laminate (600 MPa)</option>
+            </select>
+            <label>Wing Position</label>
+            <select id="sel-wing-pos">
+              <option value="high">High Wing</option>
+              <option value="mid">Mid Wing</option>
+              <option value="low">Low Wing</option>
+            </select>
+            <button id="btn-rerun-sliders" class="btn primary full-w">↻ Stream Re-Sized Spiral</button>
+          </div>
+
+          <h3>Structural Components (§4.3)</h3>
+          <div id="component-tree" class="component-tree"></div>
+        </aside>
+
+        <!-- Center Column: KPI Strip + 3D Aircraft + Lap Scrubber + Engineering Charts -->
+        <div class="center-col">
+          <div id="workspace-kpis" class="kpi-strip"></div>
+
+          <div class="viewport-card panel">
+            <div class="viewport-toolbar">
+              <span class="vp-title">3D Parametric Aircraft &amp; Internal Main Spar</span>
+              <div class="vp-controls">
+                <button class="vp-btn" data-cam="iso">Iso</button>
+                <button class="vp-btn" data-cam="top">Top</button>
+                <button class="vp-btn" data-cam="front">Front</button>
+                <button class="vp-btn" data-cam="side">Side</button>
+                <label class="vp-toggle"><input type="checkbox" id="chk-lift-curtain" checked /> Schrenk Lift Curtain</label>
+                <label class="vp-toggle">Skin X-Ray <input type="range" id="sl-wing-opacity" min="0.15" max="0.9" step="0.05" value="0.5" /></label>
+              </div>
+            </div>
+            <div id="viewport-aircraft" class="viewport-canvas"></div>
+            <div class="lap-scrubber-bar">
+              <span class="mono">Lap History Scrubber:</span>
+              <div id="lap-pills" class="lap-pills"></div>
+            </div>
+          </div>
+
+          <div class="charts-card panel">
+            <div class="chart-tabs">
+              <button class="chart-tab active" data-chart="convergence">MTOW &amp; Spar Convergence</button>
+              <button class="chart-tab" data-chart="loads">Schrenk Lift &amp; Bending Moment</button>
+              <button class="chart-tab" data-chart="mass">Mass Breakdown</button>
+            </div>
+            <div id="chart-convergence" class="chart-pane active"></div>
+            <div id="chart-loads" class="chart-pane"></div>
+            <div id="chart-mass" class="chart-pane"></div>
+          </div>
         </div>
+
+        <!-- Right Column: Live Streaming Agent Log & Citations -->
+        <aside class="right-col panel">
+          <div class="log-header">
+            <h3>Traceable Agent Log</h3>
+            <span id="lap-badge" class="badge-cyan">Lap 0</span>
+          </div>
+          <div id="agent-log-list" class="agent-log-list"></div>
+          <div id="warnings-box" class="warnings-box"></div>
+          <button id="btn-goto-detailed" class="btn primary full-w">Run Detailed Spar CAD &amp; FEA →</button>
+        </aside>
       </div>
     </section>
 
-    <!-- Screen 3: Detailed Design (CAD + FEA) -->
+    <!-- SCREEN 3: DETAILED SPAR CAD & FEA -->
     <section id="screen-detailed" class="screen">
-      <h2>Screen 3: Detailed Component Design &amp; FEA (Owner: Tharm)</h2>
-      <div class="actions">
-        <button id="btn-run-fea" class="primary">Run Main Wing Spar CAD + CalculiX FEA</button>
-        <a id="download-step" href="/artifacts/spar.step" download class="btn-link">Download STEP</a>
+      <div class="detailed-header panel">
+        <div class="step-pipeline">
+          <div id="step-cad" class="step-pill">1. Parametric Tapered I-Beam CAD (STEP/STL)</div>
+          <div id="step-fea" class="step-pill">2. 3D Timoshenko + Warping FEA Solver</div>
+          <div id="step-verify" class="step-pill">3. Euler-Bernoulli Verification</div>
+        </div>
+        <div class="detailed-actions">
+          <button id="btn-run-fea" class="btn primary">▶ Stream CAD + 3D FEA Verification</button>
+          <a id="dl-step" href="/artifacts/spar.step" download class="btn secondary">⬇ STEP AP214</a>
+          <a id="dl-stl" href="/artifacts/spar.stl" download class="btn secondary">⬇ STL Mesh</a>
+          <a id="dl-mesh" href="/artifacts/spar_stress_mesh.json" download class="btn secondary">⬇ 3D Stress JSON</a>
+        </div>
       </div>
-      <pre id="fea-preview" class="code-box">// SparCadResult &amp; FeaResult (von Mises stress vs Euler-Bernoulli beam theory)</pre>
+
+      <div id="detailed-kpis" class="kpi-strip"></div>
+
+      <div class="detailed-grid">
+        <div class="viewport-card panel">
+          <div class="viewport-toolbar">
+            <span class="vp-title">3D Cantilever I-Beam von Mises Stress &amp; Deflection</span>
+            <div class="vp-controls">
+              <button class="vp-btn-fea" data-cam="iso">Iso</button>
+              <button class="vp-btn-fea" data-cam="root">Root Clamp</button>
+              <button class="vp-btn-fea" data-cam="tip">Wingtip</button>
+              <button class="vp-btn-fea" data-cam="front">Front</button>
+              <label class="vp-toggle"><input type="checkbox" id="chk-fea-wire" checked /> Ghost Undeformed</label>
+              <label class="vp-toggle">Deflection <span id="lbl-defl-scale" class="mono">3.0x</span>
+                <input type="range" id="sl-defl-scale" min="1" max="20" step="0.5" value="3.0" />
+              </label>
+            </div>
+          </div>
+          <div id="viewport-spar-fea" class="viewport-canvas tall"></div>
+          <div class="stress-colorbar">
+            <span class="mono">0 MPa</span>
+            <div class="colorbar-gradient"></div>
+            <span id="lbl-colorbar-max" class="mono">345 MPa (σ_yield)</span>
+          </div>
+        </div>
+
+        <div class="fea-charts-col">
+          <div class="panel">
+            <h3>Spanwise von Mises Stress vs. Euler-Bernoulli Beam Theory</h3>
+            <div id="chart-fea-stress"></div>
+          </div>
+          <div class="panel">
+            <h3>Spanwise Wing Deflection: 3D FEA vs. Double Integration</h3>
+            <div id="chart-fea-deflection"></div>
+          </div>
+          <div class="panel">
+            <h3>Tapered I-Section Geometry Stations</h3>
+            <div id="spar-stations-table" class="table-scroll"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Screen 4: Report -->
+    <!-- SCREEN 4: TRACEABLE ENGINEERING REPORT -->
     <section id="screen-report" class="screen">
-      <h2>Screen 4: Traceable Engineering Report</h2>
-      <button id="btn-generate-report" class="primary">Generate Report</button>
-      <pre id="report-preview" class="code-box">// Source-cited markdown report</pre>
+      <div class="report-toolbar panel">
+        <div>
+          <h2>4. Traceable Engineering Report &amp; Provenance Ledger</h2>
+          <p class="muted">Every figure traces to a textbook equation, material table, simulation artifact, or flagged assumption.</p>
+        </div>
+        <div class="actions">
+          <button id="btn-generate-report" class="btn primary">✦ Generate / Refresh Full Report</button>
+        </div>
+      </div>
+
+      <div class="report-grid">
+        <article id="report-markdown" class="report-body panel"></article>
+        <aside class="ledger-col">
+          <div class="panel">
+            <h3>Field Provenance Map (<span id="prov-count">0</span> fields)</h3>
+            <div id="provenance-ledger" class="provenance-ledger"></div>
+          </div>
+          <div class="panel">
+            <h3>Sources, Assumptions &amp; Warnings</h3>
+            <div id="sources-ledger"></div>
+          </div>
+        </aside>
+      </div>
     </section>
   </main>
 
