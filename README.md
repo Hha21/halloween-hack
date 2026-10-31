@@ -6,7 +6,7 @@
 
 *Halloween at Imperial: Gemini Edition · **Track 1: Frontier Agents with Gemini**, built with **Gemini 4 Argon**.*
 
-**▶ [Live demo](https://hha21.github.io/halloween-hack/web/)**: the full front end in your browser, replaying recorded Gemini runs; no install, no key. **🎬 [Demo video](docs/spiral-demo.mp4)**
+**▶ [Live demo](https://hha21.github.io/halloween-hack/web/)**: the full front end in your browser, replaying recorded Gemini runs; no install, no key. **🎬 [Demo video](https://youtu.be/MRcF7TbEF20)**
 
 An agent turns your description into a structured spec. It then runs the conceptual and preliminary design spiral until MTOW converges: weight closure, then Schrenk spar loads, then I-beam spar sizing, then the spar mass goes back into the weight closure. Finally it carries the main wing spar to CAD and FEA. If the design can't close, Python finds the single-field changes that would close it, and Gemini, as design lead, picks one by what you asked for. Every number traces to an equation, a table row in the textbook, a simulation, or a flagged assumption.
 
@@ -17,6 +17,8 @@ The core rule: **Gemini decides and writes; Python computes.** Gemini never supp
 | of Raymer 2nd ed., read as page images by Gemini | equations · tables · rules of thumb extracted | equations confirmed by an independent critic model | numbers in every run, each with its source | of a real Cessna 172S for the default tourer: MTOW, wing area, span, power |
 
 ## See it run
+
+<p align="center"><a href="https://youtu.be/MRcF7TbEF20"><img src="docs/spiral-demo-poster.png" alt="Watch the 80-second demo video on YouTube" width="80%"></a><br><sub><b>▶ Watch the demo video on YouTube</b> (81 s): the agents, the verification loop and the real app.</sub></p>
 
 <p align="center"><img src="docs/demo.gif" alt="Spiral demo: describe the aircraft, the London to New York run goes over the class limit, Gemini proposes a fix, the spiral converges, then CAD, FEA and the report" width="100%"></p>
 
