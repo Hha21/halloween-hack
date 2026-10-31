@@ -459,6 +459,9 @@ def run_spar_detailed_design(
         cad=comp.cad,
         material_key=state.spec.spar_material,
         out_dir=out_dir,
+        # [Tharm, per THARM log] live progress for the Screen 3 solver box: one component_step per part
+        # ("solve") and for the optimiser ("agent" = Gemini proposals, "verify" = solver re-check)
+        progress=lambda cid, step, status: emit("component_step", ComponentStepEvent(component_id=cid, step=step, status=status)),
     )
     _merge_metadata(state, fea_res, f"{prefix}.fea")
     comp.fea = fea_res.value

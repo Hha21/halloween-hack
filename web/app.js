@@ -517,10 +517,13 @@ async function startDetailedSparStream() {
   const sFea = document.getElementById("step-fea");
   const sVer = document.getElementById("step-verify");
   [sCad, sFea, sVer].forEach((el) => el?.classList.remove("running", "done"));
+  sparFeaScene?.solveStart();
 
   try {
     await streamSparDetailed(currentState, {
       onStep: (ev) => {
+        sparFeaScene?.solveEvent(ev);
+        if (ev.component_id !== "main_wing_spar" || !["cad", "fea"].includes(ev.step)) return;
         const el = ev.step === "cad" ? sCad : sFea;
         if (el) {
           el.classList.toggle("running", ev.status === "running");
@@ -537,12 +540,14 @@ async function startDetailedSparStream() {
         sFea?.classList.add("done");
         sVer?.classList.add("done");
         setStatus("Detailed CAD & FEA Verified", false);
+        sparFeaScene?.solveEnd(true);
         renderDetailedView();
       },
     });
   } catch (err) {
     console.warn("Detailed stream fallback to sync:", err);
     currentState = await runSparDetailed(currentState);
+    sparFeaScene?.solveEnd(true);
     [sCad, sFea, sVer].forEach((el) => el?.classList.add("done"));
     setStatus("Detailed CAD & FEA Complete", false);
     renderDetailedView();

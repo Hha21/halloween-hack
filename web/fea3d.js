@@ -317,7 +317,75 @@ const STYLE = `
 .fea-kpi-sub { font: 0.66rem ui-monospace, monospace; color: var(--muted,#94a3b8); margin-top: 2px; }
 .fea-kpi-sub.good { color: #34d399; } .fea-kpi-sub.worse { color: #fb7185; }
 .fea-gov { grid-column: 1 / -1; font-size: 0.72rem; color: var(--muted,#94a3b8); line-height: 1.4; }
+.fea-solve { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); z-index: 4; width: min(560px, calc(100% - 32px));
+  display: grid; grid-template-columns: 170px 1fr; gap: 1rem; align-items: center; padding: 0.95rem 1.1rem; border-radius: 14px;
+  background: rgba(10, 15, 26, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--ov-edge, rgba(148,197,255,0.16)); box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+  color: #cbd5e1; font-size: 0.78rem; transition: opacity 0.5s ease, transform 0.5s ease; }
+.fea-solve.out { opacity: 0; transform: translate(-50%, -46%); pointer-events: none; }
+.fea-solve svg { width: 100%; height: auto; display: block; }
+.fea-solve .pl-body { fill: none; stroke: rgba(148,163,184,0.45); stroke-width: 1; }
+.fea-solve .pl-part { fill: rgba(30,41,59,0.8); stroke: rgba(148,163,184,0.5); stroke-width: 1; transition: fill 0.35s, stroke 0.35s; }
+.fea-solve .pl-part.ring { fill: none; stroke-dasharray: 3 2; }
+.fea-solve .pl-part[data-st="active"] { fill: rgba(252,211,77,0.3); stroke: #fcd34d; animation: fea-pulse 0.9s ease-in-out infinite; }
+.fea-solve .pl-part[data-st="done"] { fill: rgba(52,211,153,0.28); stroke: #34d399; }
+.fea-solve .pl-part[data-st="error"] { fill: rgba(251,113,133,0.3); stroke: #fb7185; }
+.fea-solve .pl-part.ring[data-st] { fill: none; }
+.fea-solve .pl-cap { fill: #94a3b8; font: 10px ui-monospace, monospace; }
+@keyframes fea-pulse { 50% { stroke-opacity: 0.35; } }
+.fea-solve-head { display: flex; align-items: center; gap: 0.45rem; font: 0.66rem ui-monospace, monospace; letter-spacing: 0.05em;
+  text-transform: uppercase; color: #fcd34d; margin-bottom: 0.5rem; }
+.fea-solve[data-st="ok"] .fea-solve-head { color: #34d399; }
+.fea-solve-clock { margin-left: auto; color: var(--ov-ice, #e0f2fe); font-variant-numeric: tabular-nums; }
+.fea-solve-x { background: none; border: 0; color: #64748b; cursor: pointer; font-size: 0.9rem; padding: 0 0 0 0.3rem; }
+.fea-spin { width: 11px; height: 11px; border-radius: 50%; border: 2px solid rgba(252,211,77,0.25); border-top-color: #fcd34d;
+  animation: fea-spin 0.8s linear infinite; flex: none; }
+.fea-solve:not([data-st="busy"]) .fea-spin { display: none; }
+@keyframes fea-spin { to { transform: rotate(360deg); } }
+.fea-solve-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.34rem; }
+.fea-solve-steps li { display: grid; grid-template-columns: 14px 1fr auto; gap: 0.45rem; align-items: center; color: #64748b; transition: color 0.3s; }
+.fea-solve-steps li i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #334155; box-sizing: border-box; display: grid;
+  place-items: center; font-style: normal; font-size: 11px; line-height: 1; justify-self: center; }
+.fea-solve-steps li small { font: 0.62rem ui-monospace, monospace; color: #94a3b8; text-align: right; }
+.fea-solve-steps li[data-st="active"] { color: #fde68a; }
+.fea-solve-steps li[data-st="active"] i { border: 2px solid rgba(252,211,77,0.25); border-top-color: #fcd34d; animation: fea-spin 0.8s linear infinite; }
+.fea-solve-steps li:is([data-st="ok"], [data-st="bad"], [data-st="skip"]) i { border: 0; }
+.fea-solve-steps li[data-st="ok"] { color: #d1fae5; } .fea-solve-steps li[data-st="ok"] i::after { content: "\\2713"; color: #34d399; }
+.fea-solve-steps li[data-st="bad"] { color: #fecdd3; } .fea-solve-steps li[data-st="bad"] i::after { content: "\\2717"; color: #fb7185; }
+.fea-solve-steps li[data-st="skip"] { color: #94a3b8; } .fea-solve-steps li[data-st="skip"] i::after { content: "\\2013"; color: #64748b; }
+.fea-solve-log { margin-top: 0.55rem; border-left: 2px solid rgba(125,211,252,0.5); padding: 0.25rem 0 0.25rem 0.55rem;
+  font: 0.68rem/1.45 ui-monospace, monospace; color: #94a3b8; min-height: 1.4em; }
+@media (prefers-reduced-motion: reduce) { .fea-spin, .fea-solve-steps li i, .fea-solve .pl-part { animation: none !important; } }
 `;
+
+/* Solver box: which outline part lights up for each component, and how each is solved */
+const PLANE_PARTS = {
+  main_wing_spar: ["pl-spar"],
+  wing_skin_box: ["pl-wing"],
+  horizontal_tail: ["pl-tail"],
+  fuselage_frames: ["pl-frames"],
+  main_landing_gear: ["pl-gear-l", "pl-gear-r"],
+  engine_mount: ["pl-engine"],
+};
+const SOLVE_METHOD = {
+  main_wing_spar: "Timoshenko beam + root-warping stress recovery",
+  wing_skin_box: "thin-wall box: bending + Bredt-Batho torsion",
+  horizontal_tail: "thin-wall box: bending + Bredt-Batho torsion",
+  fuselage_frames: "closed-ring force method + carry-through beam",
+  main_landing_gear: "curved tube: 3D curvature integration",
+  engine_mount: "3D truss direct stiffness + Euler buckling",
+};
+const PLANE_SVG = `<svg viewBox="0 0 200 172" role="img" aria-label="Airframe parts lit as each FEA model is solved">
+  <path class="pl-body" d="M100 6 C107 6 110 24 110 50 L110 130 C110 145 105 158 100 162 C95 158 90 145 90 130 L90 50 C90 24 93 6 100 6 Z"/>
+  <rect id="pl-engine" class="pl-part" x="92" y="9" width="16" height="18" rx="3"/>
+  <rect id="pl-wing" class="pl-part" x="10" y="56" width="180" height="24" rx="6"/>
+  <rect id="pl-spar" class="pl-part" x="12" y="62" width="176" height="5" rx="2"/>
+  <rect id="pl-frames" class="pl-part ring" x="89" y="49" width="22" height="38" rx="4"/>
+  <circle id="pl-gear-l" class="pl-part" cx="80" cy="96" r="5"/>
+  <circle id="pl-gear-r" class="pl-part" cx="120" cy="96" r="5"/>
+  <rect id="pl-tail" class="pl-part" x="66" y="137" width="68" height="13" rx="4"/>
+  <text class="pl-cap" x="100" y="171" text-anchor="middle">waiting for solver</text>
+</svg>`;
 
 function injectStyle() {
   if (document.getElementById("fea3d-style")) return;
@@ -408,6 +476,141 @@ export class SparFeaScene {
     if (opts.deflectionScale !== undefined) this.deflectionScale = Number(opts.deflectionScale);
     if (opts.showWireframe !== undefined) this.showWireframe = Boolean(opts.showWireframe);
     this._refreshAll(true);
+    if (this._solve?.ended && !this._solve.finished && this.ownsPanels) this._solveFinish();
+  }
+
+  /* ----- solver box: driven by the CAD + FEA stream's component_step events ----- */
+
+  solveStart() {
+    if (!this.container) return;
+    clearTimeout(this._solveFade);
+    if (!this.solveBox) {
+      const box = document.createElement("div");
+      box.className = "fea-solve";
+      box.setAttribute("aria-live", "polite");
+      box.innerHTML = `${PLANE_SVG}<div>
+        <div class="fea-solve-head"><span class="fea-spin"></span><span class="fea-solve-state"></span><span class="fea-solve-clock">0.0 s</span><button type="button" class="fea-solve-x" aria-label="Hide solver progress">×</button></div>
+        <ol class="fea-solve-steps"></ol>
+        <div class="fea-solve-log"></div></div>`;
+      box.querySelector(".fea-solve-x").addEventListener("click", () => box.classList.add("out"));
+      this.container.appendChild(box);
+      this.solveBox = box;
+    }
+    const box = this.solveBox;
+    const labels = ["Loft spar CAD (STEP, STL)", "Solve 6 FEA models", "Gemini agent proposes gauges", "Solver re-checks every proposal"];
+    box.querySelector(".fea-solve-steps").innerHTML = labels.map((t) => `<li data-st="wait"><i></i><span>${esc(t)}</span><small></small></li>`).join("");
+    box.querySelectorAll(".pl-part").forEach((p) => p.removeAttribute("data-st"));
+    box.classList.remove("out");
+    box.dataset.st = "busy";
+    this._solve = { t0: performance.now(), solved: new Set(), live: false };
+    this._solveText(".fea-solve-state", "Solving the airframe…");
+    this._solveText(".fea-solve-log", "Starting the CAD + FEA stream");
+    this._solveText(".pl-cap", "waiting for solver");
+    this._setEmpty("");
+    clearInterval(this._solveTimer);
+    this._solveTimer = setInterval(() => this._solveText(".fea-solve-clock", `${((performance.now() - this._solve.t0) / 1000).toFixed(1)} s`), 100);
+  }
+
+  solveEvent(ev) {
+    const s = this._solve;
+    if (!s || s.ended || !this.solveBox) return;
+    const { component_id: cid, step, status } = ev || {};
+    const comp = FEA_COMPONENTS.find((c) => c.id === cid);
+    if (cid === "main_wing_spar" && step === "cad") {
+      this._solveStep(0, status === "done" ? "ok" : "active");
+      if (status === "running") this._solveText(".fea-solve-log", "Lofting the tapered I-spar; exporting STEP AP214 and STL");
+    } else if (cid === "main_wing_spar" && step === "fea" && status === "running") {
+      this._solveStep(0, "ok");
+      this._solveStep(1, "active", "0/6");
+      this._solveParts(Object.keys(PLANE_PARTS), "active"); // refined per part once "solve" events arrive
+      this._solveText(".fea-solve-log", "Assembling stiffness matrices");
+    } else if (step === "solve" && comp) {
+      if (!s.live) this._solveParts(Object.keys(PLANE_PARTS), null);
+      s.live = true;
+      if (status === "running") {
+        this._solveParts([cid], "active");
+        this._solveText(".fea-solve-log", `${comp.name}: ${SOLVE_METHOD[cid]}`);
+        this._solveText(".pl-cap", `solving ${comp.short.toLowerCase()}`);
+      } else {
+        this._solveParts([cid], status === "error" ? "error" : "done");
+        s.solved.add(cid);
+        this._solveStep(1, "active", `${s.solved.size}/6`);
+      }
+    } else if (cid === "optimiser" && step === "agent") {
+      this._solveStep(1, "ok", `${s.solved.size || 6}/6`);
+      this._solveText(".pl-cap", "all six parts solved");
+      if (status === "running") {
+        this._solveStep(2, "active");
+        this._solveText(".fea-solve-state", "Agent is thinking…");
+        this._solveText(".fea-solve-log", "Gemini agent is proposing gauges for 6 parts × 3 goals");
+      } else if (status === "done") this._solveStep(2, "ok");
+      else if (status === "skipped") this._solveStep(2, "skip", "offline");
+      else this._solveStep(2, "bad", "call failed");
+    } else if (cid === "optimiser" && step === "verify") {
+      if (status === "running") {
+        this._solveStep(3, "active");
+        this._solveText(".fea-solve-state", "Verifying…");
+        this._solveText(".fea-solve-log", "Re-solving every proposal against its goal constraint");
+      } else this._solveStep(3, "ok");
+    }
+  }
+
+  solveEnd(ok = true) {
+    const s = this._solve;
+    if (!s || !this.solveBox) return;
+    clearInterval(this._solveTimer);
+    s.secs = (performance.now() - s.t0) / 1000;
+    s.ended = true;
+    if (!s.live) {
+      // Server without live progress (or a static-demo replay): only CAD/FEA step events arrived.
+      this._solveParts(Object.keys(PLANE_PARTS), "done");
+      this._solveStep(1, "ok", "");
+      [2, 3].forEach((i) => this._solveStep(i, "skip", "no live events"));
+    }
+    this.solveBox.querySelectorAll('.fea-solve-steps li[data-st="active"], .fea-solve-steps li[data-st="wait"]').forEach((li) => (li.dataset.st = "ok"));
+    this.solveBox.dataset.st = "ok";
+    this._solveText(".fea-solve-state", ok ? "Solved and verified" : "Finished");
+    this._solveText(".fea-solve-clock", `${s.secs.toFixed(1)} s`);
+    this._solveText(".fea-solve-log", "Loading the stress field");
+    this._solveFade = setTimeout(() => this.solveBox?.classList.add("out"), 6000);
+  }
+
+  _solveFinish() {
+    const s = this._solve;
+    s.finished = true;
+    const ai = this.stressMesh?.ai_optimization;
+    if (ai) {
+      const li = this.solveBox.querySelectorAll(".fea-solve-steps li");
+      if (ai.source === "ai") li[2].querySelector("span").textContent = `${ai.engine} proposed gauges`;
+      this._solveStep(3, "ok", ai.proposals ? `${ai.accepted}/${ai.proposals} accepted` : "grid search");
+      this._solveText(".fea-solve-log", ai.status);
+    }
+    this._renderPanel();
+    clearTimeout(this._solveFade);
+    this._solveFade = setTimeout(() => this.solveBox?.classList.add("out"), 3200);
+  }
+
+  _solveText(sel, text) {
+    const n = this.solveBox?.querySelector(sel);
+    if (n) n.textContent = text;
+  }
+
+  _solveStep(i, st, note) {
+    const li = this.solveBox?.querySelectorAll(".fea-solve-steps li")[i];
+    if (!li) return;
+    li.dataset.st = st;
+    if (note !== undefined) li.querySelector("small").textContent = note;
+  }
+
+  _solveParts(ids, st) {
+    for (const id of ids) {
+      for (const pid of PLANE_PARTS[id] || []) {
+        const el = this.solveBox?.querySelector(`#${pid}`);
+        if (!el) continue;
+        if (st) el.dataset.st = st;
+        else el.removeAttribute("data-st");
+      }
+    }
   }
 
   selectComponent(id) {
@@ -543,6 +746,10 @@ export class SparFeaScene {
     }
     const { THREE, scene } = this.gl;
     const variant = this._blendedVariant(c);
+    // Harry's overhaul HUD frame (overhaul.js missionHud) names the part in view; keep it on the selected one.
+    const hudId = this.container?.closest(".viewport-card")?.querySelector(".ov-hud-id");
+    const short = FEA_COMPONENTS.find((x) => x.id === c.id)?.short || c.name;
+    if (hudId) hudId.innerHTML = `<b>${esc(short.toUpperCase())} // VON MISES FIELD</b><span>3D FEA · ${esc(SOLVE_METHOD[c.id].split(":")[0].toUpperCase())}</span>`;
     const allow = c.baseline.metrics.allowable_pa;
     const D = DENSITY[this.density];
     const model = new THREE.Group();
@@ -1049,7 +1256,8 @@ export class SparFeaScene {
     const opt = this._opt(c);
     p.querySelector(".fea-opt-btn").disabled = !opt;
     const ai = this.stressMesh?.ai_optimization;
-    p.querySelector(".fea-ai-status").textContent = ai ? ai.status : "Optimiser runs with the CAD + FEA stream.";
+    const lastRun = this._solve?.finished ? ` · last run ${this._solve.secs.toFixed(1)} s` : "";
+    p.querySelector(".fea-ai-status").textContent = ai ? `${ai.status}${lastRun}` : "Optimiser runs with the CAD + FEA stream.";
     this._renderMeshInfo();
 
     const body = p.querySelector(".fea-assume-body");

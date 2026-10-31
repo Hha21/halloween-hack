@@ -1379,6 +1379,8 @@ def _build_components_fea(ctx: _Ctx, progress: ProgressFn | None = None) -> tupl
         "source": "ai" if ai_used else "deterministic_fallback",
         "status": f"{_fea_ai_model()} proposed {len(proposals)} gauge sets; {n_ai} passed solver verification, the rest fell back to the grid optimum"
         if ai_used else f"AI optimiser offline ({reason}); deterministic grid search used",
+        "proposals": len(proposals),
+        "accepted": n_ai,
         "goals": OPT_GOALS,
         "constraints": {
             "min_mass": f"margin ≥ +{TARGET_MARGIN:.2f}",
