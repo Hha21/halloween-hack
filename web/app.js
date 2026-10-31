@@ -295,6 +295,8 @@ function renderWorkspace() {
     });
   }
 
+  renderFidelityLadder();
+
   // Agent Log & Warnings
   const badge = document.getElementById("lap-badge");
   if (badge) badge.textContent = currentState.converged ? `Converged · Lap ${currentState.lap}` : `Lap ${currentState.lap}`;
@@ -317,8 +319,54 @@ function renderWorkspace() {
   }
 }
 
+/* Fidelity ladder: steps reached so far are done, the newest one is live while streaming. */
+const LADDER = ["conceptual", "preliminary", "convergence", "detailed"];
+let spiralStreaming = false;
+
+function renderFidelityLadder() {
+  const items = document.querySelectorAll("#stage-list li[data-stage]");
+  if (!items.length || !currentState) return;
+  const seen = new Set((currentState.log || []).map((e) => e.stage));
+  const spar = currentState.components?.main_wing_spar;
+  let reached = -1;
+  LADDER.forEach((s, i) => { if (seen.has(s)) reached = Math.max(reached, i); });
+  if (currentState.converged || currentState.infeasible_reason) reached = Math.max(reached, 2);
+  if (spar?.status === "completed") reached = 3;
+  const detailRunning = spar && ["running_cad", "running_fea"].includes(spar.status);
+
+  items.forEach((li) => {
+    const i = LADDER.indexOf(li.dataset.stage);
+    let state = "pending";
+    if (i < reached) state = "done";
+    else if (i === reached) state = spiralStreaming || (i === 3 && detailRunning) ? "active" : "done";
+    if (i === 2 && currentState.infeasible_reason) state = "failed";
+    li.classList.remove("active", "done", "failed", "pending");
+    li.classList.add(state);
+
+    let note = "";
+    if (i === 2 && reached >= 2) {
+      note = currentState.infeasible_reason ? `infeasible after lap ${currentState.lap}` : currentState.converged ? `converged on lap ${currentState.lap}` : `lap ${currentState.lap}`;
+    }
+    if (i === 3) note = spar?.status === "completed" ? "spar CAD + FEA done" : detailRunning ? "running…" : "click to run →";
+    let noteEl = li.querySelector(".stage-note");
+    if (!noteEl) {
+      noteEl = document.createElement("em");
+      noteEl.className = "stage-note";
+      li.appendChild(noteEl);
+    }
+    noteEl.textContent = note;
+  });
+}
+
+document.querySelector('#stage-list li[data-stage="detailed"]')?.addEventListener("click", () => {
+  if (!currentState?.latest_spar) return;
+  switchScreen("detailed");
+  if (currentState.components?.main_wing_spar?.status !== "completed") startDetailedSparStream();
+});
+
 async function startSpiralStream() {
   setStatus("Streaming Design Spiral...", true);
+  spiralStreaming = true;
   selectedLap = null;
   currentState = {
     spec: currentSpec,
@@ -367,6 +415,8 @@ async function startSpiralStream() {
     console.warn("Stream fallback to sync:", err);
     currentState = await runSpiralSync(currentSpec);
     setStatus("Spiral Complete", false);
+  } finally {
+    spiralStreaming = false;
     renderWorkspace();
   }
 }

@@ -178,3 +178,16 @@ body:has(.ws-floating.active) { overflow: hidden; }
   backdrop-filter: blur(14px);
   background: rgba(60, 14, 28, 0.9);
 }
+
+/* Fidelity ladder states (set by renderFidelityLadder in app.js) */
+.stage-list li { display: block; }
+.stage-list li .stage-note { display: block; padding-left: 1.6rem; font-style: normal; font-size: 0.72rem; color: var(--muted, #94a3b8); }
+.stage-list li.done { color: var(--text, #e2e8f0); }
+.stage-list li.done span { color: #34d399; }
+.stage-list li.done span::after { content: " ✓"; }
+.stage-list li.done .stage-note { color: #34d399; }
+.stage-list li.active { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.45); color: var(--text, #e2e8f0); animation: ws-pulse 1.4s ease-in-out infinite; }
+.stage-list li.failed { background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.45); color: var(--text, #e2e8f0); }
+.stage-list li.failed span, .stage-list li.failed .stage-note { color: #fb7185; }
+.stage-list li[data-stage="detailed"] { cursor: pointer; }
+@keyframes ws-pulse { 50% { border-color: rgba(56, 189, 248, 0.15); } }
