@@ -19,6 +19,8 @@ let lastIntake = null; // IntakeResponse from the last parse, or null
 let parsedSpec = null; // the spec exactly as intake returned it (before presets, edits, sliders)
 let lastError = null; // message if the last parse failed
 const edited = new Set(); // spec fields changed by hand (or by a preset) since the last parse
+let animateNext = false; // one-shot: the next render(s) in this tick play the entrance after a parse
+const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -54,12 +56,39 @@ function badge(field) {
   return `<span class="prov-badge ${o.cls}" title="${esc(o.title)}">${esc(o.label)}</span>`;
 }
 
+/** The user's description again, with each phrase Gemini quoted for a field marked and linked to that field. */
+function echoHtml(spec) {
+  const text = spec?.raw_description || document.getElementById("prompt-input")?.value || "";
+  const stated = spec?.stated_fields || {};
+  const lower = text.toLowerCase();
+  const ranges = [];
+  for (const [field, quote] of Object.entries(stated)) {
+    const q = String(quote || "");
+    const i = q ? lower.indexOf(q.toLowerCase()) : -1;
+    if (i < 0 || ranges.some((r) => i < r.end && i + q.length > r.start)) continue;
+    ranges.push({ start: i, end: i + q.length, field });
+  }
+  if (!ranges.length) return "";
+  ranges.sort((a, b) => a.start - b.start);
+  let out = "";
+  let pos = 0;
+  ranges.forEach((r, n) => {
+    const stale = origin(r.field).cls !== "prov-from-text" ? " is-stale" : "";
+    out += esc(text.slice(pos, r.start));
+    out += `<mark class="echo-mark${stale}" data-field="${esc(r.field)}" style="--i:${n}" title="${esc(r.field)}">${esc(text.slice(r.start, r.end))}</mark>`;
+    pos = r.end;
+  });
+  out += esc(text.slice(pos));
+  return `<p class="mission-echo"><span class="echo-label">Your words, as Gemini read them</span>${out}</p>`;
+}
+
 function renderSummary() {
   const el = document.getElementById("intake-summary");
   if (!el) return;
   const spec = ctx.getSpec();
   const screen = document.getElementById("screen-intake");
   if (screen) screen.dataset.intakeState = lastError ? "error" : lastIntake ? "parsed" : "idle";
+  el.classList.toggle("is-entering", animateNext && !reducedMotion());
   if (lastError) {
     el.innerHTML = `<div class="intake-summary-line warn">⚠ Intake failed: ${esc(lastError)}. Showing the local spec; check every field.</div>`;
     return;
@@ -80,7 +109,7 @@ function renderSummary() {
   ];
   if (counts["prov-user"]) parts.push(`<span class="prov-badge prov-user">${counts["prov-user"]} edited</span>`);
   const warnings = (lastIntake.warnings || []).map((w) => `<div class="intake-summary-line warn">⚠ ${esc(w)}</div>`).join("");
-  el.innerHTML = `<div class="intake-summary-line intake-summary-legend">${parts.join(" ")}</div>${warnings}
+  el.innerHTML = `${echoHtml(spec)}<div class="intake-summary-line intake-summary-legend">${parts.join(" ")}</div>${warnings}
     <div class="intake-summary-line muted">Hover a badge for its source. Gemini only reads your text; every number is converted, checked or defaulted by Python with a citation.</div>`;
 }
 
@@ -132,6 +161,14 @@ export function renderIntakeCards() {
 
   const fieldOf = (key) => FORM_KEY_TO_FIELD[key] || (key === "reserve_min" ? "reserve_s" : key);
 
+  const GROUP_DELAY = { "prov-from-text": 0, "prov-user": 0, "prov-inferred": 450, "prov-cited": 900 };
+  let rowIdx = 0;
+  const rowAttrs = (key) => {
+    const field = fieldOf(key);
+    const delay = (GROUP_DELAY[origin(field).cls] ?? 900) + rowIdx++ * 35;
+    return `data-field="${esc(field)}" style="--d:${delay}ms"`;
+  };
+  container.classList.toggle("is-entering", animateNext && !reducedMotion());
   container.innerHTML = cards
     .map(
       (c) => `
@@ -142,15 +179,16 @@ export function renderIntakeCards() {
             const b = badge(fieldOf(f.key));
             if (f.type === "select") {
               const opts = f.options.map((o) => `<option value="${o}" ${o === f.val ? "selected" : ""}>${o}</option>`).join("");
-              return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<select data-spec-key="${f.key}">${opts}</select>${quoteLine(fieldOf(f.key))}</div>`;
+              return `<div class="field-row" ${rowAttrs(f.key)}><span class="field-label">${esc(f.label)}</span>${b}<select data-spec-key="${f.key}">${opts}</select>${quoteLine(fieldOf(f.key))}</div>`;
             }
-            return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" />${quoteLine(fieldOf(f.key))}</div>`;
+            return `<div class="field-row" ${rowAttrs(f.key)}><span class="field-label">${esc(f.label)}</span>${b}<input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" />${quoteLine(fieldOf(f.key))}</div>`;
           })
           .join("")}
       </div>`
     )
     .join("");
 
+  if (animateNext && !reducedMotion()) countUp(container);
   container.querySelectorAll("[data-spec-key]").forEach((el) => {
     el.addEventListener("change", () => {
       const spec = ctx.getSpec();
@@ -171,9 +209,51 @@ export function renderIntakeCards() {
   renderSummary();
 }
 
+/** Values count up into the number fields after a parse (display only: no change events fire). */
+function countUp(container) {
+  container.querySelectorAll('input[type="number"]').forEach((input) => {
+    const finalStr = input.value;
+    const target = Number(finalStr);
+    if (!Number.isFinite(target) || target === 0) return;
+    const decimals = (finalStr.split(".")[1] || "").length;
+    const delay = parseFloat(input.closest(".field-row")?.style.getPropertyValue("--d")) || 0;
+    const dur = 750;
+    let t0 = null;
+    const step = (t) => {
+      if (!input.isConnected) return;
+      if (t0 === null) t0 = t + delay;
+      const k = Math.min(1, Math.max(0, (t - t0) / dur));
+      const e = 1 - Math.pow(1 - k, 3);
+      input.value = k >= 1 ? finalStr : (target * e).toFixed(decimals);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    input.value = (0).toFixed(decimals);
+    requestAnimationFrame(step);
+  });
+}
+
+/** Hovering a marked phrase lights its field, and the other way round. */
+function wireLinking() {
+  const screen = document.getElementById("screen-intake");
+  if (!screen || screen.dataset.linkWired) return;
+  screen.dataset.linkWired = "1";
+  const set = (field, on) =>
+    screen.querySelectorAll(`[data-field="${CSS.escape(field)}"]`).forEach((n) => n.classList.toggle("is-linked", on));
+  screen.addEventListener("pointerover", (e) => {
+    const f = e.target.closest?.("[data-field]")?.dataset.field;
+    if (f) set(f, true);
+  });
+  screen.addEventListener("pointerout", (e) => {
+    const f = e.target.closest?.("[data-field]")?.dataset.field;
+    if (f) set(f, false);
+  });
+}
+
 /** Parse `description` with Gemini (server-side), then optionally apply preset overrides. */
 async function parse(description, overrides = null) {
   ctx.setStatus?.("Parsing mission with Gemini...", true);
+  const screen = document.getElementById("screen-intake");
+  if (screen) screen.dataset.intakeState = "parsing";
   const btn = document.getElementById("btn-parse");
   if (btn) btn.disabled = true;
   try {
@@ -191,6 +271,8 @@ async function parse(description, overrides = null) {
       }
     }
     ctx.setSpec(spec);
+    animateNext = true;
+    setTimeout(() => (animateNext = false), 0);
     ctx.setStatus?.("Spec parsed: confirm to run the spiral", false);
   } catch (err) {
     lastIntake = null;
@@ -251,6 +333,49 @@ function enhanceReportTables() {
   convert();
 }
 
+const SPIRAL_D = "M24 139A104 104 0 0 1 232 139A82 82 0 0 1 68 139A60 60 0 0 1 188 139A38 38 0 0 1 112 139";
+
+/** Screen 1 opener, built at init: animated spiral hero, scenario cards, and the prompt shell (thinking state). */
+function buildHero() {
+  const screen = document.getElementById("screen-intake");
+  const host = screen?.querySelector(".intake-hero") || screen;
+  if (!host || host.querySelector(".mission-hero")) return;
+  const hero = document.createElement("div");
+  hero.className = "mission-hero";
+  hero.innerHTML = `
+    <svg class="hero-spiral" viewBox="0 0 256 256" aria-hidden="true">
+      <circle class="hero-orbit" cx="128" cy="134" r="122" pathLength="1" />
+      <path class="hero-spiral-path" d="${SPIRAL_D}" pathLength="1" />
+      <circle class="hero-spiral-dot" cx="150" cy="139" r="15" />
+    </svg>
+    <div class="hero-copy">
+      <h1 class="hero-title">Describe the aircraft.<br />Watch the design spiral close.</h1>
+      <p class="hero-sub">Gemini reads your mission; Python sizes it from Raymer, citing every number.</p>
+    </div>`;
+  host.prepend(hero);
+
+  host.querySelectorAll("[data-preset]").forEach((btn) => {
+    if (btn.dataset.cardified) return;
+    const text = btn.textContent.trim();
+    const m = text.match(/^(.*?)\s*\((.*)\)\s*$/);
+    btn.dataset.cardified = "1";
+    btn.classList.add("scenario-card");
+    btn.innerHTML = `<span class="sc-title">${esc(m ? m[1] : text)}</span>${m ? `<span class="sc-meta">${esc(m[2])}</span>` : ""}`;
+  });
+
+  const input = document.getElementById("prompt-input");
+  if (input && !input.parentElement.classList.contains("prompt-shell")) {
+    const shell = document.createElement("div");
+    shell.className = "prompt-shell";
+    input.parentNode.insertBefore(shell, input);
+    shell.appendChild(input);
+    shell.insertAdjacentHTML(
+      "beforeend",
+      `<div class="prompt-scan" aria-hidden="true"></div><div class="prompt-status" aria-live="polite">✦ Gemini is reading your mission…</div>`
+    );
+  }
+}
+
 /**
  * Wire Screen 1. `options`:
  *   getSpec(), setSpec(spec)   shared MissionSpec state (owned by app.js)
@@ -262,11 +387,14 @@ function enhanceReportTables() {
 export function initIntake(options) {
   ctx = options;
   installFavicon();
+  buildHero();
+  wireLinking();
   enhanceReportTables();
   document.querySelectorAll("[data-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const p = ctx.presets?.[btn.dataset.preset];
       if (!p) return;
+      document.querySelectorAll("[data-preset]").forEach((b) => b.classList.toggle("is-active", b === btn));
       const input = document.getElementById("prompt-input");
       if (input) input.value = p.prompt;
       parse(p.prompt, p.overrides);
