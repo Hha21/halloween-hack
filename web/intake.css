@@ -1,3 +1,5 @@
+@import url("theme.css"); /* design overrides for all screens, loaded after styles.css */
+
 /* Screen 1: intake provenance badges and summary strip (Owner: Harry). Restyle freely from styles.css. */
 
 .intake-summary {
