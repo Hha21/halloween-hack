@@ -4,11 +4,11 @@
 al_2024_t3:
   name: "Aluminium 2024-T3"
   density_kg_m3: 2780.0
-  youngs_modulus_pa: 73.1e9
+  youngs_modulus_pa: 73100000000.0
   poissons_ratio: 0.33
-  yield_strength_pa: 345.0e6
-  ultimate_strength_pa: 483.0e6
-  shear_strength_pa: 283.0e6
+  yield_strength_pa: 345000000.0
+  ultimate_strength_pa: 483000000.0
+  shear_strength_pa: 283000000.0
   min_cap_thickness_m: 0.0020
   min_web_thickness_m: 0.0015
   source: "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)"
@@ -17,11 +17,11 @@ al_2024_t3:
 al_7075_t6:
   name: "Aluminium 7075-T6"
   density_kg_m3: 2810.0
-  youngs_modulus_pa: 71.7e9
+  youngs_modulus_pa: 71700000000.0
   poissons_ratio: 0.33
-  yield_strength_pa: 503.0e6
-  ultimate_strength_pa: 572.0e6
-  shear_strength_pa: 331.0e6
+  yield_strength_pa: 503000000.0
+  ultimate_strength_pa: 572000000.0
+  shear_strength_pa: 331000000.0
   min_cap_thickness_m: 0.0020
   min_web_thickness_m: 0.0015
   source: "MIL-HDBK-5J / MMPDS-01, Table 3.7.4.0(b)"

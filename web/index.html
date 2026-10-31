@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spiral — Autonomous Aircraft Design & FEA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>SPIRAL</strong>
+      <span class="subtitle">Autonomous Conceptual-to-FEA Aircraft Design</span>
+    </div>
+    <nav class="screen-tabs">
+      <button data-screen="intake" class="active">1. Intake</button>
+      <button data-screen="workspace">2. Workspace &amp; 3D</button>
+      <button data-screen="detailed">3. Detailed Spar &amp; FEA</button>
+      <button data-screen="report">4. Report</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Screen 1: Project Intake -->
+    <section id="screen-intake" class="screen active">
+      <h2>Screen 1: Project Intake</h2>
+      <p>Describe the aircraft you are designing in plain English:</p>
+      <textarea id="prompt-input" rows="3">Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.</textarea>
+      <div class="actions">
+        <button id="btn-parse" class="primary">Parse Spec with Gemini</button>
+        <button id="btn-run-spiral" class="primary">Confirm Spec &amp; Run Design Spiral →</button>
+      </div>
+      <pre id="spec-preview" class="code-box">// Parsed MissionSpec JSON will appear here</pre>
+    </section>
+
+    <!-- Screen 2: Workspace (3D Render + Convergence Plot + Agent Log) -->
+    <section id="screen-workspace" class="screen">
+      <h2>Screen 2: Design Spiral Workspace (Owner: Tharm)</h2>
+      <div class="workspace-grid">
+        <div class="panel" id="viewport-3d">
+          <h3>3D Aircraft Geometry Preview (Three.js Placeholder)</h3>
+          <pre id="geometry-preview" class="code-box">// AircraftGeometry primitives per lap</pre>
+        </div>
+        <div class="panel">
+          <h3>MTOW &amp; Spar Mass Convergence</h3>
+          <pre id="convergence-preview" class="code-box">// Lap history (mtow_kg, spar_mass_kg, mtow_change_pct)</pre>
+          <h3>Traceable Agent Log</h3>
+          <pre id="log-preview" class="code-box">// Citations, assumptions, and warnings</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 3: Detailed Design (CAD + FEA) -->
+    <section id="screen-detailed" class="screen">
+      <h2>Screen 3: Detailed Component Design &amp; FEA (Owner: Tharm)</h2>
+      <div class="actions">
+        <button id="btn-run-fea" class="primary">Run Main Wing Spar CAD + CalculiX FEA</button>
+        <a id="download-step" href="/artifacts/spar.step" download class="btn-link">Download STEP</a>
+      </div>
+      <pre id="fea-preview" class="code-box">// SparCadResult &amp; FeaResult (von Mises stress vs Euler-Bernoulli beam theory)</pre>
+    </section>
+
+    <!-- Screen 4: Report -->
+    <section id="screen-report" class="screen">
+      <h2>Screen 4: Traceable Engineering Report</h2>
+      <button id="btn-generate-report" class="primary">Generate Report</button>
+      <pre id="report-preview" class="code-box">// Source-cited markdown report</pre>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

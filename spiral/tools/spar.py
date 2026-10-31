@@ -129,7 +129,8 @@ def size_spar(
         depth_m = max(0.85 * thickness_to_chord * st.chord_m, 0.04)
         cap_width_m = max(0.35 * depth_m, 0.03)
 
-        req_cap_area = abs(st.moment_nm) / (depth_m * sigma_allow) if depth_m > 0 else 0.0
+        h_eff = max(depth_m * 0.90, 0.03)
+        req_cap_area = abs(st.moment_nm) / (h_eff * sigma_allow) if h_eff > 0 else 0.0
         cap_t = max(req_cap_area / cap_width_m, min_cap_t)
         cap_area_m2 = cap_width_m * cap_t
 
