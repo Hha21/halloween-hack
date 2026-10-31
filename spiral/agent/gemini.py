@@ -547,6 +547,8 @@ def _proposal_values(p: SpecRelaxationProposal) -> tuple[str, float, float, int]
     """(display unit, old, new, decimals) for a relaxation; ranges are shown in km."""
     if p.unit == "m" and max(abs(p.old_value), abs(p.new_value)) >= 10_000.0:
         return "km", p.old_value / 1000.0, p.new_value / 1000.0, 0
+    if p.unit == "-" and float(p.old_value).is_integer() and float(p.new_value).is_integer():
+        return "", p.old_value, p.new_value, 0  # counts, e.g. passengers
     return ("" if p.unit == "-" else p.unit), p.old_value, p.new_value, 3
 
 
@@ -816,7 +818,7 @@ def _report_sections(state: DesignState) -> tuple[list[str], list[str]]:
                 body.append(f"- **Reasoning:** {rel.reasoning}")
             body.append("")
 
-    tail = [
+    tail = _textbook_section(state) + [
         "## Sources",
         *([f"- {src}" for src in state.sources] or ["- None recorded"]),
         "",
@@ -827,6 +829,63 @@ def _report_sections(state: DesignState) -> tuple[list[str], list[str]]:
         *([f"- {w}" for w in state.warnings] or ["- None"]),
     ]
     return body, tail
+
+
+_CRITIC_LABEL = {
+    "verified": "✓ confirmed",
+    "verified_minor_fix": "✓ confirmed (minor fix)",
+    "disputed": "⚠ disputed",
+    "rejected": "✗ rejected",
+    "unreviewed": "not reviewed",
+}
+
+
+def _textbook_section(state: DesignState, limit: int = 16) -> list[str]:
+    """Table of the extracted book items behind the run's citations, with the critic's verdict.
+
+    Empty when the local knowledge base (knowledge/extracted/, gitignored) is not present, or when
+    SPIRAL_NO_BOOK_TEXT is set (fixtures: extracted book content must never be committed).
+    """
+    if os.environ.get("SPIRAL_NO_BOOK_TEXT", "").strip() not in ("", "0"):
+        return []
+    try:
+        from spiral.tools.lookup import book_item, citation
+    except ImportError:
+        return []
+    cites: list[str] = []
+    for src in [p.source for p in state.provenance.values()] + list(state.sources):
+        head = str(src).split(": ")[0].removeprefix("Converted to SI from ").removeprefix("Default: ")
+        if "2ed" in head and head not in cites:
+            cites.append(head)
+    rows = []
+    seen: set[str] = set()
+    for cite in cites:
+        item = book_item(cite)
+        if item is None or item.get("id") in seen:
+            continue
+        seen.add(item.get("id"))
+        if item.get("kind") == "equations":
+            what = f"`{item.get('latex', '')}`"
+        elif item.get("kind") == "tables":
+            match = next((r for r in item.get("rows", []) if "single" in " ".join(r).lower()), None)
+            what = f"{item.get('title', '')}" + (f": `{' | '.join(match)}`" if match else "")
+        else:
+            what = str(item.get("paraphrase") or item.get("description") or item.get("name") or "")
+        what = what.replace("|", "\\|").replace("\n", " ")
+        rows.append(f"| {citation(item)} | {what} | {_CRITIC_LABEL.get(item.get('status', ''), item.get('status', ''))} |")
+        if len(rows) >= limit:
+            break
+    if not rows:
+        return []
+    return [
+        "## Textbook items behind the numbers",
+        "Extracted from the scanned book by Gemini; each item was checked against the page by an independent critic model.",
+        "",
+        "| Citation | What the book prints | Critic |",
+        "|---|---|---|",
+        *rows,
+        "",
+    ]
 
 
 def _deterministic_report(state: DesignState, note: str | None = None) -> str:

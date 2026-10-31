@@ -98,7 +98,13 @@ class TestOfflineReport(ReportTestCase):
 class TestNumberCheck(ReportTestCase):
     def test_deterministic_report_numbers_all_trace_to_state(self) -> None:
         for state in (self.state, copy.deepcopy(self.infeasible)):
-            self.assertEqual(report_number_problems(_deterministic_report(state), state), [])
+            # The "Textbook items" table prints the book's own constants (Table 3.1 A = 2.36, ...): those trace to
+            # the cited page, not to the state, so the state-number check skips that section.
+            report = _deterministic_report(state)
+            start = report.find("## Textbook items behind the numbers")
+            if start >= 0:
+                report = report[:start] + report[report.find("## Sources", start):]
+            self.assertEqual(report_number_problems(report, state), [])
 
     def test_clean_narrative_and_display_conversions_pass(self) -> None:
         s, p = self.state.latest_sizing, self.state.latest_spar

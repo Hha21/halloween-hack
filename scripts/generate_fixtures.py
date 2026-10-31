@@ -17,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ.setdefault("SPIRAL_OFFLINE", "1")  # deterministic fixtures; SPIRAL_OFFLINE=0 uses Gemini
+os.environ["SPIRAL_NO_BOOK_TEXT"] = "1"  # never write extracted textbook content into committed files
 
 from spiral.agent import (  # noqa: E402
     generate_report_markdown,

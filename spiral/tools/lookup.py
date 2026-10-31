@@ -128,6 +128,35 @@ def _knowledge_items() -> tuple[dict[str, Any], ...]:
     return tuple(items)
 
 
+_CITE_REF = re.compile(r"(Table|Eqs?\.|Fig\.)\s*([\d.]+)")
+_CITE_PAGE = re.compile(r"\(pp?\.\s*(\d+)")
+
+
+def book_item(cite: str) -> dict[str, Any] | None:
+    """The extracted book item a citation such as "Raymer 2ed, Table 3.1 (p. 13)" points to, or None.
+
+    Matches the table/equation/figure number (and page when given), preferring critic-confirmed items.
+    Page-only citations are ambiguous and return None.
+    """
+    ref = _CITE_REF.search(cite)
+    if ref is None:
+        return None
+    key = {"Table": "table_number", "Fig.": "figure_number"}.get(ref.group(1), "equation_number")
+    number = ref.group(2).rstrip(".")
+    page_m = _CITE_PAGE.search(cite)
+    page = int(page_m.group(1)) if page_m else None
+    best, best_score = None, -1
+    for item in _knowledge_items():
+        if str(item.get(key, "")).strip() != number:
+            continue
+        score = (2 if page is not None and item.get("book_page") == page else 0) + (
+            1 if item.get("status") in ("verified", "verified_minor_fix") else 0
+        )
+        if score > best_score:
+            best, best_score = item, score
+    return None if best is None else {k: v for k, v in best.items() if k != "_tokens"}
+
+
 def citation(item: dict[str, Any]) -> str:
     """Human-readable citation for one extracted item, e.g. 'Raymer 2ed, Table 3.1 (p. 13)'."""
     label = {"equations": "Eq.", "tables": "Table", "figures": "Fig."}.get(item.get("kind", ""), "")
