@@ -19,6 +19,7 @@ import {
   renderMassBreakdownChart,
 } from "./charts.js";
 import { AircraftScene, SparFeaScene } from "./scene3d.js";
+import { initIntake, renderIntakeCards } from "./intake.js"; // Screen 1: owned by Harry (web/intake.js)
 
 const DEFAULT_SPEC = {
   crew_count: 1,
@@ -148,85 +149,7 @@ function switchScreen(screenName) {
 }
 
 /* ---------------- SCREEN 1: INTAKE CARDS ---------------- */
-function renderIntakeCards() {
-  const container = document.getElementById("intake-cards");
-  if (!container) return;
-  const s = currentSpec;
-
-  const cards = [
-    {
-      title: "1. Cabin & Payload",
-      fields: [
-        { key: "crew_count", label: "Crew Count", val: s.crew_count, step: 1 },
-        { key: "passenger_count", label: "Passengers", val: s.passenger_count, step: 1 },
-        { key: "person_mass_kg", label: "Person Mass (kg)", val: s.person_mass_kg, step: 1 },
-        { key: "baggage_mass_kg", label: "Baggage (kg)", val: s.baggage_mass_kg, step: 5 },
-      ],
-    },
-    {
-      title: "2. Mission Performance",
-      fields: [
-        { key: "range_km", label: "Range (km)", val: (s.range_m / 1000).toFixed(0), step: 50 },
-        { key: "cruise_kt", label: "Cruise Speed (kt)", val: (s.cruise_speed_ms / 0.514444).toFixed(0), step: 5 },
-        { key: "stall_kt", label: "Stall Speed (kt)", val: (s.stall_speed_ms / 0.514444).toFixed(0), step: 1 },
-        { key: "cruise_altitude_m", label: "Cruise Alt (m)", val: s.cruise_altitude_m, step: 100 },
-      ],
-    },
-    {
-      title: "3. Wing & Aerodynamics",
-      fields: [
-        { key: "aspect_ratio", label: "Aspect Ratio (AR)", val: s.aspect_ratio, step: 0.5 },
-        { key: "taper_ratio", label: "Taper Ratio (λ)", val: s.taper_ratio, step: 0.05 },
-        { key: "thickness_to_chord", label: "Airfoil t/c", val: s.thickness_to_chord, step: 0.01 },
-        { key: "ld_max", label: "Cruise (L/D)_max", val: s.ld_max, step: 0.5 },
-      ],
-    },
-    {
-      title: "4. Structures & Layout",
-      fields: [
-        { key: "limit_load_factor", label: "Limit Load (+g)", val: s.limit_load_factor, step: 0.2 },
-        { key: "ultimate_factor", label: "Safety Factor", val: s.ultimate_factor, step: 0.1 },
-        { key: "spar_material", label: "Spar Material", type: "select", options: ["al_2024_t3", "al_7075_t6"], val: s.spar_material },
-        { key: "wing_position", label: "Wing Position", type: "select", options: ["high", "mid", "low"], val: s.wing_position },
-      ],
-    },
-  ];
-
-  container.innerHTML = cards
-    .map(
-      (c) => `
-      <div class="panel">
-        <h3>${esc(c.title)}</h3>
-        ${c.fields
-          .map((f) => {
-            const rawKey = f.key === "range_km" ? "range_m" : f.key === "cruise_kt" ? "cruise_speed_ms" : f.key === "stall_kt" ? "stall_speed_ms" : f.key;
-            const badge = provBadge(`spec.${rawKey}`);
-            if (f.type === "select") {
-              const opts = f.options
-                .map((o) => `<option value="${o}" ${o === f.val ? "selected" : ""}>${o}</option>`)
-                .join("");
-              return `<div class="field-row"><span>${esc(f.label)} ${badge}</span><select data-spec-key="${f.key}">${opts}</select></div>`;
-            }
-            return `<div class="field-row"><span>${esc(f.label)} ${badge}</span><input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" /></div>`;
-          })
-          .join("")}
-      </div>`
-    )
-    .join("");
-
-  container.querySelectorAll("[data-spec-key]").forEach((el) => {
-    el.addEventListener("change", () => {
-      const k = el.dataset.specKey;
-      const v = el.tagName === "SELECT" ? el.value : Number(el.value);
-      if (k === "range_km") currentSpec.range_m = v * 1000.0;
-      else if (k === "cruise_kt") currentSpec.cruise_speed_ms = +(v * 0.514444).toFixed(2);
-      else if (k === "stall_kt") currentSpec.stall_speed_ms = +(v * 0.514444).toFixed(2);
-      else currentSpec[k] = v;
-      if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[k];
-      syncSlidersFromSpec();
-    });
-  });
-}
+// renderIntakeCards() moved to web/intake.js (Screen 1, Harry).
 
 function syncSlidersFromSpec() {
   const s = currentSpec;
@@ -611,32 +534,7 @@ document.querySelectorAll(".screen-tabs button").forEach((btn) => {
   btn.addEventListener("click", () => switchScreen(btn.dataset.screen));
 });
 
-document.querySelectorAll("[data-preset]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const p = PRESETS[btn.dataset.preset];
-    if (!p) return;
-    document.getElementById("prompt-input").value = p.prompt;
-    currentSpec = { ...structuredClone(DEFAULT_SPEC), ...p.overrides, raw_description: p.prompt };
-    renderIntakeCards();
-    syncSlidersFromSpec();
-  });
-});
-
-document.getElementById("btn-parse")?.addEventListener("click", async () => {
-  setStatus("Parsing Mission with Gemini...", true);
-  try {
-    const desc = document.getElementById("prompt-input").value;
-    const res = await parseIntake(desc);
-    currentSpec = res.spec;
-    renderIntakeCards();
-    syncSlidersFromSpec();
-    setStatus("Spec Parsed", false);
-  } catch (err) {
-    setStatus("Spec Ready (Local)", false);
-  }
-});
-
-document.getElementById("btn-run-spiral")?.addEventListener("click", () => startSpiralStream());
+// Screen 1 handlers (presets, parse, confirm) live in web/intake.js.
 
 document.getElementById("btn-rerun-sliders")?.addEventListener("click", () => {
   currentSpec.range_m = Number(document.getElementById("sl-range").value) * 1000.0;
@@ -716,8 +614,18 @@ document.getElementById("btn-generate-report")?.addEventListener("click", async 
   renderReportView();
 });
 
-// Boot: render intake cards & pre-populate baseline state in background
-renderIntakeCards();
+// Boot: wire Screen 1 (web/intake.js) & pre-populate baseline state in background
+initIntake({
+  getSpec: () => currentSpec,
+  setSpec: (spec) => {
+    currentSpec = spec;
+  },
+  defaultSpec: DEFAULT_SPEC,
+  presets: PRESETS,
+  setStatus,
+  onSpecChanged: () => syncSlidersFromSpec(),
+  onConfirm: () => startSpiralStream(),
+});
 syncSlidersFromSpec();
 runSpiralSync(currentSpec)
   .then((st) => {

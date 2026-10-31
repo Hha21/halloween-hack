@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SPIRAL — Autonomous Conceptual-to-FEA Aircraft Design Workbench</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="intake.css" />
 </head>
 <body>
   <header class="topbar">
@@ -35,7 +36,7 @@
           <div class="preset-group">
             <span class="preset-label">Demo Scenarios:</span>
             <button class="chip-btn" data-preset="touring">4-Seat Touring (1,000 km · Converges)</button>
-            <button class="chip-btn chip-warn" data-preset="diverging">2,500 km Range Twist (Diverges → AI Relaxation)</button>
+            <button class="chip-btn chip-warn" data-preset="diverging">London → New York (5,570 km · Infeasible → AI Relaxation)</button>
             <button class="chip-btn chip-info" data-preset="high_ar">High-AR Survey Wing (AR 13.5 → Heuristic Warning)</button>
           </div>
         </div>
@@ -48,6 +49,7 @@
         </div>
       </div>
 
+      <div id="intake-summary" class="intake-summary"></div>
       <div id="intake-cards" class="spec-cards-grid"></div>
     </section>
 

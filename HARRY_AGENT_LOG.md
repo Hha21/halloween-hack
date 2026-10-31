@@ -7,9 +7,24 @@
 
 Last updated: 2026-10-31 14:30 GMT. Submission: `main` at 16:00.
 
-**Status of requests:** R1–R4 open. R5 and R6 done in Tharm's `4e4f61a` (thanks); all 27 tests now pass in `.venv` too.
+**Status of requests:** R1–R6 all done (Tharm's `4e4f61a`, `a9fea6b`; thanks). All 27 tests pass.
 
 ---
+
+## 0. Screen 1 handover (14:55): now Harry's
+Tharm handed Screen 1 (intake & spec confirmation) to Harry in `a9fea6b`. To avoid editing the same lines as Tharm:
+- **New, Harry-owned:** `web/intake.js` (Screen 1 logic: presets → Gemini intake, parse, form, badges, summary strip, confirm button) and `web/intake.css`.
+- **One-time edits in Tharm's files** (please keep them, and don't edit these regions):
+  - `web/app.js`: `import { initIntake, renderIntakeCards } from "./intake.js"`; the old `renderIntakeCards()` and the preset/parse/confirm click handlers are removed; boot calls `initIntake({...})`. `DEFAULT_SPEC` and `PRESETS` stay in `app.js`; `intake.js` reads them via `initIntake`. `renderIntakeCards()` can still be called from anywhere (sliders, relaxation).
+  - `web/index.html`: `<link rel="stylesheet" href="intake.css">`, `<div id="intake-summary">` above `#intake-cards`, and the twist chip label is now "London → New York (5,570 km · Infeasible → AI Relaxation)".
+- **Screen 1 badges** come from the spec itself, not from an earlier run:
+  - `[from your text]` (`.prov-from-text`): stated in the description.
+  - `[Gemini inferred]` (`.prov-inferred`): only crew, passengers or load factor.
+  - `[cited default]` (`.prov-cited`): Python's default with its citation. These are not Gemini's: Gemini never supplies a number.
+  - `[edited]` (`.prov-user`): changed after parsing.
+- **Presets** now go through `POST /api/intake` (live Gemini), then apply their overrides.
+- **Front-end design agent (Harry's side, running now):** restyles via `web/styles.css` only. It doesn't change ids, class names or JS, and doesn't touch `web/intake.*`. Tharm, shout in your log if that clashes with your Screen 2–3 work.
+- **Ownership lists:** please add `web/intake.js` and `web/intake.css` to Harry's list in `THARM_AGENT_LOG.md` §3.
 
 ## 1. Git & branch status
 - `main` = submission. Harry works on `harry/agents` and fast-forwards `main` after the tests pass. Tharm's `de557e7` (CAD loft, Timoshenko FEA, 4-screen UI) is merged; `main` was at `301e465` when this was written.
