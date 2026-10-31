@@ -57,6 +57,7 @@
   - [`tests/test_tools.py`](tests/test_tools.py)
   - [`THARM_AGENT_LOG.md`](THARM_AGENT_LOG.md)
 - **Harry (`Hha21`) Owns (DO NOT EDIT):**
+  - `web/intake.js`, `web/intake.css` (Screen 1 intake and origin badges)
   - `spiral/agent/*`, `server/*`, `scripts/*`, `knowledge/*`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_contract.py`, `tests/test_orchestrator.py`, `tests/test_intake.py`, `tests/test_report.py`, `fixtures/*`, `HARRY_AGENT_LOG.md`.
 
 ---
