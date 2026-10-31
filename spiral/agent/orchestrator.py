@@ -34,7 +34,9 @@ from spiral.tools import (
     aircraft_geometry,
     build_spar_cad,
     conceptual_sizing,
+    horizontal_tail_spar,
     run_fea,
+    size_main_landing_gear,
     size_spar,
     spar_loads,
 )
@@ -483,3 +485,150 @@ def run_spar_detailed_design(
     emit("log", LogEvent(entry=entry))
     emit("component_done", ComponentDoneEvent(component_id="main_wing_spar", component=comp, state=state))
     return state
+
+
+def run_horizontal_tail_detailed_design(
+    state: DesignState,
+    out_dir: str = "artifacts",
+    on_event: EventSink | None = None,
+) -> DesignState:
+    """Tail load case (Raymer 2ed p. 347) -> I-beam sizing -> CAD + FEA for the horizontal tail spar."""
+    if state.latest_sizing is None or state.latest_geometry is None:
+        raise ToolError(
+            "Cannot size the horizontal tail before the preliminary spiral has run.",
+            tool_name="run_horizontal_tail_detailed_design",
+            recoverable=False,
+        )
+
+    def emit(event_type: str, payload: object) -> None:
+        if on_event is not None:
+            on_event(event_type, payload)
+
+    cid = "horizontal_tail"
+    prefix = f"components.{cid}"
+    comp = state.components[cid]
+
+    comp.status = "running_loads"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="loads", status="running"))
+    tail_res = horizontal_tail_spar(state.spec, state.latest_sizing, state.latest_geometry)
+    _merge_metadata(state, tail_res, f"{prefix}.horizontal_tail")
+    comp.horizontal_tail = tail_res.value
+    emit("component_step", ComponentStepEvent(component_id=cid, step="loads", status="done"))
+
+    comp.status = "running_cad"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="cad", status="running"))
+    cad_res = build_spar_cad(comp.horizontal_tail.spar, out_dir=out_dir, file_stem="tail_spar")
+    _merge_metadata(state, cad_res, f"{prefix}.cad")
+    comp.cad = cad_res.value
+    comp.artifact_urls["step"] = _artifact_url(comp.cad.step_path)
+    comp.artifact_urls["stl"] = _artifact_url(comp.cad.stl_path)
+    emit("component_step", ComponentStepEvent(component_id=cid, step="cad", status="done"))
+
+    comp.status = "running_fea"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="fea", status="running"))
+    fea_res = run_fea(
+        spar=comp.horizontal_tail.spar,
+        loads=comp.horizontal_tail.loads,
+        cad=comp.cad,
+        material_key=state.spec.spar_material,
+        out_dir=out_dir,
+        file_stem="tail_spar",
+    )
+    _merge_metadata(state, fea_res, f"{prefix}.fea")
+    comp.fea = fea_res.value
+    if comp.fea.stress_mesh_path:
+        comp.artifact_urls["stress_mesh"] = _artifact_url(comp.fea.stress_mesh_path)
+    comp.status = "completed"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="fea", status="done"))
+
+    tail = comp.horizontal_tail
+    entry = AgentLogEntry(
+        lap=state.lap,
+        stage="detailed",
+        message=(
+            f"Horizontal tail: V_p = {tail.maneuver_speed_ms:.1f} m/s, C_n = {tail.normal_force_coefficient:+.2f}, "
+            f"ultimate tail load {tail.ultimate_tail_load_n / 1e3:.2f} kN. Spar {tail.spar.mass_both_wings_kg:.2f} kg, "
+            f"margin {tail.spar.safety_margin:+.2f}; FEA peak von Mises {comp.fea.fea_max_von_mises_pa / 1e6:.1f} MPa "
+            f"({comp.fea.stress_agreement_pct:.1f}% agreement with beam theory)."
+        ),
+        citations=tail_res.sources[:3] + fea_res.sources[:1],
+        level="warning" if tail_res.warnings else "info",
+    )
+    state.log.append(entry)
+    emit("log", LogEvent(entry=entry))
+    emit("component_done", ComponentDoneEvent(component_id=cid, component=comp, state=state))
+    return state
+
+
+def run_landing_gear_detailed_design(
+    state: DesignState,
+    out_dir: str = "artifacts",
+    on_event: EventSink | None = None,
+) -> DesignState:
+    """Main landing gear oleo strut sizing (Raymer 2ed, Ch. 11). No CAD or FEA: a sizing result only."""
+    if state.latest_sizing is None:
+        raise ToolError(
+            "Cannot size the landing gear before the preliminary spiral has run.",
+            tool_name="run_landing_gear_detailed_design",
+            recoverable=False,
+        )
+
+    def emit(event_type: str, payload: object) -> None:
+        if on_event is not None:
+            on_event(event_type, payload)
+
+    cid = "main_landing_gear"
+    comp = state.components[cid]
+    comp.status = "running_loads"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="sizing", status="running"))
+    gear_res = size_main_landing_gear(state.latest_sizing)
+    _merge_metadata(state, gear_res, f"components.{cid}.landing_gear")
+    comp.landing_gear = gear_res.value
+    comp.status = "completed"
+    emit("component_step", ComponentStepEvent(component_id=cid, step="sizing", status="done"))
+
+    gear = comp.landing_gear
+    entry = AgentLogEntry(
+        lap=state.lap,
+        stage="detailed",
+        message=(
+            f"Main landing gear: stroke {gear.stroke_m * 1e3:.0f} mm, oleo {gear.oleo_length_m * 1e3:.0f} mm long x "
+            f"{gear.oleo_diameter_m * 1e3:.0f} mm diameter, landing load {gear.landing_load_per_strut_n / 1e3:.1f} kN per strut "
+            f"(N_gear = {gear.gear_load_factor:g})."
+        ),
+        citations=gear_res.sources[:4],
+        level="warning" if gear_res.warnings else "info",
+    )
+    state.log.append(entry)
+    emit("log", LogEvent(entry=entry))
+    emit("component_done", ComponentDoneEvent(component_id=cid, component=comp, state=state))
+    return state
+
+
+_COMPONENT_RUNNERS = {
+    "main_wing_spar": run_spar_detailed_design,
+    "horizontal_tail": run_horizontal_tail_detailed_design,
+    "main_landing_gear": run_landing_gear_detailed_design,
+}
+
+
+def run_component_detailed_design(
+    state: DesignState,
+    component_id: str,
+    out_dir: str = "artifacts",
+    on_event: EventSink | None = None,
+) -> DesignState:
+    """Run the detailed analysis for one component; "coming soon" components raise with their reason."""
+    if component_id == "spar":
+        component_id = "main_wing_spar"
+    comp = state.components.get(component_id)
+    if comp is None:
+        raise ToolError(f"Unknown component '{component_id}'.", tool_name="run_component_detailed_design", recoverable=False)
+    runner = _COMPONENT_RUNNERS.get(component_id)
+    if runner is None or not comp.available:
+        raise ToolError(
+            f"{comp.name} is not analysed yet: {comp.unavailable_reason or 'no cited method'}",
+            tool_name="run_component_detailed_design",
+            recoverable=False,
+        )
+    return runner(state, out_dir=out_dir, on_event=on_event)

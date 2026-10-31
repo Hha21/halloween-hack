@@ -5,12 +5,17 @@ from spiral.agent.gemini import (
     parse_intake_description,
     propose_infeasible_relaxation,
 )
-from spiral.agent.orchestrator import run_design_spiral, run_spar_detailed_design
+from spiral.agent.orchestrator import (
+    run_component_detailed_design,
+    run_design_spiral,
+    run_spar_detailed_design,
+)
 
 __all__ = [
     "generate_report_markdown",
     "parse_intake_description",
     "propose_infeasible_relaxation",
+    "run_component_detailed_design",
     "run_design_spiral",
     "run_spar_detailed_design",
 ]

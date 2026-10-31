@@ -6,6 +6,8 @@ Endpoints (consumed by Tharm's `web/api_client.js`; payload types in spiral/cont
 - POST /api/spiral/stream           SpiralRequest  -> SSE
 - POST /api/components/spar         StateRequest   -> DesignState
 - POST /api/components/spar/stream  StateRequest   -> SSE
+- POST /api/components/{id}         StateRequest   -> DesignState
+- POST /api/components/{id}/stream  StateRequest   -> SSE
 - POST /api/report                  StateRequest   -> ReportResponse
 - GET  /artifacts/{filename}
 """
@@ -26,6 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from spiral.agent import (
     generate_report_markdown,
     parse_intake_description,
+    run_component_detailed_design,
     run_design_spiral,
     run_spar_detailed_design,
 )
@@ -157,6 +160,18 @@ def api_ask(payload: dict[str, Any]) -> dict[str, Any]:
     from spiral.agent.gemini import answer_textbook_question
 
     return answer_textbook_question(str(payload.get("question", "")))
+
+
+@app.post("/api/components/{component_id}")
+def api_component(component_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    state = run_component_detailed_design(_state_from(payload), component_id, out_dir=str(ARTIFACTS_DIR))
+    return state.to_dict()
+
+
+@app.post("/api/components/{component_id}/stream")
+def api_component_stream(component_id: str, payload: dict[str, Any]) -> StreamingResponse:
+    state = _state_from(payload)
+    return _sse(lambda emit: run_component_detailed_design(state, component_id, out_dir=str(ARTIFACTS_DIR), on_event=emit))
 
 
 @app.post("/api/report")
