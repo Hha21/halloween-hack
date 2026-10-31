@@ -364,7 +364,7 @@ textarea {
 .detailed-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .detailed-comp-tabs { display: flex; flex-direction: column; gap: 0.4rem; }
 .detailed-comp-tabs .comp-item.selected-comp { border-color: var(--emerald); background: rgba(16, 185, 129, 0.1); }
-.comp-reason { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+.comp-reason { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; } /* full reason in the item's title */
 .analysis-note { font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0; }
 #screen-detailed[data-comp-kind="sizing"] .ov-hud { display: none; } /* overhaul's spar HUD: no 3D view for sizing-only components */
 .detailed-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 0.95rem; margin-top: 0.85rem; }
