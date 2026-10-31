@@ -1,0 +1,20 @@
+{
+  "name": "spiral-demo-video",
+  "version": "1.0.0",
+  "description": "Remotion project for the Spiral demo video (footage recorded from the running app by capture.py)",
+  "scripts": {
+    "capture": "../.venv/bin/python capture.py public/footage",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts SpiralDemo ../docs/spiral-demo.mp4 --codec=h264 --pixel-format=yuv420p --crf=21 --browser-executable=/usr/bin/google-chrome"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.532"
+  },
+  "private": true
+}
