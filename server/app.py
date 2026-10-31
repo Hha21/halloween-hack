@@ -162,6 +162,7 @@ def api_ask(payload: dict[str, Any]) -> dict[str, Any]:
     return answer_textbook_question(str(payload.get("question", "")))
 
 
+# Catch-all component routes: keep them after the fixed /api/components/* routes (spar, airframe), which they would shadow.
 @app.post("/api/components/{component_id}")
 def api_component(component_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     state = run_component_detailed_design(_state_from(payload), component_id, out_dir=str(ARTIFACTS_DIR))
