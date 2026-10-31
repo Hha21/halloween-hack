@@ -37,8 +37,16 @@ function origin(field) {
     return { cls: "prov-inferred", label: "Gemini inferred", title: reason };
   }
   if (reason) return { cls: "prov-cited", label: "cited default", title: reason };
+  const quote = spec?.stated_fields?.[field];
+  if (quote) return { cls: "prov-from-text", label: "from your text", title: `Your words: "${quote}"`, quote };
   const by = lastIntake?.sources?.[0] || "the description";
   return { cls: "prov-from-text", label: "from your text", title: `Stated in the description (${by})` };
+}
+
+/** The user's exact words for a field stated in the description, shown under the field. */
+function quoteLine(field) {
+  const q = origin(field).quote;
+  return q ? `<q class="field-quote" title="Your words, quoted by Gemini and checked by Python">${esc(q)}</q>` : "";
 }
 
 function badge(field) {
@@ -60,7 +68,7 @@ function renderSummary() {
     el.innerHTML = `<div class="intake-summary-line muted">Describe the aircraft and press <b>Parse</b>, or pick a demo scenario. Every field below shows where its value comes from.</div>`;
     return;
   }
-  const fields = Object.keys(spec).filter((k) => !["name", "raw_description", "defaulted_fields"].includes(k));
+  const fields = Object.keys(spec).filter((k) => !["name", "raw_description", "defaulted_fields", "stated_fields"].includes(k));
   const counts = { "prov-from-text": 0, "prov-inferred": 0, "prov-cited": 0, "prov-user": 0 };
   fields.forEach((f) => (counts[origin(f).cls] = (counts[origin(f).cls] || 0) + 1));
   const parser = lastIntake.sources?.[0]?.replace(/^Project description, parsed by /, "") || "parser";
@@ -134,9 +142,9 @@ export function renderIntakeCards() {
             const b = badge(fieldOf(f.key));
             if (f.type === "select") {
               const opts = f.options.map((o) => `<option value="${o}" ${o === f.val ? "selected" : ""}>${o}</option>`).join("");
-              return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<select data-spec-key="${f.key}">${opts}</select></div>`;
+              return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<select data-spec-key="${f.key}">${opts}</select>${quoteLine(fieldOf(f.key))}</div>`;
             }
-            return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" /></div>`;
+            return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" />${quoteLine(fieldOf(f.key))}</div>`;
           })
           .join("")}
       </div>`

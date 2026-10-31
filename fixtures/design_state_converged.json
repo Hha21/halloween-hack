@@ -1393,52 +1393,63 @@
   "log": [
     {
       "lap": 0,
-      "stage": "conceptual",
-      "message": "Class: single-engine piston general aviation. All statistics use the 'General aviation - single engine' rows, valid up to an MTOW of 2,722 kg.",
+      "stage": "intake",
+      "message": "Intake agent: 5 values taken from your words (\"1,000 km\", \"cruise 115 kt\", \"stall under 55 kt\", \"45 min reserve\", \"four-seat\"), 0 inferred (none), 15 filled by Python with cited defaults.",
       "citations": [
-        "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
+        "Project description",
+        "knowledge/tables/aircraft_typical.yaml"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:56:59+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 0,
       "stage": "conceptual",
-      "message": "Wing: high wing (default), aspect ratio 7.6 (default), taper 0.45 (default), t/c 0.15 (default).",
+      "message": "Layout (Python, cited tables): class is single-engine piston general aviation. All statistics use the 'General aviation - single engine' rows, valid up to an MTOW of 2,722 kg.",
+      "citations": [
+        "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
+      ],
+      "level": "info",
+      "timestamp": "2026-10-31T14:59:43+00:00"
+    },
+    {
+      "lap": 0,
+      "stage": "conceptual",
+      "message": "Layout (Python, cited tables): high wing (default), aspect ratio 7.6 (default), taper 0.45 (default), t/c 0.15 (default).",
       "citations": [
         "Raymer 2ed, Table 4.1 (p. 51)",
         "Raymer 2ed, Ch. 4 (p. 56)",
         "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:56:59+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 0,
       "stage": "conceptual",
-      "message": "Tail sized by volume coefficients C_HT = 0.7 and C_VT = 0.04; fuselage length from L = 4.37 W0^0.23 (ft, lb).",
+      "message": "Layout (Python, cited tables): tail sized by volume coefficients C_HT = 0.7 and C_VT = 0.04; fuselage length from L = 4.37 W0^0.23 (ft, lb).",
       "citations": [
         "Raymer 2ed, Table 6.4 (p. 112)",
         "Raymer 2ed, Table 6.3 (p. 110)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:56:59+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 0,
       "stage": "conceptual",
-      "message": "Structure: +3.8 g limit (default), x 1.5 = 5.70 g ultimate; main spar in Aluminium 2024 (clad), extrusions.",
+      "message": "Layout (Python, cited tables): structure +3.8 g limit (default), x 1.5 = 5.70 g ultimate; main spar in Aluminium 2024 (clad), extrusions.",
       "citations": [
         "Raymer 2ed, Table 14.2 (p. 336)",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:56:59+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 0,
       "stage": "preliminary",
-      "message": "Lap 0: MTOW = 1319.3 kg (+0.00%), Spar mass = 38.1 kg, Safety margin = +0.10",
+      "message": "Sizing & structures (Python): lap 0, MTOW = 1319.3 kg (+0.00%), Spar mass = 38.1 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
@@ -1460,12 +1471,12 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:56:59+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 1,
       "stage": "preliminary",
-      "message": "Lap 1: MTOW = 1262.3 kg (-4.32%), Spar mass = 35.7 kg, Safety margin = +0.10",
+      "message": "Sizing & structures (Python): lap 1, MTOW = 1262.3 kg (-4.32%), Spar mass = 35.7 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
@@ -1487,12 +1498,12 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:57:00+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 2,
       "stage": "preliminary",
-      "message": "Lap 2: MTOW = 1256.9 kg (-0.43%), Spar mass = 35.5 kg, Safety margin = +0.10",
+      "message": "Sizing & structures (Python): lap 2, MTOW = 1256.9 kg (-0.43%), Spar mass = 35.5 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
@@ -1514,12 +1525,12 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:57:00+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     },
     {
       "lap": 2,
       "stage": "convergence",
-      "message": "Converged on lap 2: |\u0394MTOW| = 0.428% < 0.50% threshold.",
+      "message": "Convergence check (Python): converged on lap 2, |\u0394MTOW| = 0.428% < 0.50% threshold.",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
@@ -1547,7 +1558,7 @@
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:57:00+00:00"
+      "timestamp": "2026-10-31T14:59:43+00:00"
     }
   ],
   "components": {

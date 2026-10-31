@@ -6,9 +6,10 @@
  * tabular numerals for every engineering value, and a provenance "stamp" vocabulary:
  *   human   (white)   ❝ from your text / [user]      ✎ edited (filled)
  *   Gemini  (violet)  ✦ Gemini inferred / [AI default]
- *   book    (blues)   § cited default   ƒ equation   ⊞ table
+ *   default (amber)   § cited default (Screen 1) = kind "assumption" (Screens 2-4)
+ *   book    (blues)   ƒ equation   ⊞ table
  *   solver  (green)   ◇ simulation      ✓ verified (filled)
- *   flagged (amber)   ≈ assumption       none: dashed grey
+ *   none: dashed grey
  */
 
 :root {
@@ -207,9 +208,7 @@ input[type="range"] { accent-color: var(--cyan); }
 .prov-inferred, .prov-gemini_default { color: #d3c8ff; background: rgba(167, 139, 250, 0.13); border-color: rgba(167, 139, 250, 0.5); }
 .prov-inferred::before, .prov-gemini_default::before { content: "\2726"; }
 
-/* the book: cited default, equation, table */
-.prov-cited { color: #a9cdfd; background: rgba(96, 165, 250, 0.12); border-color: rgba(96, 165, 250, 0.5); }
-.prov-cited::before { content: "\00A7"; }
+/* the book: equation, table */
 .prov-equation { color: #9fdcfb; background: rgba(56, 189, 248, 0.11); border-color: rgba(56, 189, 248, 0.45); }
 .prov-equation::before { content: "\0192"; font-style: italic; }
 .prov-table { color: #b9c0fd; background: rgba(129, 140, 248, 0.13); border-color: rgba(129, 140, 248, 0.5); }
@@ -223,8 +222,9 @@ input[type="range"] { accent-color: var(--cyan); }
 .prov-badge.prov-verified::before { content: "\2713"; }
 
 /* flagged */
-.prov-assumption { color: #fbd38a; background: rgba(245, 165, 36, 0.12); border-color: rgba(245, 165, 36, 0.5); }
-.prov-assumption::before { content: "\2248"; }
+/* defaults & assumptions: Screen 1 "cited default" == Screens 2-4 kind "assumption" (same value, same stamp) */
+.prov-cited, .prov-assumption { color: #fbd38a; background: rgba(245, 165, 36, 0.11); border-color: rgba(245, 165, 36, 0.5); }
+.prov-cited::before, .prov-assumption::before { content: "\00A7"; }
 .prov-none { color: var(--muted); background: transparent; border: 1px dashed #43536a; }
 
 /* ---------- Screen 2: workbench ---------- */

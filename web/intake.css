@@ -59,7 +59,7 @@
 .intake-card .field-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 104px;
-  grid-template-areas: "label input" "badge input";
+  grid-template-areas: "label input" "badge input" "quote quote";
   column-gap: 10px;
   row-gap: 3px;
   align-items: center;
@@ -79,6 +79,25 @@
   text-align: right;
 }
 .intake-card .field-row select { text-align: left; }
+
+/* The user's exact words, set in a book face so they read as a quotation, not a computed value */
+.intake-card .field-quote {
+  grid-area: quote;
+  justify-self: start;
+  max-width: 100%;
+  margin-top: 3px;
+  padding: 0.1rem 0.55rem 0.15rem;
+  border-left: 2px solid rgba(238, 243, 248, 0.55);
+  background: rgba(238, 243, 248, 0.05);
+  border-radius: 0 4px 4px 0;
+  font-family: Charter, "Iowan Old Style", "Bitstream Charter", Georgia, "DejaVu Serif", "Liberation Serif", serif;
+  font-style: italic;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--text);
+  quotes: "\201C" "\201D";
+  cursor: help;
+}
 
 @media (max-width: 1180px) {
   .spec-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

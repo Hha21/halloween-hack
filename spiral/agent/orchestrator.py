@@ -120,6 +120,33 @@ def mtow_class_limit() -> tuple[float, str]:
     return float(row["max_kg"]), str(row["source"])
 
 
+def _lead_name() -> str:
+    """Who chose the relaxation: Gemini when it is available, else the deterministic rule."""
+    from spiral.agent.gemini import gemini_model, gemini_unavailable_reason
+
+    return f"Gemini {gemini_model()}" if gemini_unavailable_reason() is None else "rule: smallest change"
+
+
+def _intake_log(spec: MissionSpec) -> AgentLogEntry:
+    """What the intake agent took from the description, as the first entry of every run."""
+    inferred = [k for k, v in spec.defaulted_fields.items() if v.startswith("Inferred")]
+    defaults = [k for k, v in spec.defaulted_fields.items() if not v.startswith("Inferred")]
+    quotes = [f'"{q}"' for q in spec.stated_fields.values()]
+    parser = ""
+    if inferred:  # the reason names the parser, e.g. "Inferred by Gemini (gemini-3.5-flash): ..."
+        parser = spec.defaulted_fields[inferred[0]].split(":")[0].removeprefix("Inferred by ").strip()
+    words = f" ({', '.join(quotes[:5])})" if quotes else ""
+    return AgentLogEntry(
+        lap=0,
+        stage="intake",
+        message=(
+            f"Intake agent{', ' + parser if parser else ''}: {len(spec.stated_fields)} values taken from your words{words}, "
+            f"{len(inferred)} inferred ({', '.join(inferred) or 'none'}), {len(defaults)} filled by Python with cited defaults."
+        ),
+        citations=["Project description", "knowledge/tables/aircraft_typical.yaml"],
+    )
+
+
 def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
     """The configuration choices behind lap 0, each with the table row it comes from."""
     typical = lookup("aircraft_typical", "ga_single_engine").value
@@ -138,26 +165,26 @@ def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
     return [
         AgentLogEntry(
             lap=0, stage="conceptual",
-            message=(f"Class: single-engine piston general aviation. All statistics use the 'General aviation - single "
+            message=(f"Layout (Python, cited tables): class is single-engine piston general aviation. All statistics use the 'General aviation - single "
                      f"engine' rows, valid up to an MTOW of {limit_kg:,.0f} kg."),
             citations=cite(typical.get("mtow_class_limit", {})),
         ),
         AgentLogEntry(
             lap=0, stage="conceptual",
-            message=(f"Wing: {spec.wing_position} wing ({basis('wing_position')}), aspect ratio {spec.aspect_ratio:g} "
+            message=(f"Layout (Python, cited tables): {spec.wing_position} wing ({basis('wing_position')}), aspect ratio {spec.aspect_ratio:g} "
                      f"({basis('aspect_ratio')}), taper {spec.taper_ratio:g} ({basis('taper_ratio')}), "
                      f"t/c {spec.thickness_to_chord:g} ({basis('thickness_to_chord')})."),
             citations=cite(typical.get("aspect_ratio", {}), typical.get("taper_ratio", {}), typical.get("thickness_to_chord", {})),
         ),
         AgentLogEntry(
             lap=0, stage="conceptual",
-            message=(f"Tail sized by volume coefficients C_HT = {tails.get('c_ht', 0):g} and C_VT = {tails.get('c_vt', 0):g}; "
+            message=(f"Layout (Python, cited tables): tail sized by volume coefficients C_HT = {tails.get('c_ht', 0):g} and C_VT = {tails.get('c_vt', 0):g}; "
                      f"fuselage length from L = {fus.get('a', 0):g} W0^{fus.get('C', 0):g} (ft, lb)."),
             citations=cite(tails, fus),
         ),
         AgentLogEntry(
             lap=0, stage="conceptual",
-            message=(f"Structure: +{spec.limit_load_factor:g} g limit ({basis('limit_load_factor')}), x {spec.ultimate_factor:g} "
+            message=(f"Layout (Python, cited tables): structure +{spec.limit_load_factor:g} g limit ({basis('limit_load_factor')}), x {spec.ultimate_factor:g} "
                      f"= {spec.n_ult:.2f} g ultimate; main spar in {material.get('name', spec.spar_material)}."),
             citations=cite(typical.get("limit_load_factor", {}), material),
         ),
@@ -246,7 +273,7 @@ def run_design_spiral(
             AgentLogEntry(
                 lap=lap,
                 stage="convergence",
-                message=f"Infeasible design on lap {lap}: {reason}",
+                message=f"Convergence check (Python): infeasible on lap {lap}. {reason}",
                 citations=list(state.sources),
                 level="error",
             )
@@ -258,7 +285,7 @@ def run_design_spiral(
                     AgentLogEntry(
                         lap=lap,
                         stage="convergence",
-                        message=f"Proposed change: {state.proposed_relaxation.reasoning}",
+                        message=f"Design lead ({_lead_name()}): proposed change: {state.proposed_relaxation.reasoning}",
                         citations=["Spiral re-run at the proposed value (bisection on range)"],
                         level="warning",
                     )
@@ -269,6 +296,8 @@ def run_design_spiral(
         )
         return state
 
+    if spec.raw_description:
+        log(_intake_log(spec))
     try:
         for entry in _layout_log(spec):
             log(entry)
@@ -339,7 +368,7 @@ def run_design_spiral(
                 lap=lap,
                 stage="preliminary",
                 message=(
-                    f"Lap {lap}: MTOW = {sizing.mtow_kg:.1f} kg ({mtow_change_pct:+.2f}%), "
+                    f"Sizing & structures (Python): lap {lap}, MTOW = {sizing.mtow_kg:.1f} kg ({mtow_change_pct:+.2f}%), "
                     f"Spar mass = {spar.mass_both_wings_kg:.1f} kg, "
                     f"Safety margin = {spar.safety_margin:+.2f}"
                 ),
@@ -367,7 +396,7 @@ def run_design_spiral(
                     lap=lap,
                     stage="convergence",
                     message=(
-                        f"Converged on lap {lap}: |ΔMTOW| = {abs(mtow_change_pct):.3f}% "
+                        f"Convergence check (Python): converged on lap {lap}, |ΔMTOW| = {abs(mtow_change_pct):.3f}% "
                         f"< {convergence_tol_pct:.2f}% threshold."
                     ),
                     citations=list(state.sources),
@@ -442,7 +471,7 @@ def run_spar_detailed_design(
         lap=state.lap,
         stage="detailed",
         message=(
-            f"Detailed Spar FEA complete ({comp.fea.solver_name}): "
+            f"Detailed design (CAD + FEA): spar FEA complete ({comp.fea.solver_name}). "
             f"Peak von Mises = {comp.fea.fea_max_von_mises_pa / 1e6:.1f} MPa vs "
             f"Beam Theory = {comp.fea.beam_max_stress_pa / 1e6:.1f} MPa "
             f"({comp.fea.stress_agreement_pct:.1f}% agreement)."
