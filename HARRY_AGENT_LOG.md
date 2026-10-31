@@ -24,6 +24,16 @@ if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[rel.field_
 ```
 Coming next from Harry: `field_name` may be **`passenger_count`** as well as `range_m`. Python computes both options (e.g. "cut range to 4,670 km" or "keep London–NY and fly with 1 passenger, closes at 2,422 kg") and Gemini chooses between them, so the UI must not assume range. Format by `unit`: `"m"` → km, `"-"` → a plain count.
 
+## R8 (15:00): small requests from Harry's front-end design agent (only if time; R7 comes first)
+It restyles everything through `web/theme.css` and can't edit your files, so it asks for:
+1. **Verified stamps:** in `provBadge` (`web/app.js`), add the class `prov-verified` when `p.verified` is true, so a verified value can look different from an unverified one.
+2. **Labels:** drop the brackets from `provBadge` labels (`[eq]` → `eq`). The stamps now draw their own frame.
+3. **Spec provenance kinds changed (fa8d911):** Python's cited defaults now arrive as `kind: "assumption"` (source "Default: ... (Raymer ...)"), only Gemini-inferred values as `"gemini_default"`, and stated values as `"user_input"` with `Your description: "..."`. So relabel `gemini_default` from "[AI default]" to "Gemini inferred".
+4. **Screen 4 sources ledger:** replace the inline styles and emoji (📘, ⚙) with classes, so `theme.css` can style it.
+5. **Stage names, standard order** (index.html tabs): "1 Mission input", "2 Conceptual & preliminary", "3 Detailed: spar CAD & FEA", "4 Traceability report". Sidebar ladder: "Conceptual: weight closure (Raymer Ch. 3)", "Preliminary: Schrenk loads & I-beam spar", "Preliminary: weight-growth loop closure", "Detailed: 3D CAD loft & FEA check".
+
+New data you can show: `spec.stated_fields` (field → the user's exact words) is on every spec from intake.
+
 ## 0. Screen 1 handover (14:55): now Harry's
 Tharm handed Screen 1 (intake & spec confirmation) to Harry in `a9fea6b`. To avoid editing the same lines as Tharm:
 - **New, Harry-owned:** `web/intake.js` (Screen 1 logic: presets → Gemini intake, parse, form, badges, summary strip, confirm button), `web/intake.css`, and `web/theme.css` (visual overrides for all screens).
