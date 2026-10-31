@@ -382,8 +382,9 @@ def propose_infeasible_relaxation(
     The numbers (new value, MTOW at that value) come from `candidate`, which the orchestrator
     computed by re-running the spiral; this only writes the reasoning around them.
 
-    TODO (Harry): have Gemini write `reasoning` (prompts/infeasible.md) from `state.infeasible_reason`,
-    `state.history` and the candidate, with the numbers passed in rather than generated.
+    Gemini (prompts/infeasible.md) writes the explanation from a digest of those numbers, and it is
+    used only if every number in it is in the digest (one retry naming the rejected numbers).
+    Otherwise, or offline, a deterministic explanation is used.
     """
     if candidate is None:
         return None
@@ -394,7 +395,49 @@ def propose_infeasible_relaxation(
         f"{new_km:,.0f} km (down from {old_km:,.0f} km), where the spiral converges at {mtow}. "
         "Both numbers come from re-running the full spiral at the new range."
     )
+    if gemini_unavailable_reason() is None:
+        try:
+            text = _gemini_relaxation_reasoning(state, candidate)
+            if text:
+                candidate.reasoning = text
+        except Exception:  # noqa: BLE001 - keep the deterministic explanation
+            pass
     return candidate
+
+
+def _relaxation_digest(state: DesignState, candidate: SpecRelaxationProposal) -> dict[str, Any]:
+    limit = _class_limit()
+    digest: dict[str, Any] = {
+        "why_it_failed": state.infeasible_reason or "",
+        "mtow_per_lap_kg": [round(h.mtow_kg) for h in state.history],
+        "spar_mass_per_lap_kg": [round(h.spar_mass_kg, 1) for h in state.history],
+        "mission_range_km": round(candidate.old_value / 1000.0),
+        "proposed_range_km": round(candidate.new_value / 1000.0),
+        "range_reduction_pct": round(100.0 * (1.0 - candidate.new_value / candidate.old_value), 1),
+        "mtow_after_change_kg": round(candidate.estimated_mtow_kg or 0.0),
+    }
+    if limit:
+        digest["class_limit_kg"] = round(float(limit.get("max_kg", 0.0)))
+    if state.latest_sizing is not None:
+        digest["fuel_fraction_pct"] = round(100.0 * state.latest_sizing.fuel_fraction, 1)
+    return digest
+
+
+def _gemini_relaxation_reasoning(state: DesignState, candidate: SpecRelaxationProposal) -> str:
+    digest = _relaxation_digest(state, candidate)
+    allowed = _allowed_numbers(digest)
+    system_prompt = (PROMPTS_DIR / "infeasible.md").read_text(encoding="utf-8")
+    schema = {"type": "object", "properties": {"reasoning": {"type": "string"}}, "required": ["reasoning"]}
+    base = "Digest (JSON):\n" + json.dumps(digest, indent=1)
+    user_text = base
+    for _attempt in range(2):
+        text = str(_generate_json(system_prompt, user_text, schema).get("reasoning") or "").strip()[:900]
+        problems = _number_problems(text, allowed) if text else ["empty answer"]
+        if not problems:
+            return text
+        user_text = (base + "\n\nYour previous answer was rejected because these numbers are not in the digest: "
+                     + "; ".join(problems) + ". Rewrite it using only numbers from the digest.")
+    return ""
 
 
 

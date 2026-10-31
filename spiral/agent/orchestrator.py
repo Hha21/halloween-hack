@@ -138,8 +138,6 @@ def run_design_spiral(
 
     def finish_infeasible(lap: int, reason: str) -> DesignState:
         state.infeasible_reason = reason
-        if propose_relaxation:
-            state.proposed_relaxation = propose_infeasible_relaxation(state, nearest_feasible_range(spec))
         log(
             AgentLogEntry(
                 lap=lap,
@@ -149,6 +147,18 @@ def run_design_spiral(
                 level="error",
             )
         )
+        if propose_relaxation:
+            state.proposed_relaxation = propose_infeasible_relaxation(state, nearest_feasible_range(spec))
+            if state.proposed_relaxation is not None:
+                log(
+                    AgentLogEntry(
+                        lap=lap,
+                        stage="convergence",
+                        message=f"Proposed change: {state.proposed_relaxation.reasoning}",
+                        citations=["Spiral re-run at the proposed value (bisection on range)"],
+                        level="warning",
+                    )
+                )
         emit(
             "infeasible",
             InfeasibleEvent(reason=reason, proposed_relaxation=state.proposed_relaxation, state=state),
