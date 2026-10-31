@@ -5,9 +5,9 @@
     "person_mass_kg": 86.0,
     "baggage_mass_kg": 50.0,
     "range_m": 1000000.0,
-    "cruise_speed_ms": 59.16,
+    "cruise_speed_ms": 59.1611,
     "cruise_altitude_m": 2500.0,
-    "stall_speed_ms": 28.29,
+    "stall_speed_ms": 28.2944,
     "reserve_s": 2700.0,
     "aspect_ratio": 7.5,
     "taper_ratio": 0.6,
@@ -23,29 +23,44 @@
     "name": "GA-4 Touring",
     "raw_description": "Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.",
     "defaulted_fields": {
-      "aspect_ratio": "Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
-      "taper_ratio": "Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
-      "thickness_to_chord": "Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
-      "cl_max": "Defaulted to 1.60 (single-slotted flap GA configuration)",
-      "ld_max": "Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
-      "limit_load_factor": "Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
-      "spar_material": "Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
-      "wing_position": "Defaulted to high wing (Cessna 172 touring baseline)"
+      "crew_count": "Assumed 1 pilot (single-pilot GA)",
+      "person_mass_kg": "Assumed 86 kg per occupant",
+      "baggage_mass_kg": "Assumed 50 kg total baggage",
+      "cruise_altitude_m": "Assumed 2,500 m (~8,200 ft) cruise altitude",
+      "aspect_ratio": "Assumed 7.5, typical GA single-engine (Raymer 6ed, Table 4.1 (p. 64))",
+      "taper_ratio": "Assumed 0.6, tapered GA wing (Raymer 6ed, Ch. 4.3)",
+      "thickness_to_chord": "Assumed 0.15 root aerofoil thickness (Raymer 6ed, Ch. 4.2)",
+      "cl_max": "Assumed 1.6 with simple flaps deployed",
+      "ld_max": "Assumed 11, typical fixed-gear GA (Raymer 6ed, Ch. 3.4)",
+      "prop_efficiency": "Assumed 0.80 cruise propeller efficiency",
+      "bsfc_kg_per_j": "Assumed 6.8e-8 kg/J (0.40 lb/hp/h) piston cruise SFC",
+      "limit_load_factor": "Assumed +3.8 g limit, CS-23 normal category",
+      "ultimate_factor": "Assumed 1.5 ultimate factor of safety (CS 23.303)",
+      "spar_material": "Assumed aluminium 2024-T3, standard spar alloy",
+      "wing_position": "Assumed high wing (Cessna 172-style touring baseline)"
     }
   },
   "sources": [
-    "Raymer 6ed, Table 4.1 & Ch. 3.4 (GA Baseline Heuristics)",
-    "CS-23 / FAR Part 23 Normal Category Airworthiness Standards"
+    "Project description, parsed by offline parser"
   ],
   "assumptions": [
-    "aspect_ratio: Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
-    "taper_ratio: Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
-    "thickness_to_chord: Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
-    "cl_max: Defaulted to 1.60 (single-slotted flap GA configuration)",
-    "ld_max: Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
-    "limit_load_factor: Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
-    "spar_material: Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
-    "wing_position: Defaulted to high wing (Cessna 172 touring baseline)"
+    "crew_count: Assumed 1 pilot (single-pilot GA)",
+    "person_mass_kg: Assumed 86 kg per occupant",
+    "baggage_mass_kg: Assumed 50 kg total baggage",
+    "cruise_altitude_m: Assumed 2,500 m (~8,200 ft) cruise altitude",
+    "aspect_ratio: Assumed 7.5, typical GA single-engine (Raymer 6ed, Table 4.1 (p. 64))",
+    "taper_ratio: Assumed 0.6, tapered GA wing (Raymer 6ed, Ch. 4.3)",
+    "thickness_to_chord: Assumed 0.15 root aerofoil thickness (Raymer 6ed, Ch. 4.2)",
+    "cl_max: Assumed 1.6 with simple flaps deployed",
+    "ld_max: Assumed 11, typical fixed-gear GA (Raymer 6ed, Ch. 3.4)",
+    "prop_efficiency: Assumed 0.80 cruise propeller efficiency",
+    "bsfc_kg_per_j: Assumed 6.8e-8 kg/J (0.40 lb/hp/h) piston cruise SFC",
+    "limit_load_factor: Assumed +3.8 g limit, CS-23 normal category",
+    "ultimate_factor: Assumed 1.5 ultimate factor of safety (CS 23.303)",
+    "spar_material: Assumed aluminium 2024-T3, standard spar alloy",
+    "wing_position: Assumed high wing (Cessna 172-style touring baseline)"
   ],
-  "warnings": []
+  "warnings": [
+    "SPIRAL_OFFLINE is set; used the offline parser. Check every field before confirming."
+  ]
 }

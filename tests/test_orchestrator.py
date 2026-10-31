@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
+
+os.environ["SPIRAL_OFFLINE"] = "1"  # tests never call Gemini
 
 from spiral.agent import (
     generate_report_markdown,

@@ -20,3 +20,6 @@ __pycache__/
 # Frontend build / node
 node_modules/
 dist/
+
+# Never commit textbook PDFs, wherever they are dropped
+*.pdf

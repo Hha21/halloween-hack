@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+
+os.environ["SPIRAL_OFFLINE"] = "1"  # tests never call Gemini
 
 from spiral.agent import run_design_spiral, run_spar_detailed_design
 from spiral.contract import (

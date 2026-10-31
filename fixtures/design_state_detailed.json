@@ -5,9 +5,9 @@
     "person_mass_kg": 86.0,
     "baggage_mass_kg": 50.0,
     "range_m": 1000000.0,
-    "cruise_speed_ms": 59.16,
+    "cruise_speed_ms": 59.1611,
     "cruise_altitude_m": 2500.0,
-    "stall_speed_ms": 28.29,
+    "stall_speed_ms": 28.2944,
     "reserve_s": 2700.0,
     "aspect_ratio": 7.5,
     "taper_ratio": 0.6,
@@ -23,14 +23,21 @@
     "name": "GA-4 Touring",
     "raw_description": "Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.",
     "defaulted_fields": {
-      "aspect_ratio": "Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
-      "taper_ratio": "Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
-      "thickness_to_chord": "Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
-      "cl_max": "Defaulted to 1.60 (single-slotted flap GA configuration)",
-      "ld_max": "Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
-      "limit_load_factor": "Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
-      "spar_material": "Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
-      "wing_position": "Defaulted to high wing (Cessna 172 touring baseline)"
+      "crew_count": "Assumed 1 pilot (single-pilot GA)",
+      "person_mass_kg": "Assumed 86 kg per occupant",
+      "baggage_mass_kg": "Assumed 50 kg total baggage",
+      "cruise_altitude_m": "Assumed 2,500 m (~8,200 ft) cruise altitude",
+      "aspect_ratio": "Assumed 7.5, typical GA single-engine (Raymer 6ed, Table 4.1 (p. 64))",
+      "taper_ratio": "Assumed 0.6, tapered GA wing (Raymer 6ed, Ch. 4.3)",
+      "thickness_to_chord": "Assumed 0.15 root aerofoil thickness (Raymer 6ed, Ch. 4.2)",
+      "cl_max": "Assumed 1.6 with simple flaps deployed",
+      "ld_max": "Assumed 11, typical fixed-gear GA (Raymer 6ed, Ch. 3.4)",
+      "prop_efficiency": "Assumed 0.80 cruise propeller efficiency",
+      "bsfc_kg_per_j": "Assumed 6.8e-8 kg/J (0.40 lb/hp/h) piston cruise SFC",
+      "limit_load_factor": "Assumed +3.8 g limit, CS-23 normal category",
+      "ultimate_factor": "Assumed 1.5 ultimate factor of safety (CS 23.303)",
+      "spar_material": "Assumed aluminium 2024-T3, standard spar alloy",
+      "wing_position": "Assumed high wing (Cessna 172-style touring baseline)"
     }
   },
   "lap": 2,
@@ -40,12 +47,12 @@
       "mtow_kg": 1301.51,
       "empty_mass_kg": 732.76,
       "fuel_mass_kg": 174.75,
-      "spar_mass_kg": 35.37,
+      "spar_mass_kg": 35.36,
       "mtow_change_pct": 0.0,
-      "wing_area_m2": 16.273,
-      "span_m": 11.048,
-      "max_bending_stress_pa": 340984406.0,
-      "tip_deflection_m": 0.59588,
+      "wing_area_m2": 16.268,
+      "span_m": 11.046,
+      "max_bending_stress_pa": 340973379.2,
+      "tip_deflection_m": 0.59567,
       "geometry": {
         "fuselage": {
           "length_m": 8.314,
@@ -55,7 +62,7 @@
           "tailcone_length_m": 3.492
         },
         "wing": {
-          "span_m": 11.048,
+          "span_m": 11.046,
           "root_chord_m": 1.841,
           "tip_chord_m": 1.105,
           "thickness_to_chord": 0.15,
@@ -65,16 +72,16 @@
           "position": "high"
         },
         "horizontal_tail": {
-          "span_m": 3.981,
-          "root_chord_m": 1.207,
+          "span_m": 3.98,
+          "root_chord_m": 1.206,
           "tip_chord_m": 0.784,
           "x_le_m": 6.983,
           "z_m": 0.15
         },
         "vertical_tail": {
           "height_m": 1.631,
-          "root_chord_m": 1.316,
-          "tip_chord_m": 0.724,
+          "root_chord_m": 1.315,
+          "tip_chord_m": 0.723,
           "x_le_m": 6.783,
           "z_m": 0.25
         },
@@ -86,15 +93,15 @@
     },
     {
       "lap": 1,
-      "mtow_kg": 1240.55,
-      "empty_mass_kg": 679.98,
+      "mtow_kg": 1240.53,
+      "empty_mass_kg": 679.96,
       "fuel_mass_kg": 166.57,
-      "spar_mass_kg": 33.15,
-      "mtow_change_pct": -4.684,
-      "wing_area_m2": 15.511,
-      "span_m": 10.786,
-      "max_bending_stress_pa": 340627940.0,
-      "tip_deflection_m": 0.57969,
+      "spar_mass_kg": 33.14,
+      "mtow_change_pct": -4.685,
+      "wing_area_m2": 15.506,
+      "span_m": 10.784,
+      "max_bending_stress_pa": 340709738.0,
+      "tip_deflection_m": 0.58001,
       "geometry": {
         "fuselage": {
           "length_m": 8.222,
@@ -104,9 +111,9 @@
           "tailcone_length_m": 3.453
         },
         "wing": {
-          "span_m": 10.786,
-          "root_chord_m": 1.798,
-          "tip_chord_m": 1.079,
+          "span_m": 10.784,
+          "root_chord_m": 1.797,
+          "tip_chord_m": 1.078,
           "thickness_to_chord": 0.15,
           "x_le_m": 2.631,
           "z_m": 0.52,
@@ -114,9 +121,9 @@
           "position": "high"
         },
         "horizontal_tail": {
-          "span_m": 3.862,
+          "span_m": 3.861,
           "root_chord_m": 1.17,
-          "tip_chord_m": 0.761,
+          "tip_chord_m": 0.76,
           "x_le_m": 6.907,
           "z_m": 0.15
         },
@@ -135,15 +142,15 @@
     },
     {
       "lap": 2,
-      "mtow_kg": 1235.5,
-      "empty_mass_kg": 675.61,
+      "mtow_kg": 1235.48,
+      "empty_mass_kg": 675.59,
       "fuel_mass_kg": 165.89,
       "spar_mass_kg": 32.96,
       "mtow_change_pct": -0.407,
-      "wing_area_m2": 15.448,
-      "span_m": 10.764,
-      "max_bending_stress_pa": 340631926.9,
-      "tip_deflection_m": 0.57862,
+      "wing_area_m2": 15.443,
+      "span_m": 10.762,
+      "max_bending_stress_pa": 340619882.2,
+      "tip_deflection_m": 0.57838,
       "geometry": {
         "fuselage": {
           "length_m": 8.215,
@@ -153,7 +160,7 @@
           "tailcone_length_m": 3.45
         },
         "wing": {
-          "span_m": 10.764,
+          "span_m": 10.762,
           "root_chord_m": 1.794,
           "tip_chord_m": 1.076,
           "thickness_to_chord": 0.15,
@@ -163,7 +170,7 @@
           "position": "high"
         },
         "horizontal_tail": {
-          "span_m": 3.852,
+          "span_m": 3.851,
           "root_chord_m": 1.167,
           "tip_chord_m": 0.759,
           "x_le_m": 6.9,
@@ -184,22 +191,22 @@
     }
   ],
   "latest_sizing": {
-    "mtow_kg": 1235.5,
-    "empty_mass_kg": 675.61,
+    "mtow_kg": 1235.48,
+    "empty_mass_kg": 675.59,
     "fuel_mass_kg": 165.89,
     "payload_mass_kg": 394.0,
     "empty_fraction": 0.5468,
     "fuel_fraction": 0.1343,
-    "spar_mass_used_kg": 33.15,
+    "spar_mass_used_kg": 33.14,
     "statistical_spar_mass_kg": 59.68,
-    "wing_loading_pa": 784.32,
-    "wing_area_m2": 15.448,
-    "span_m": 10.764,
+    "wing_loading_pa": 784.56,
+    "wing_area_m2": 15.443,
+    "span_m": 10.762,
     "root_chord_m": 1.794,
     "tip_chord_m": 1.076,
     "mac_m": 1.465,
     "cruise_power_w": 81453.2,
-    "installed_power_w": 108604.2,
+    "installed_power_w": 108604.3,
     "segment_fractions": {
       "warmup_takeoff": 0.97,
       "climb": 0.985,
@@ -208,8 +215,8 @@
       "landing": 0.995
     },
     "mass_breakdown_kg": {
-      "wing_spar": 33.15,
-      "remaining_empty": 642.46,
+      "wing_spar": 33.14,
+      "remaining_empty": 642.45,
       "fuel": 165.89,
       "crew": 86.0,
       "passengers": 258.0,
@@ -218,196 +225,196 @@
   },
   "latest_loads": {
     "n_ult": 5.7,
-    "semi_span_m": 5.382,
-    "root_shear_n": 34458.79,
-    "root_moment_nm": 81697.61,
+    "semi_span_m": 5.381,
+    "root_shear_n": 34458.38,
+    "root_moment_nm": 81681.68,
     "stations": [
       {
         "y_m": 0.0,
         "chord_m": 1.794,
-        "elliptical_lift_n_per_m": 8169.11,
-        "planform_lift_n_per_m": 8021.12,
-        "schrenk_lift_n_per_m": 8095.12,
-        "shear_n": 34458.79,
-        "moment_nm": 81697.61
+        "elliptical_lift_n_per_m": 8170.5,
+        "planform_lift_n_per_m": 8022.48,
+        "schrenk_lift_n_per_m": 8096.49,
+        "shear_n": 34458.38,
+        "moment_nm": 81681.68
       },
       {
         "y_m": 0.2691,
         "chord_m": 1.7581,
-        "elliptical_lift_n_per_m": 8158.89,
-        "planform_lift_n_per_m": 7860.61,
-        "schrenk_lift_n_per_m": 8009.75,
-        "shear_n": 32291.88,
-        "moment_nm": 72716.31
+        "elliptical_lift_n_per_m": 8160.28,
+        "planform_lift_n_per_m": 7861.94,
+        "schrenk_lift_n_per_m": 8011.11,
+        "shear_n": 32291.1,
+        "moment_nm": 72700.54
       },
       {
-        "y_m": 0.5382,
+        "y_m": 0.5381,
         "chord_m": 1.7222,
-        "elliptical_lift_n_per_m": 8128.16,
-        "planform_lift_n_per_m": 7700.1,
-        "schrenk_lift_n_per_m": 7914.13,
-        "shear_n": 30149.32,
-        "moment_nm": 64314.85
+        "elliptical_lift_n_per_m": 8129.54,
+        "planform_lift_n_per_m": 7701.4,
+        "schrenk_lift_n_per_m": 7915.47,
+        "shear_n": 30148.97,
+        "moment_nm": 64302.35
       },
       {
-        "y_m": 0.8073,
+        "y_m": 0.8072,
         "chord_m": 1.6863,
-        "elliptical_lift_n_per_m": 8076.68,
-        "planform_lift_n_per_m": 7539.59,
-        "schrenk_lift_n_per_m": 7808.14,
-        "shear_n": 28033.89,
-        "moment_nm": 56486.3
+        "elliptical_lift_n_per_m": 8078.05,
+        "planform_lift_n_per_m": 7540.87,
+        "schrenk_lift_n_per_m": 7809.46,
+        "shear_n": 28033.18,
+        "moment_nm": 56473.94
       },
       {
-        "y_m": 1.0764,
+        "y_m": 1.0762,
         "chord_m": 1.6504,
-        "elliptical_lift_n_per_m": 8004.06,
-        "planform_lift_n_per_m": 7379.07,
-        "schrenk_lift_n_per_m": 7691.57,
-        "shear_n": 25948.4,
-        "moment_nm": 49222.98
+        "elliptical_lift_n_per_m": 8005.42,
+        "planform_lift_n_per_m": 7380.33,
+        "schrenk_lift_n_per_m": 7692.87,
+        "shear_n": 25948.12,
+        "moment_nm": 49213.46
       },
       {
-        "y_m": 1.3455,
+        "y_m": 1.3453,
         "chord_m": 1.6145,
-        "elliptical_lift_n_per_m": 7909.71,
-        "planform_lift_n_per_m": 7218.56,
-        "schrenk_lift_n_per_m": 7564.13,
-        "shear_n": 23895.75,
-        "moment_nm": 42516.45
+        "elliptical_lift_n_per_m": 7911.05,
+        "planform_lift_n_per_m": 7219.79,
+        "schrenk_lift_n_per_m": 7565.42,
+        "shear_n": 23895.12,
+        "moment_nm": 42507.05
       },
       {
-        "y_m": 1.6146,
+        "y_m": 1.6143,
         "chord_m": 1.5786,
-        "elliptical_lift_n_per_m": 7792.83,
-        "planform_lift_n_per_m": 7058.05,
-        "schrenk_lift_n_per_m": 7425.44,
-        "shear_n": 21878.9,
-        "moment_nm": 36357.47
+        "elliptical_lift_n_per_m": 7794.16,
+        "planform_lift_n_per_m": 7059.25,
+        "schrenk_lift_n_per_m": 7426.7,
+        "shear_n": 21878.68,
+        "moment_nm": 36350.47
       },
       {
-        "y_m": 1.8837,
+        "y_m": 1.8834,
         "chord_m": 1.5427,
-        "elliptical_lift_n_per_m": 7652.41,
-        "planform_lift_n_per_m": 6897.54,
-        "schrenk_lift_n_per_m": 7274.97,
-        "shear_n": 19900.96,
-        "moment_nm": 30735.99
+        "elliptical_lift_n_per_m": 7653.71,
+        "planform_lift_n_per_m": 6898.71,
+        "schrenk_lift_n_per_m": 7276.21,
+        "shear_n": 19900.4,
+        "moment_nm": 30729.09
       },
       {
-        "y_m": 2.1528,
+        "y_m": 2.1524,
         "chord_m": 1.5068,
-        "elliptical_lift_n_per_m": 7487.11,
-        "planform_lift_n_per_m": 6737.03,
-        "schrenk_lift_n_per_m": 7112.07,
-        "shear_n": 17965.18,
-        "moment_nm": 25641.1
+        "elliptical_lift_n_per_m": 7488.38,
+        "planform_lift_n_per_m": 6738.17,
+        "schrenk_lift_n_per_m": 7113.28,
+        "shear_n": 17965.01,
+        "moment_nm": 25636.19
       },
       {
-        "y_m": 2.4219,
+        "y_m": 2.4215,
         "chord_m": 1.4709,
-        "elliptical_lift_n_per_m": 7295.25,
-        "planform_lift_n_per_m": 6576.52,
-        "schrenk_lift_n_per_m": 6935.88,
-        "shear_n": 16075.03,
-        "moment_nm": 21060.99
+        "elliptical_lift_n_per_m": 7296.49,
+        "planform_lift_n_per_m": 6577.63,
+        "schrenk_lift_n_per_m": 6937.06,
+        "shear_n": 16074.54,
+        "moment_nm": 21056.17
       },
       {
-        "y_m": 2.691,
+        "y_m": 2.6905,
         "chord_m": 1.435,
-        "elliptical_lift_n_per_m": 7074.66,
-        "planform_lift_n_per_m": 6416.0,
-        "schrenk_lift_n_per_m": 6745.33,
-        "shear_n": 14234.22,
-        "moment_nm": 16982.88
+        "elliptical_lift_n_per_m": 7075.86,
+        "planform_lift_n_per_m": 6417.09,
+        "schrenk_lift_n_per_m": 6746.47,
+        "shear_n": 14234.11,
+        "moment_nm": 16979.66
       },
       {
-        "y_m": 2.9601,
+        "y_m": 2.9596,
         "chord_m": 1.3991,
-        "elliptical_lift_n_per_m": 6822.55,
-        "planform_lift_n_per_m": 6255.49,
-        "schrenk_lift_n_per_m": 6539.02,
-        "shear_n": 12446.81,
-        "moment_nm": 13392.95
+        "elliptical_lift_n_per_m": 6823.71,
+        "planform_lift_n_per_m": 6256.55,
+        "schrenk_lift_n_per_m": 6540.13,
+        "shear_n": 12446.4,
+        "moment_nm": 13389.8
       },
       {
-        "y_m": 3.2292,
+        "y_m": 3.2286,
         "chord_m": 1.3632,
-        "elliptical_lift_n_per_m": 6535.29,
-        "planform_lift_n_per_m": 6094.98,
-        "schrenk_lift_n_per_m": 6315.13,
-        "shear_n": 10717.28,
-        "moment_nm": 10276.22
+        "elliptical_lift_n_per_m": 6536.4,
+        "planform_lift_n_per_m": 6096.01,
+        "schrenk_lift_n_per_m": 6316.2,
+        "shear_n": 10717.22,
+        "moment_nm": 10274.29
       },
       {
-        "y_m": 3.4983,
+        "y_m": 3.4977,
         "chord_m": 1.3273,
-        "elliptical_lift_n_per_m": 6207.99,
-        "planform_lift_n_per_m": 5934.47,
-        "schrenk_lift_n_per_m": 6071.23,
-        "shear_n": 9050.7,
-        "moment_nm": 7616.44
+        "elliptical_lift_n_per_m": 6209.04,
+        "planform_lift_n_per_m": 5935.47,
+        "schrenk_lift_n_per_m": 6072.26,
+        "shear_n": 9050.35,
+        "moment_nm": 7614.56
       },
       {
-        "y_m": 3.7674,
+        "y_m": 3.7667,
         "chord_m": 1.2914,
-        "elliptical_lift_n_per_m": 5833.91,
-        "planform_lift_n_per_m": 5773.96,
-        "schrenk_lift_n_per_m": 5803.93,
-        "shear_n": 7452.9,
-        "moment_nm": 5395.88
+        "elliptical_lift_n_per_m": 5834.9,
+        "planform_lift_n_per_m": 5774.94,
+        "schrenk_lift_n_per_m": 5804.92,
+        "shear_n": 7452.87,
+        "moment_nm": 5394.88
       },
       {
-        "y_m": 4.0365,
+        "y_m": 4.0358,
         "chord_m": 1.2555,
-        "elliptical_lift_n_per_m": 5403.36,
-        "planform_lift_n_per_m": 5613.44,
-        "schrenk_lift_n_per_m": 5508.4,
-        "shear_n": 5930.83,
-        "moment_nm": 3595.1
+        "elliptical_lift_n_per_m": 5404.27,
+        "planform_lift_n_per_m": 5614.4,
+        "schrenk_lift_n_per_m": 5509.34,
+        "shear_n": 5930.54,
+        "moment_nm": 3594.14
       },
       {
-        "y_m": 4.3056,
+        "y_m": 4.3048,
         "chord_m": 1.2196,
-        "elliptical_lift_n_per_m": 4901.47,
-        "planform_lift_n_per_m": 5452.93,
-        "schrenk_lift_n_per_m": 5177.2,
+        "elliptical_lift_n_per_m": 4902.3,
+        "planform_lift_n_per_m": 5453.86,
+        "schrenk_lift_n_per_m": 5178.08,
         "shear_n": 4493.08,
-        "moment_nm": 2192.56
+        "moment_nm": 2192.16
       },
       {
-        "y_m": 4.5747,
+        "y_m": 4.5739,
         "chord_m": 1.1837,
-        "elliptical_lift_n_per_m": 4303.35,
-        "planform_lift_n_per_m": 5292.42,
-        "schrenk_lift_n_per_m": 4797.88,
-        "shear_n": 3150.93,
-        "moment_nm": 1164.06
+        "elliptical_lift_n_per_m": 4304.08,
+        "planform_lift_n_per_m": 5293.32,
+        "schrenk_lift_n_per_m": 4798.7,
+        "shear_n": 3150.7,
+        "moment_nm": 1163.69
       },
       {
-        "y_m": 4.8438,
+        "y_m": 4.8429,
         "chord_m": 1.1478,
-        "elliptical_lift_n_per_m": 3560.83,
-        "planform_lift_n_per_m": 5131.91,
-        "schrenk_lift_n_per_m": 4346.37,
-        "shear_n": 1920.57,
-        "moment_nm": 481.69
+        "elliptical_lift_n_per_m": 3561.44,
+        "planform_lift_n_per_m": 5132.78,
+        "schrenk_lift_n_per_m": 4347.11,
+        "shear_n": 1920.59,
+        "moment_nm": 481.6
       },
       {
-        "y_m": 5.1129,
+        "y_m": 5.112,
         "chord_m": 1.1119,
-        "elliptical_lift_n_per_m": 2550.8,
-        "planform_lift_n_per_m": 4971.4,
-        "schrenk_lift_n_per_m": 3761.1,
-        "shear_n": 829.71,
-        "moment_nm": 111.64
+        "elliptical_lift_n_per_m": 2551.24,
+        "planform_lift_n_per_m": 4972.24,
+        "schrenk_lift_n_per_m": 3761.74,
+        "shear_n": 829.54,
+        "moment_nm": 111.57
       },
       {
-        "y_m": 5.382,
+        "y_m": 5.381,
         "chord_m": 1.076,
         "elliptical_lift_n_per_m": 0.0,
-        "planform_lift_n_per_m": 4810.88,
-        "schrenk_lift_n_per_m": 2405.44,
+        "planform_lift_n_per_m": 4811.7,
+        "schrenk_lift_n_per_m": 2405.85,
         "shear_n": 0.0,
         "moment_nm": 0.0
       }
@@ -423,11 +430,11 @@
     "root_cap_width_m": 0.0801,
     "root_cap_thickness_m": 0.01437,
     "root_web_thickness_m": 0.0015,
-    "max_bending_stress_pa": 340631926.9,
-    "max_shear_stress_pa": 100432931.8,
+    "max_bending_stress_pa": 340619882.2,
+    "max_shear_stress_pa": 100431736.9,
     "allowable_yield_stress_pa": 345000000.0,
     "safety_margin": 0.013,
-    "tip_deflection_m": 0.57862,
+    "tip_deflection_m": 0.57838,
     "stations": [
       {
         "y_m": 0.0,
@@ -436,8 +443,8 @@
         "cap_width_m": 0.0801,
         "cap_thickness_m": 0.01437,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 340631926.9,
-        "shear_stress_pa": 100432931.8,
+        "bending_stress_pa": 340619882.2,
+        "shear_stress_pa": 100431736.9,
         "deflection_m": 0.0
       },
       {
@@ -445,212 +452,212 @@
         "depth_m": 0.2242,
         "cap_area_m2": 0.001045,
         "cap_width_m": 0.0785,
-        "cap_thickness_m": 0.01332,
+        "cap_thickness_m": 0.01331,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 336981555.0,
-        "shear_stress_pa": 96039151.0,
+        "bending_stress_pa": 336968602.3,
+        "shear_stress_pa": 96036831.2,
         "deflection_m": 0.00148
       },
       {
-        "y_m": 0.5382,
+        "y_m": 0.5381,
         "depth_m": 0.2196,
         "cap_area_m2": 0.000943,
         "cap_width_m": 0.0769,
         "cap_thickness_m": 0.01227,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 333117142.4,
-        "shear_stress_pa": 91536118.5,
+        "bending_stress_pa": 333105908.8,
+        "shear_stress_pa": 91535055.9,
         "deflection_m": 0.00594
       },
       {
-        "y_m": 0.8073,
+        "y_m": 0.8072,
         "depth_m": 0.215,
         "cap_area_m2": 0.000846,
         "cap_width_m": 0.0753,
         "cap_thickness_m": 0.01124,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 329008319.4,
-        "shear_stress_pa": 86925476.7,
-        "deflection_m": 0.01341
+        "bending_stress_pa": 328996059.3,
+        "shear_stress_pa": 86923275.2,
+        "deflection_m": 0.0134
       },
       {
-        "y_m": 1.0764,
+        "y_m": 1.0762,
         "depth_m": 0.2104,
         "cap_area_m2": 0.000753,
         "cap_width_m": 0.0736,
         "cap_thickness_m": 0.01023,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 324615096.4,
-        "shear_stress_pa": 82209106.0,
-        "deflection_m": 0.02391
+        "bending_stress_pa": 324604562.9,
+        "shear_stress_pa": 82208218.9,
+        "deflection_m": 0.02389
       },
       {
-        "y_m": 1.3455,
+        "y_m": 1.3453,
         "depth_m": 0.2058,
         "cap_area_m2": 0.000665,
         "cap_width_m": 0.072,
         "cap_thickness_m": 0.00923,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 319884129.8,
-        "shear_stress_pa": 77389345.3,
-        "deflection_m": 0.03746
+        "bending_stress_pa": 319872377.3,
+        "shear_stress_pa": 77387305.0,
+        "deflection_m": 0.03744
       },
       {
-        "y_m": 1.6146,
+        "y_m": 1.6143,
         "depth_m": 0.2013,
         "cap_area_m2": 0.000582,
         "cap_width_m": 0.0704,
         "cap_thickness_m": 0.00826,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 314743264.3,
-        "shear_stress_pa": 72468945.3,
-        "deflection_m": 0.05409
+        "bending_stress_pa": 314733218.2,
+        "shear_stress_pa": 72468216.6,
+        "deflection_m": 0.05406
       },
       {
-        "y_m": 1.8837,
+        "y_m": 1.8834,
         "depth_m": 0.1967,
         "cap_area_m2": 0.000503,
         "cap_width_m": 0.0688,
         "cap_thickness_m": 0.00731,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 309093529.5,
-        "shear_stress_pa": 67451421.0,
-        "deflection_m": 0.07382
+        "bending_stress_pa": 309081941.9,
+        "shear_stress_pa": 67449523.0,
+        "deflection_m": 0.07378
       },
       {
-        "y_m": 2.1528,
+        "y_m": 2.1524,
         "depth_m": 0.1921,
         "cap_area_m2": 0.00043,
         "cap_width_m": 0.0672,
         "cap_thickness_m": 0.00639,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 302797098.7,
-        "shear_stress_pa": 62341108.1,
-        "deflection_m": 0.09666
+        "bending_stress_pa": 302787222.2,
+        "shear_stress_pa": 62340518.2,
+        "deflection_m": 0.09661
       },
       {
-        "y_m": 2.4219,
+        "y_m": 2.4215,
         "depth_m": 0.1875,
         "cap_area_m2": 0.000362,
         "cap_width_m": 0.0656,
         "cap_thickness_m": 0.00551,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 295658998.4,
-        "shear_stress_pa": 57143547.8,
-        "deflection_m": 0.12262
+        "bending_stress_pa": 295647053.1,
+        "shear_stress_pa": 57141805.9,
+        "deflection_m": 0.12257
       },
       {
-        "y_m": 2.691,
+        "y_m": 2.6905,
         "depth_m": 0.183,
         "cap_area_m2": 0.000299,
         "cap_width_m": 0.064,
         "cap_thickness_m": 0.00467,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 287398843.9,
-        "shear_stress_pa": 51865710.2,
-        "deflection_m": 0.1517
+        "bending_stress_pa": 287388675.5,
+        "shear_stress_pa": 51865309.4,
+        "deflection_m": 0.15163
       },
       {
-        "y_m": 2.9601,
+        "y_m": 2.9596,
         "depth_m": 0.1784,
         "cap_area_m2": 0.000242,
         "cap_width_m": 0.0624,
         "cap_thickness_m": 0.00387,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 277606823.8,
-        "shear_stress_pa": 46516588.9,
-        "deflection_m": 0.18389
+        "bending_stress_pa": 277593634.8,
+        "shear_stress_pa": 46515056.6,
+        "deflection_m": 0.18381
       },
       {
-        "y_m": 3.2292,
+        "y_m": 3.2286,
         "depth_m": 0.1738,
         "cap_area_m2": 0.00019,
         "cap_width_m": 0.0608,
         "cap_thickness_m": 0.00313,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 265674928.0,
-        "shear_stress_pa": 41107735.7,
-        "deflection_m": 0.21916
+        "bending_stress_pa": 265663711.0,
+        "shear_stress_pa": 41107505.6,
+        "deflection_m": 0.21906
       },
       {
-        "y_m": 3.4983,
+        "y_m": 3.4977,
         "depth_m": 0.1692,
         "cap_area_m2": 0.000145,
         "cap_width_m": 0.0592,
         "cap_thickness_m": 0.00245,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 250692075.0,
-        "shear_stress_pa": 35654276.8,
-        "deflection_m": 0.25744
+        "bending_stress_pa": 250676101.7,
+        "shear_stress_pa": 35652898.0,
+        "deflection_m": 0.25734
       },
       {
-        "y_m": 3.7674,
+        "y_m": 3.7667,
         "depth_m": 0.1647,
         "cap_area_m2": 0.000115,
         "cap_width_m": 0.0576,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 217444736.1,
-        "shear_stress_pa": 30176097.1,
-        "deflection_m": 0.2986
+        "bending_stress_pa": 217404437.8,
+        "shear_stress_pa": 30175975.6,
+        "deflection_m": 0.29848
       },
       {
-        "y_m": 4.0365,
+        "y_m": 4.0358,
         "depth_m": 0.1601,
         "cap_area_m2": 0.000112,
         "cap_width_m": 0.056,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 153443679.8,
-        "shear_stress_pa": 24700020.6,
-        "deflection_m": 0.34228
+        "bending_stress_pa": 153402705.8,
+        "shear_stress_pa": 24698812.8,
+        "deflection_m": 0.34215
       },
       {
-        "y_m": 4.3056,
+        "y_m": 4.3048,
         "depth_m": 0.1555,
         "cap_area_m2": 0.000109,
         "cap_width_m": 0.0544,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 99283885.2,
+        "bending_stress_pa": 99265772.4,
         "shear_stress_pa": 19263060.6,
-        "deflection_m": 0.38788
+        "deflection_m": 0.38772
       },
       {
-        "y_m": 4.5747,
+        "y_m": 4.5739,
         "depth_m": 0.1509,
         "cap_area_m2": 0.000106,
         "cap_width_m": 0.0528,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 56024073.3,
-        "shear_stress_pa": 13918603.5,
-        "deflection_m": 0.43477
+        "bending_stress_pa": 56006265.9,
+        "shear_stress_pa": 13917587.5,
+        "deflection_m": 0.4346
       },
       {
-        "y_m": 4.8438,
+        "y_m": 4.8429,
         "depth_m": 0.1463,
         "cap_area_m2": 0.000102,
         "cap_width_m": 0.0512,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 24687150.9,
-        "shear_stress_pa": 8749081.8,
-        "deflection_m": 0.48243
+        "bending_stress_pa": 24682538.3,
+        "shear_stress_pa": 8749172.9,
+        "deflection_m": 0.48223
       },
       {
-        "y_m": 5.1129,
+        "y_m": 5.112,
         "depth_m": 0.1418,
         "cap_area_m2": 9.9e-05,
         "cap_width_m": 0.0496,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 6105386.5,
-        "shear_stress_pa": 3901747.4,
-        "deflection_m": 0.53046
+        "bending_stress_pa": 6101558.3,
+        "shear_stress_pa": 3900948.0,
+        "deflection_m": 0.53025
       },
       {
-        "y_m": 5.382,
+        "y_m": 5.381,
         "depth_m": 0.1372,
         "cap_area_m2": 9.6e-05,
         "cap_width_m": 0.048,
@@ -658,7 +665,7 @@
         "web_thickness_m": 0.0015,
         "bending_stress_pa": 0.0,
         "shear_stress_pa": 0.0,
-        "deflection_m": 0.57862
+        "deflection_m": 0.57838
       }
     ]
   },
@@ -671,7 +678,7 @@
       "tailcone_length_m": 3.45
     },
     "wing": {
-      "span_m": 10.764,
+      "span_m": 10.762,
       "root_chord_m": 1.794,
       "tip_chord_m": 1.076,
       "thickness_to_chord": 0.15,
@@ -681,7 +688,7 @@
       "position": "high"
     },
     "horizontal_tail": {
-      "span_m": 3.852,
+      "span_m": 3.851,
       "root_chord_m": 1.167,
       "tip_chord_m": 0.759,
       "x_le_m": 6.9,
@@ -740,8 +747,8 @@
   ],
   "provenance": {
     "spec.crew_count": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 1 pilot (single-pilot GA)",
       "verified": true,
       "warning": null
     },
@@ -752,14 +759,14 @@
       "warning": null
     },
     "spec.person_mass_kg": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 86 kg per occupant",
       "verified": true,
       "warning": null
     },
     "spec.baggage_mass_kg": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 50 kg total baggage",
       "verified": true,
       "warning": null
     },
@@ -776,8 +783,8 @@
       "warning": null
     },
     "spec.cruise_altitude_m": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 2,500 m (~8,200 ft) cruise altitude",
       "verified": true,
       "warning": null
     },
@@ -795,67 +802,67 @@
     },
     "spec.aspect_ratio": {
       "kind": "gemini_default",
-      "source": "Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
+      "source": "Assumed 7.5, typical GA single-engine (Raymer 6ed, Table 4.1 (p. 64))",
       "verified": true,
       "warning": null
     },
     "spec.taper_ratio": {
       "kind": "gemini_default",
-      "source": "Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
+      "source": "Assumed 0.6, tapered GA wing (Raymer 6ed, Ch. 4.3)",
       "verified": true,
       "warning": null
     },
     "spec.thickness_to_chord": {
       "kind": "gemini_default",
-      "source": "Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
+      "source": "Assumed 0.15 root aerofoil thickness (Raymer 6ed, Ch. 4.2)",
       "verified": true,
       "warning": null
     },
     "spec.cl_max": {
       "kind": "gemini_default",
-      "source": "Defaulted to 1.60 (single-slotted flap GA configuration)",
+      "source": "Assumed 1.6 with simple flaps deployed",
       "verified": true,
       "warning": null
     },
     "spec.ld_max": {
       "kind": "gemini_default",
-      "source": "Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
+      "source": "Assumed 11, typical fixed-gear GA (Raymer 6ed, Ch. 3.4)",
       "verified": true,
       "warning": null
     },
     "spec.prop_efficiency": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 0.80 cruise propeller efficiency",
       "verified": true,
       "warning": null
     },
     "spec.bsfc_kg_per_j": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 6.8e-8 kg/J (0.40 lb/hp/h) piston cruise SFC",
       "verified": true,
       "warning": null
     },
     "spec.limit_load_factor": {
       "kind": "gemini_default",
-      "source": "Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
+      "source": "Assumed +3.8 g limit, CS-23 normal category",
       "verified": true,
       "warning": null
     },
     "spec.ultimate_factor": {
-      "kind": "user_input",
-      "source": "Project description (confirmed by user)",
+      "kind": "gemini_default",
+      "source": "Assumed 1.5 ultimate factor of safety (CS 23.303)",
       "verified": true,
       "warning": null
     },
     "spec.spar_material": {
       "kind": "gemini_default",
-      "source": "Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
+      "source": "Assumed aluminium 2024-T3, standard spar alloy",
       "verified": true,
       "warning": null
     },
     "spec.wing_position": {
       "kind": "gemini_default",
-      "source": "Defaulted to high wing (Cessna 172 touring baseline)",
+      "source": "Assumed high wing (Cessna 172-style touring baseline)",
       "verified": true,
       "warning": null
     },
@@ -960,12 +967,12 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T12:49:34+00:00"
+      "timestamp": "2026-10-31T13:14:00+00:00"
     },
     {
       "lap": 1,
       "stage": "preliminary",
-      "message": "Lap 1: MTOW = 1240.5 kg (-4.68%), Spar mass = 33.1 kg, Safety margin = +0.01",
+      "message": "Lap 1: MTOW = 1240.5 kg (-4.69%), Spar mass = 33.1 kg, Safety margin = +0.01",
       "citations": [
         "Raymer 6ed, Ch. 3, Eq. 3.4 & Table 3.1 (Weight Closure)",
         "Raymer 6ed, Ch. 3, Eq. 3.7\u20133.8 (Breguet Range & Loiter)",
@@ -977,7 +984,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T12:49:34+00:00"
+      "timestamp": "2026-10-31T13:14:00+00:00"
     },
     {
       "lap": 2,
@@ -994,7 +1001,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T12:49:34+00:00"
+      "timestamp": "2026-10-31T13:14:00+00:00"
     },
     {
       "lap": 2,
@@ -1016,7 +1023,7 @@
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T12:49:34+00:00"
+      "timestamp": "2026-10-31T13:14:00+00:00"
     },
     {
       "lap": 2,
@@ -1028,7 +1035,7 @@
         "Megson Ch. 9 Euler-Bernoulli & Timoshenko Shear Comparison"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T12:49:34+00:00"
+      "timestamp": "2026-10-31T13:14:00+00:00"
     }
   ],
   "components": {
@@ -1044,16 +1051,16 @@
         "cad_mass_both_wings_kg": 32.96,
         "bounding_box_m": {
           "x_width_m": 0.0801,
-          "y_semi_span_m": 5.382,
+          "y_semi_span_m": 5.381,
           "z_depth_m": 0.2287
         }
       },
       "fea": {
         "solver_name": "CalculiX + gmsh (Stub Preview)",
-        "fea_max_von_mises_pa": 393134424.3,
-        "fea_tip_deflection_m": 0.59482,
-        "beam_max_stress_pa": 340631926.9,
-        "beam_tip_deflection_m": 0.57862,
+        "fea_max_von_mises_pa": 393122329.1,
+        "fea_tip_deflection_m": 0.59457,
+        "beam_max_stress_pa": 340619882.2,
+        "beam_tip_deflection_m": 0.57838,
         "stress_agreement_pct": 84.59,
         "deflection_agreement_pct": 97.2,
         "safety_margin_fea": -0.122,
@@ -1061,150 +1068,150 @@
         "stations": [
           {
             "y_m": 0.0,
-            "fea_von_mises_pa": 393134424.3,
-            "beam_stress_pa": 340631926.9,
+            "fea_von_mises_pa": 393122329.1,
+            "beam_stress_pa": 340619882.2,
             "fea_deflection_m": 0.0,
             "beam_deflection_m": 0.0
           },
           {
             "y_m": 0.2691,
-            "fea_von_mises_pa": 386413238.1,
-            "beam_stress_pa": 336981555.0,
+            "fea_von_mises_pa": 386399408.1,
+            "beam_stress_pa": 336968602.3,
             "fea_deflection_m": 0.00152,
             "beam_deflection_m": 0.00148
           },
           {
-            "y_m": 0.5382,
-            "fea_von_mises_pa": 379482859.0,
-            "beam_stress_pa": 333117142.4,
+            "y_m": 0.5381,
+            "fea_von_mises_pa": 379471526.7,
+            "beam_stress_pa": 333105908.8,
             "fea_deflection_m": 0.00611,
             "beam_deflection_m": 0.00594
           },
           {
-            "y_m": 0.8073,
-            "fea_von_mises_pa": 372323038.3,
-            "beam_stress_pa": 329008319.4,
-            "fea_deflection_m": 0.01379,
-            "beam_deflection_m": 0.01341
+            "y_m": 0.8072,
+            "fea_von_mises_pa": 372309890.9,
+            "beam_stress_pa": 328996059.3,
+            "fea_deflection_m": 0.01378,
+            "beam_deflection_m": 0.0134
           },
           {
-            "y_m": 1.0764,
-            "fea_von_mises_pa": 358935830.4,
-            "beam_stress_pa": 324615096.4,
-            "fea_deflection_m": 0.02458,
-            "beam_deflection_m": 0.02391
+            "y_m": 1.0762,
+            "fea_von_mises_pa": 358925406.6,
+            "beam_stress_pa": 324604562.9,
+            "fea_deflection_m": 0.02456,
+            "beam_deflection_m": 0.02389
           },
           {
-            "y_m": 1.3455,
-            "fea_von_mises_pa": 351263416.6,
-            "beam_stress_pa": 319884129.8,
-            "fea_deflection_m": 0.03851,
-            "beam_deflection_m": 0.03746
+            "y_m": 1.3453,
+            "fea_von_mises_pa": 351251041.9,
+            "beam_stress_pa": 319872377.3,
+            "fea_deflection_m": 0.03849,
+            "beam_deflection_m": 0.03744
           },
           {
-            "y_m": 1.6146,
-            "fea_von_mises_pa": 343238627.5,
-            "beam_stress_pa": 314743264.3,
-            "fea_deflection_m": 0.0556,
-            "beam_deflection_m": 0.05409
+            "y_m": 1.6143,
+            "fea_von_mises_pa": 343228675.5,
+            "beam_stress_pa": 314733218.2,
+            "fea_deflection_m": 0.05557,
+            "beam_deflection_m": 0.05406
           },
           {
-            "y_m": 1.8837,
-            "fea_von_mises_pa": 334776870.6,
-            "beam_stress_pa": 309093529.5,
-            "fea_deflection_m": 0.07589,
-            "beam_deflection_m": 0.07382
+            "y_m": 1.8834,
+            "fea_von_mises_pa": 334764701.4,
+            "beam_stress_pa": 309081941.9,
+            "fea_deflection_m": 0.07585,
+            "beam_deflection_m": 0.07378
           },
           {
-            "y_m": 2.1528,
-            "fea_von_mises_pa": 325755331.7,
-            "beam_stress_pa": 302797098.7,
-            "fea_deflection_m": 0.09937,
-            "beam_deflection_m": 0.09666
+            "y_m": 2.1524,
+            "fea_von_mises_pa": 325745535.1,
+            "beam_stress_pa": 302787222.2,
+            "fea_deflection_m": 0.09932,
+            "beam_deflection_m": 0.09661
           },
           {
-            "y_m": 2.4219,
-            "fea_von_mises_pa": 315994452.5,
-            "beam_stress_pa": 295658998.4,
-            "fea_deflection_m": 0.12605,
-            "beam_deflection_m": 0.12262
+            "y_m": 2.4215,
+            "fea_von_mises_pa": 315981993.1,
+            "beam_stress_pa": 295647053.1,
+            "fea_deflection_m": 0.126,
+            "beam_deflection_m": 0.12257
           },
           {
-            "y_m": 2.691,
-            "fea_von_mises_pa": 305229059.2,
-            "beam_stress_pa": 287398843.9,
-            "fea_deflection_m": 0.15595,
-            "beam_deflection_m": 0.1517
+            "y_m": 2.6905,
+            "fea_von_mises_pa": 305218991.1,
+            "beam_stress_pa": 287388675.5,
+            "fea_deflection_m": 0.15588,
+            "beam_deflection_m": 0.15163
           },
           {
-            "y_m": 2.9601,
-            "fea_von_mises_pa": 293063532.3,
-            "beam_stress_pa": 277606823.8,
-            "fea_deflection_m": 0.18904,
-            "beam_deflection_m": 0.18389
+            "y_m": 2.9596,
+            "fea_von_mises_pa": 293049931.6,
+            "beam_stress_pa": 277593634.8,
+            "fea_deflection_m": 0.18896,
+            "beam_deflection_m": 0.18381
           },
           {
-            "y_m": 3.2292,
-            "fea_von_mises_pa": 278901562.2,
-            "beam_stress_pa": 265674928.0,
-            "fea_deflection_m": 0.2253,
-            "beam_deflection_m": 0.21916
+            "y_m": 3.2286,
+            "fea_von_mises_pa": 278890452.5,
+            "beam_stress_pa": 265663711.0,
+            "fea_deflection_m": 0.22519,
+            "beam_deflection_m": 0.21906
           },
           {
-            "y_m": 3.4983,
-            "fea_von_mises_pa": 261839139.1,
-            "beam_stress_pa": 250692075.0,
-            "fea_deflection_m": 0.26465,
-            "beam_deflection_m": 0.25744
+            "y_m": 3.4977,
+            "fea_von_mises_pa": 261822820.4,
+            "beam_stress_pa": 250676101.7,
+            "fea_deflection_m": 0.26455,
+            "beam_deflection_m": 0.25734
           },
           {
-            "y_m": 3.7674,
-            "fea_von_mises_pa": 226810733.1,
-            "beam_stress_pa": 217444736.1,
-            "fea_deflection_m": 0.30696,
-            "beam_deflection_m": 0.2986
+            "y_m": 3.7667,
+            "fea_von_mises_pa": 226770882.9,
+            "beam_stress_pa": 217404437.8,
+            "fea_deflection_m": 0.30684,
+            "beam_deflection_m": 0.29848
           },
           {
-            "y_m": 4.0365,
-            "fea_von_mises_pa": 161514341.2,
-            "beam_stress_pa": 153443679.8,
-            "fea_deflection_m": 0.35186,
-            "beam_deflection_m": 0.34228
+            "y_m": 4.0358,
+            "fea_von_mises_pa": 161473684.2,
+            "beam_stress_pa": 153402705.8,
+            "fea_deflection_m": 0.35173,
+            "beam_deflection_m": 0.34215
           },
           {
-            "y_m": 4.3056,
-            "fea_von_mises_pa": 106152828.3,
-            "beam_stress_pa": 99283885.2,
-            "fea_deflection_m": 0.39874,
-            "beam_deflection_m": 0.38788
+            "y_m": 4.3048,
+            "fea_von_mises_pa": 106135375.7,
+            "beam_stress_pa": 99265772.4,
+            "fea_deflection_m": 0.39858,
+            "beam_deflection_m": 0.38772
           },
           {
-            "y_m": 4.5747,
-            "fea_von_mises_pa": 61763633.9,
-            "beam_stress_pa": 56024073.3,
-            "fea_deflection_m": 0.44694,
-            "beam_deflection_m": 0.43477
+            "y_m": 4.5739,
+            "fea_von_mises_pa": 61746306.4,
+            "beam_stress_pa": 56006265.9,
+            "fea_deflection_m": 0.44677,
+            "beam_deflection_m": 0.4346
           },
           {
-            "y_m": 4.8438,
-            "fea_von_mises_pa": 29283365.7,
-            "beam_stress_pa": 24687150.9,
-            "fea_deflection_m": 0.49594,
-            "beam_deflection_m": 0.48243
+            "y_m": 4.8429,
+            "fea_von_mises_pa": 29279441.3,
+            "beam_stress_pa": 24682538.3,
+            "fea_deflection_m": 0.49573,
+            "beam_deflection_m": 0.48223
           },
           {
-            "y_m": 5.1129,
-            "fea_von_mises_pa": 9169149.5,
-            "beam_stress_pa": 6105386.5,
-            "fea_deflection_m": 0.54531,
-            "beam_deflection_m": 0.53046
+            "y_m": 5.112,
+            "fea_von_mises_pa": 9165503.1,
+            "beam_stress_pa": 6101558.3,
+            "fea_deflection_m": 0.5451,
+            "beam_deflection_m": 0.53025
           },
           {
-            "y_m": 5.382,
+            "y_m": 5.381,
             "fea_von_mises_pa": 0.0,
             "beam_stress_pa": 0.0,
-            "fea_deflection_m": 0.59482,
-            "beam_deflection_m": 0.57862
+            "fea_deflection_m": 0.59457,
+            "beam_deflection_m": 0.57838
           }
         ]
       },
