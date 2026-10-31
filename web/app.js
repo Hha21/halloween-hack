@@ -106,21 +106,22 @@ function provBadge(path) {
     const fieldName = path.replace(/^spec\./, "");
     const defReason = currentSpec?.defaulted_fields?.[fieldName];
     if (defReason) {
-      return `<span class="prov-badge prov-gemini_default" title="${esc(defReason)}">[AI default]</span>`;
+      return `<span class="prov-badge prov-cited" title="${esc(defReason)}">cited default</span>`;
     }
-    return `<span class="prov-badge prov-none" title="No provenance attached">[no source]</span>`;
+    return `<span class="prov-badge prov-none" title="No provenance attached">no source</span>`;
   }
   const labels = {
-    user_input: "[user]",
-    gemini_default: "[AI default]",
-    equation: "[eq]",
-    table: "[tbl]",
-    simulation: p.verified ? "[sim ✓]" : "[sim]",
-    assumption: "[assume]",
+    user_input: "user",
+    gemini_default: "Gemini inferred",
+    equation: "eq",
+    table: "tbl",
+    simulation: "sim",
+    assumption: "assume",
   };
-  const label = labels[p.kind] || `[${p.kind}]`;
+  const label = labels[p.kind] || p.kind;
   const tip = `${p.kind.toUpperCase()}: ${p.source}${p.warning ? " | WARNING: " + p.warning : ""}`;
-  return `<span class="prov-badge prov-${esc(p.kind)}" title="${esc(tip)}">${esc(label)}</span>`;
+  const verifiedCls = p.verified ? " prov-verified" : "";
+  return `<span class="prov-badge prov-${esc(p.kind)}${verifiedCls}" title="${esc(tip)}">${esc(label)}</span>`;
 }
 
 function switchScreen(screenName) {
@@ -191,9 +192,20 @@ function renderWorkspace() {
       banner.classList.remove("hidden");
       document.getElementById("infeasible-reason").textContent = currentState.infeasible_reason;
       const rel = currentState.proposed_relaxation;
-      document.getElementById("infeasible-proposal").textContent = rel
-        ? `Gemini Proposed Relaxation: ${rel.parameter_path} (${rel.current_value} → ${rel.proposed_value}) — ${rel.reason}`
-        : "";
+      if (rel) {
+        const fmtVal = (val, u) => {
+          if (u === "m") return `${Math.round(val / 1000).toLocaleString()} km`;
+          if (u === "-" || !u) return `${Math.round(val)}`;
+          return `${val} ${u}`;
+        };
+        const oldStr = fmtVal(rel.old_value, rel.unit);
+        const newStr = fmtVal(rel.new_value, rel.unit);
+        const mtowStr = rel.estimated_mtow_kg ? ` (closes at ${Math.round(rel.estimated_mtow_kg).toLocaleString()} kg)` : "";
+        document.getElementById("infeasible-proposal").textContent =
+          `Gemini proposes: ${rel.field_name} ${oldStr} → ${newStr}${mtowStr} — ${rel.reasoning}`;
+      } else {
+        document.getElementById("infeasible-proposal").textContent = "";
+      }
     } else {
       banner.classList.add("hidden");
     }
@@ -517,14 +529,14 @@ function renderReportView() {
 
   const srcEl = document.getElementById("sources-ledger");
   if (srcEl) {
-    const srcs = (currentState.sources || []).map((s) => `<div>📘 ${esc(s)}</div>`).join("");
-    const asms = (currentState.assumptions || []).map((a) => `<div>⚙ ${esc(a)}</div>`).join("");
-    const wrns = (currentState.warnings || []).map((w) => `<div style="color:#fcd34d">⚠ ${esc(w)}</div>`).join("");
+    const srcs = (currentState.sources || []).map((s) => `<div class="source-item source-cited">${esc(s)}</div>`).join("");
+    const asms = (currentState.assumptions || []).map((a) => `<div class="source-item source-assumption">${esc(a)}</div>`).join("");
+    const wrns = (currentState.warnings || []).map((w) => `<div class="source-item source-warning">${esc(w)}</div>`).join("");
     srcEl.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.8rem">
-        <strong>Cited Equations &amp; Tables</strong>${srcs}
-        <strong style="margin-top:0.5rem">Engineering Assumptions</strong>${asms}
-        ${wrns ? `<strong style="margin-top:0.5rem">Heuristic Range Warnings</strong>${wrns}` : ""}
+      <div class="sources-ledger-list">
+        <strong class="ledger-heading">Cited Equations &amp; Tables</strong>${srcs}
+        <strong class="ledger-heading">Engineering Assumptions</strong>${asms}
+        ${wrns ? `<strong class="ledger-heading warning-heading">Heuristic Range Warnings</strong>${wrns}` : ""}
       </div>`;
   }
 }
@@ -556,9 +568,9 @@ document.getElementById("btn-rerun-sliders")?.addEventListener("click", () => {
 
 document.getElementById("btn-accept-relaxation")?.addEventListener("click", () => {
   const rel = currentState?.proposed_relaxation;
-  if (rel) {
-    const key = rel.parameter_path.replace(/^spec\./, "");
-    currentSpec[key] = Number(rel.proposed_value);
+  if (rel && rel.field_name) {
+    currentSpec[rel.field_name] = Number(rel.new_value);
+    if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[rel.field_name];
   } else {
     currentSpec.range_m = 1200000.0;
   }
