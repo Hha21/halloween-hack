@@ -5,6 +5,11 @@
 ## Track
 Track 1: Frontier Agents with Gemini. Autonomous agents, multi-step reasoning and verification loops, built with Gemini 4 Argon.
 
+## Links
+- Repo: https://github.com/Hha21/halloween-hack
+- Live demo (no install): https://hha21.github.io/halloween-hack/
+- Video: https://youtu.be/MRcF7TbEF20
+
 ## Tagline
 Describe an aircraft in plain English. Spiral sizes it, closes the design spiral, and shows where every number came from.
 
