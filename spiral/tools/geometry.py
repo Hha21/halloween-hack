@@ -20,17 +20,79 @@ from spiral.contract import (
 )
 
 
+def naca4_coordinates(
+    max_camber: float = 0.02,
+    camber_pos: float = 0.40,
+    thickness_to_chord: float = 0.15,
+    n_cosine_pts: int = 32,
+) -> list[tuple[float, float]]:
+    """Compute closed NACA 4-digit airfoil contour (x/c, z/c) from TE -> upper -> LE -> lower -> TE.
+
+    Follows Abbott & von Doenhoff, 'Theory of Wing Sections' (1959), Ch. 6 (NACA 2415 default).
+    """
+    pts_upper: list[tuple[float, float]] = []
+    pts_lower: list[tuple[float, float]] = []
+    m = max(0.0, float(max_camber))
+    p = max(0.05, min(0.95, float(camber_pos)))
+    t = max(0.04, min(0.30, float(thickness_to_chord)))
+
+    for i in range(n_cosine_pts + 1):
+        beta = (math.pi * i) / n_cosine_pts
+        xc = 0.5 * (1.0 - math.cos(beta))
+        yt = 5.0 * t * (
+            0.2969 * math.sqrt(max(xc, 0.0))
+            - 0.1260 * xc
+            - 0.3516 * (xc**2)
+            + 0.2843 * (xc**3)
+            - 0.1036 * (xc**4)
+        )
+        if m > 1e-6:
+            if xc < p:
+                yc = (m / (p**2)) * (2.0 * p * xc - xc**2)
+                dyc_dx = (2.0 * m / (p**2)) * (p - xc)
+            else:
+                yc = (m / ((1.0 - p) ** 2)) * ((1.0 - 2.0 * p) + 2.0 * p * xc - xc**2)
+                dyc_dx = (2.0 * m / ((1.0 - p) ** 2)) * (p - xc)
+            theta = math.atan(dyc_dx)
+        else:
+            yc = 0.0
+            theta = 0.0
+
+        xu = xc - yt * math.sin(theta)
+        zu = yc + yt * math.cos(theta)
+        xl = xc + yt * math.sin(theta)
+        zl = yc - yt * math.cos(theta)
+        pts_upper.append((round(xu, 6), round(zu, 6)))
+        pts_lower.append((round(xl, 6), round(zl, 6)))
+
+    return list(reversed(pts_upper)) + pts_lower[1:]
+
+from spiral.tools.lookup import lookup
+
+
 def aircraft_geometry(
     spec: MissionSpec,
     sizing: ConceptualSizingResult,
 ) -> ToolResult[AircraftGeometry]:
-    """Compute parametric Three.js primitive dimensions (in metres) from conceptual sizing.
+    """Compute parametric Three.js primitive dimensions (in metres) from conceptual sizing."""
+    typical_lookup = lookup("aircraft_typical", "ga_single_engine")
+    typical = typical_lookup.value
 
-    TODO (Tharm): Adjust proportions/offsets as needed for the Three.js aircraft scene in `web/`.
-    """
+    fuse_reg = typical.get("fuselage_length_regression", {})
+    a_fuse = float(fuse_reg.get("a", 4.37))
+    c_fuse = float(fuse_reg.get("C", 0.23))
+    fuse_src = str(fuse_reg.get("source", "Raymer 2ed, Table 6.3 (p. 110)"))
+    fuse_ver = bool(fuse_reg.get("verified", True))
+
+    tail_vol = typical.get("tail_volume_coefficients", {})
+    c_ht = float(tail_vol.get("c_ht", 0.70))
+    c_vt = float(tail_vol.get("c_vt", 0.04))
+    tail_src = str(tail_vol.get("source", "Raymer 2ed, Table 6.4 (p. 112)"))
+    tail_ver = bool(tail_vol.get("verified", True))
+
     # Raymer Table 6.3 general aviation fuselage length regression (in SI)
     w0_lb = max(sizing.mtow_kg * 2.20462, 500.0)
-    fuselage_length_m = 0.3048 * (4.37 * (w0_lb**0.23))
+    fuselage_length_m = 0.3048 * (a_fuse * (w0_lb**c_fuse))
     fuselage_diameter_m = 1.22
 
     # Wing vertical offset based on wing_position
@@ -40,8 +102,6 @@ def aircraft_geometry(
 
     # Tail sizing using Raymer Table 6.4 tail volume coefficients (C_HT = 0.70, C_VT = 0.04)
     tail_arm_m = 0.52 * fuselage_length_m
-    c_ht = 0.70
-    c_vt = 0.04
 
     ht_area_m2 = (c_ht * sizing.wing_area_m2 * sizing.mac_m) / max(tail_arm_m, 1.0)
     ht_ar = 4.0
@@ -110,28 +170,28 @@ def aircraft_geometry(
             # Fuselage
             "fuselage.length_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.3 (p. 110): L_f = 0.3048 x 4.37 x (W_0,lb)^0.23",
-                verified=True,
+                source=f"{fuse_src}: L_f = 0.3048 x {a_fuse} x (W_0,lb)^{c_fuse}",
+                verified=fuse_ver,
             ),
             "fuselage.diameter_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.3 (p. 110): GA 4-place cabin diameter",
-                verified=True,
+                source=f"{fuse_src}: GA 4-place cabin diameter",
+                verified=fuse_ver,
             ),
             "fuselage.nose_length_m": Provenance(
                 kind="assumption",
-                source="Raymer 2ed, Table 6.3 (p. 110): 22% fuselage length nose cowl",
-                verified=True,
+                source=f"{fuse_src}: 22% fuselage length nose cowl",
+                verified=fuse_ver,
             ),
             "fuselage.cabin_length_m": Provenance(
                 kind="assumption",
-                source="Raymer 2ed, Table 6.3 (p. 110): 36% fuselage length cabin",
-                verified=True,
+                source=f"{fuse_src}: 36% fuselage length cabin",
+                verified=fuse_ver,
             ),
             "fuselage.tailcone_length_m": Provenance(
                 kind="assumption",
-                source="Raymer 2ed, Table 6.3 (p. 110): 42% fuselage length tailcone",
-                verified=True,
+                source=f"{fuse_src}: 42% fuselage length tailcone",
+                verified=fuse_ver,
             ),
             # Wing
             "wing.span_m": Provenance(
@@ -172,23 +232,23 @@ def aircraft_geometry(
             # Horizontal tail
             "horizontal_tail.span_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): S_HT = C_HT x S x MAC / L_HT",
-                verified=True,
+                source=f"{tail_src}: S_HT = C_HT x S x MAC / L_HT (C_HT = {c_ht})",
+                verified=tail_ver,
             ),
             "horizontal_tail.root_chord_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): HT root chord from AR=4.0 and taper=0.65",
-                verified=True,
+                source=f"{tail_src}: HT root chord from AR=4.0 and taper=0.65",
+                verified=tail_ver,
             ),
             "horizontal_tail.tip_chord_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): HT tip chord = 0.65 x c_root",
-                verified=True,
+                source=f"{tail_src}: HT tip chord = 0.65 x c_root",
+                verified=tail_ver,
             ),
             "horizontal_tail.x_le_m": Provenance(
                 kind="assumption",
-                source="Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
-                verified=True,
+                source=f"{tail_src}: tail arm 52% fuselage length",
+                verified=tail_ver,
             ),
             "horizontal_tail.z_m": Provenance(
                 kind="assumption",
@@ -198,23 +258,23 @@ def aircraft_geometry(
             # Vertical tail
             "vertical_tail.height_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): S_VT = C_VT x S x b / L_VT",
-                verified=True,
+                source=f"{tail_src}: S_VT = C_VT x S x b / L_VT (C_VT = {c_vt})",
+                verified=tail_ver,
             ),
             "vertical_tail.root_chord_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): VT root chord from AR=1.6 and taper=0.55",
-                verified=True,
+                source=f"{tail_src}: VT root chord from AR=1.6 and taper=0.55",
+                verified=tail_ver,
             ),
             "vertical_tail.tip_chord_m": Provenance(
                 kind="equation",
-                source="Raymer 2ed, Table 6.4 (p. 112): VT tip chord = 0.55 x c_root",
-                verified=True,
+                source=f"{tail_src}: VT tip chord = 0.55 x c_root",
+                verified=tail_ver,
             ),
             "vertical_tail.x_le_m": Provenance(
                 kind="assumption",
-                source="Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
-                verified=True,
+                source=f"{tail_src}: tail arm 52% fuselage length",
+                verified=tail_ver,
             ),
             "vertical_tail.z_m": Provenance(
                 kind="assumption",

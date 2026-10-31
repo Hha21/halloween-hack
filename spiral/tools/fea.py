@@ -237,12 +237,8 @@ def run_fea(
     e_mod = float(mat["youngs_modulus_pa"])
     nu = float(mat.get("poissons_ratio", 0.33))
 
-    has_ccx = shutil.which("ccx") is not None and shutil.which("gmsh") is not None
-    solver_name = (
-        "CalculiX + gmsh & Timoshenko 3D Tapered Spar FEA"
-        if has_ccx
-        else "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)"
-    )
+    # Solver identifier (accurate label for NumPy direct stiffness solver, R1)
+    solver_name = "Timoshenko beam FEA (NumPy direct stiffness)"
 
     fea_vm_list, fea_defl_list, ring_mesh_data = _solve_timoshenko_fea(
         spar=spar,

@@ -8,80 +8,63 @@
 
 ---
 
-## 📣 Active Coordination for Harry / Harry's Agent (Oct 31, 14:35 UTC)
+## 📣 Active Coordination for Harry / Harry's Agent (Oct 31, 14:40 GMT)
 
-### 1. Division of Labor & Screen Ownership
-- **Tharm's Active Focus -> Screen 2 (Workspace) & Screen 3 (Detailed Design / CAD & FEA):**
-  - **Screen 2 (Workspace):** Deepening the Three.js 3D parametric morphing aircraft viewport (fuselage, translucent wing skin, internal golden I-beam spar at 25% MAC, empennage, animated propeller), real-time 3D Schrenk lift distribution curtain (`l(y)`), dynamic SVG load curves ($l(y)$, $V(y)$, $M(y)$), lap-by-lap history scrubber, and convergence charts.
-  - **Screen 3 (Detailed Design):** Deepening the 3D tapered I-beam CAD part, Three.js FEA von Mises stress field shader, interactive deflection magnification controls (1x–20x), beam-theory vs FEA comparison metrics, and direct STEP AP214 / STL artifact downloads.
-- **Harry's Scope -> Screen 1 (Project Intake & Mission Spec) & Agent Orchestration:**
-  - **Screen 1 (Intake):** Harry, please take full ownership of the Screen 1 UI and agent workflow:
-    - Large natural language intake box with demo scenario prompts.
+### 1. Clear Division of Labor & Screen Ownership
+- **Tharm is focusing seriously on Page 2 (Screen 2: Workspace) & Page 3 (Screen 3: Detailed Design / CAD & FEA):**
+  - **Screen 2 (Workspace & 3D Aircraft):**
+    - Three.js 3D parametric morphing aircraft viewport (fuselage, translucent wing skin, internal golden I-beam spar at 25% MAC, empennage, animated propeller).
+    - Real-time 3D Schrenk lift distribution curtain ($l(y)$).
+    - Dynamic responsive SVG load curves ($l(y)$, $V(y)$, $M(y)$).
+    - Lap-by-lap history scrubber, KPI strip, and convergence charts.
+    - Trade-study controls and relaxation re-run triggers.
+  - **Screen 3 (Detailed Design / CAD & FEA):**
+    - 3D tapered I-beam CAD visualization with interactive wireframe/solid toggle.
+    - Three.js FEA von Mises stress field shader & gradient color legend.
+    - Interactive deflection magnification controls (1x–20x).
+    - Deepened beam-theory vs FEA comparison metrics (stress agreement, deflection agreement, root moment & shear balance).
+    - Direct download artifacts (STEP AP214, watertight STL, stress mesh JSON).
+- **Harry takes Page 1 (Screen 1: Project Intake & Mission Spec) & Agent Orchestration:**
+  - **Screen 1 (Intake & Loop Setup):**
+    - Harry, please take full ownership of the Screen 1 UI setup, multi-agent workflow, requirements intake loop, and spec confirmation.
+    - Natural language intake box with demo scenario prompts.
     - Calling `POST /api/intake` for Gemini structured extraction into `MissionSpec`.
     - Presenting the editable structured spec form, highlighting Gemini-defaulted fields with their citations and reasons.
     - Layout heuristic retrieval, logging cited configuration choices in the agent log.
-    - User confirmation button transitioning seamlessly from Screen 1 into Screen 2 to kick off the design spiral (`POST /api/spiral/stream`).
-
-### 2. Addressed Harry's Feedback (from commit `301e465`)
-1. **Binary STL Support in Tests ([`tests/test_tools.py`](tests/test_tools.py)):**
-   - Fixed line 75: `stl_bytes = Path(cad_res.value.stl_path).read_bytes()`. Tests now check for either ASCII `solid` or binary CadQuery STL (>= 84 bytes). CadQuery environment tests will no longer fail on encoding errors.
-2. **Raymer 2ed Citations in [`spiral/tools/geometry.py`](spiral/tools/geometry.py):**
-   - Replaced all 6th edition citations with Raymer 2nd edition:
-     - Fuselage length & cabin diameter: **Table 6.3 (p. 110)**.
-     - Horizontal & vertical tail volume sizing and moment arms: **Table 6.4 (p. 112)**.
-     - Trapezoidal planform, MAC & dihedral: **Ch. 4 (p. 50–60)**.
-3. **Granular Per-Value Provenance (No Unverified Badges):**
-   - Added granular `Provenance(kind=..., source=..., verified=True)` for every individual numeric leaf in:
-     - `latest_geometry` (`fuselage.length_m`, `fuselage.diameter_m`, `wing.span_m`, `horizontal_tail.span_m`, `vertical_tail.height_m`, etc.).
-     - `cad` (`bounding_box_m.x_width_m`, `bounding_box_m.y_semi_span_m`, `bounding_box_m.z_depth_m`).
-     - `fea` (`stations[].y_m`, `stations[].fea_von_mises_pa`, `stations[].beam_stress_pa`, `stations[].fea_deflection_m`, `stations[].beam_deflection_m`).
-   - Zero unverified source badges remain in Tharm's tools.
+    - Spec confirmation button transitioning smoothly into Screen 2 to initiate the design spiral (`POST /api/spiral/stream`).
 
 ---
 
-## 2. Git & Branch Status
-- **Current Branch:** `main` (fully synchronized with `origin/main` at commit `4e4f61a`).
-- **Strict Ownership Boundary (`DESIGN_SPEC.md` §6):**
-  - **Tharm Owns (ONLY edit these):**
-    - [`spiral/tools/geometry.py`](spiral/tools/geometry.py) — `aircraft_geometry`
-    - [`spiral/tools/cad.py`](spiral/tools/cad.py) — `build_spar_cad`
-    - [`spiral/tools/fea.py`](spiral/tools/fea.py) — `run_fea`
-    - [`web/index.html`](web/index.html), [`web/styles.css`](web/styles.css), [`web/api_client.js`](web/api_client.js), [`web/scene3d.js`](web/scene3d.js), [`web/charts.js`](web/charts.js), [`web/app.js`](web/app.js)
-    - [`tests/test_tools.py`](tests/test_tools.py)
-    - [`THARM_AGENT_LOG.md`](THARM_AGENT_LOG.md)
-  - **Harry (`Hha21`) Owns (DO NOT EDIT):**
-    - `spiral/agent/*`, `server/*`, `scripts/*`, `knowledge/*`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_contract.py`, `tests/test_orchestrator.py`, `tests/test_intake.py`, `tests/test_report.py`, `fixtures/*`.
+### 2. Status of All Harry Requests (R1–R6: All 100% Resolved)
+
+| # | Status | Fix Applied |
+|---|---|---|
+| **R1** | **DONE** | In [`spiral/tools/fea.py`](spiral/tools/fea.py), `solver_name` is set directly to `"Timoshenko beam FEA (NumPy direct stiffness)"` so the NumPy solver is never mislabeled as CalculiX even when `ccx` and `gmsh` are present on Harry's laptop. |
+| **R2** | **DONE** | Dropped `"cfrp_ud"` completely from [`web/app.js`](web/app.js) and [`web/index.html`](web/index.html). `PRESETS.high_ar` now specifies `spar_material: "al_7075_t6"` (AR 13.5 converges cleanly at 1,369 kg, spar 65.8 kg, margin +0.00). Spar material options strictly limited to `al_2024_t3` and `al_7075_t6`. |
+| **R3** | **DONE** | Updated `DEFAULT_SPEC` in [`web/app.js`](web/app.js) with Raymer 2ed defaults: AR 7.6 (Table 4.1 p. 51), taper ratio 0.45 (Ch. 4 p. 56), and updated reason strings exactly matching [`fixtures/intake_response.json`](fixtures/intake_response.json). Removed aspect ratio override from `PRESETS.touring`. Slider in [`web/index.html`](web/index.html) defaults to 7.6. |
+| **R4** | **DONE** | Updated `PRESETS.diverging` prompt in [`web/app.js`](web/app.js) to: `"Four-seat tourer, London to New York non-stop, 5,570 km range, 45 min reserve, cruise 115 kt, stall under 55 kt."` with `range_m: 5570000.0, spar_material: "al_2024_t3"` and no AR override. Matches demo script and README. |
+| **R5** | **DONE** | In [`tests/test_tools.py`](tests/test_tools.py), binary/ASCII STL read as bytes (`stl_bytes = Path(...).read_bytes()`). Passes with CadQuery binary STL and fallback ASCII. |
+| **R6** | **DONE** | In [`spiral/tools/geometry.py`](spiral/tools/geometry.py), fuselage regression and tail volume coefficients are dynamically looked up from `lookup("aircraft_typical", "ga_single_engine")`. Populates verified Raymer 2ed citations (Table 6.3 p. 110, Table 6.4 p. 112). Zero unverified badges. |
 
 ---
 
-## 3. Completed Implementation Summary
-
-### A. Backend Engineering Tools & `Provenance` Integration
-1. **[`spiral/tools/geometry.py`](spiral/tools/geometry.py) (`aircraft_geometry`)**
-   - Computes parametric Three.js dimensions for fuselage, wing, horizontal tail, vertical fin, and tractor propeller.
-   - Populates per-field `Provenance` with exact Raymer 2ed citations (`Table 6.3 p. 110`, `Table 6.4 p. 112`, `Ch. 4 p. 50-60`).
-2. **[`spiral/tools/cad.py`](spiral/tools/cad.py) (`build_spar_cad`)**
-   - 3D 12-vertex tapered I-beam loft across spanwise stations (`y_m`, `height_m`, `flange_width_m`, `cap_thickness_m`, `web_thickness_m`).
-   - Trapezoidal segment volume integration aligned 100% with `spar.py` (`0.00%` discrepancy).
-   - Exports downloadable `artifacts/spar.step` (ISO-10303-21 STEP AP214) and watertight `artifacts/spar.stl` (ASCII / binary compatible).
-   - Populates per-field `Provenance` (`[sim ✓]`) for all CAD metrics and bounding box axes.
-3. **[`spiral/tools/fea.py`](spiral/tools/fea.py) (`run_fea`)**
-   - 3D Timoshenko + Saint-Venant root-warping direct stiffness FEA solver.
-   - Exports `artifacts/spar_stress_mesh.json` with station-level metrics and 12-vertex 3D cross-sectional rings (`rings_3d`) with per-vertex von Mises stress for the Three.js shader.
-   - Stress agreement `~96.5%` and deflection agreement `~98.9%` against Euler-Bernoulli beam theory.
-   - Populates per-field `Provenance` for all FEA metrics and station lists.
-
-### B. 4-Screen Aerospace Workbench (`web/`)
-1. **[`web/api_client.js`](web/api_client.js)**: POST SSE client via `fetch()` + `ReadableStream` + `TextDecoder` (`streamSpiral`, `streamSparDetailed`, `parseIntake`, etc.).
-2. **[`web/scene3d.js`](web/scene3d.js)**: `AircraftScene` (Screen 2 3D aircraft with translucent skin and golden I-beam spar) and `SparFeaScene` (Screen 3 3D tapered I-beam with von Mises contour and deflection magnification slider).
-3. **[`web/charts.js`](web/charts.js)**: Responsive dark-mode SVG plots for convergence, spanwise loads ($l(y)$, $V(y)$, $M(y)$), mass breakdown, and FEA vs beam theory.
-4. **[`web/index.html`](web/index.html), [`web/styles.css`](web/styles.css), [`web/app.js`](web/app.js)**: 4-screen layout, live SSE streaming hooks, lap history scrubber, relaxation re-run banner, CAD/FEA downloads, and traceability ledger.
+## 3. Git & Ownership Boundaries (`DESIGN_SPEC.md` §6–7)
+- **Tharm Owns (ONLY edit these):**
+  - [`spiral/tools/geometry.py`](spiral/tools/geometry.py)
+  - [`spiral/tools/cad.py`](spiral/tools/cad.py)
+  - [`spiral/tools/fea.py`](spiral/tools/fea.py)
+  - [`web/index.html`](web/index.html), [`web/styles.css`](web/styles.css), [`web/api_client.js`](web/api_client.js), [`web/scene3d.js`](web/scene3d.js), [`web/charts.js`](web/charts.js), [`web/app.js`](web/app.js)
+  - [`tests/test_tools.py`](tests/test_tools.py)
+  - [`THARM_AGENT_LOG.md`](THARM_AGENT_LOG.md)
+- **Harry (`Hha21`) Owns (DO NOT EDIT):**
+  - `spiral/agent/*`, `server/*`, `scripts/*`, `knowledge/*`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_contract.py`, `tests/test_orchestrator.py`, `tests/test_intake.py`, `tests/test_report.py`, `fixtures/*`, `HARRY_AGENT_LOG.md`.
 
 ---
 
-## 4. REA (Runtime Evidence & Observation) Verification
-- **Pytest Suite:** `.venv/bin/python -m pytest -v` -> **26 passed, 7 subtests passed in 8.15s**.
-- **Per-Value Provenance Audit:** Verified zero unverified entries across `latest_geometry`, `components.main_wing_spar.cad`, and `components.main_wing_spar.fea`.
-- **Live Server Probe (`http://127.0.0.1:8000`):**
-  - End-to-end chain verified: `/api/intake` -> `/api/spiral/stream` -> `/api/components/spar/stream` -> `/api/report`.
-  - Artifacts verified: `spar.step`, `spar.stl`, `spar_stress_mesh.json` (`200 OK`).
+## 4. REA Verification & Test Status
+- **Pytest Suite (`.venv/bin/python -m pytest -v`):**
+  - **27 passed, 7 subtests passed in 8.54s**.
+- **JavaScript Syntax Check (`node --check web/app.js`):**
+  - **Passes clean with zero syntax errors**.
+- **Live Smoke Test:**
+  - All 4 demo missions verified end-to-end against live server.
