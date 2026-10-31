@@ -279,7 +279,7 @@ function dossierCover() {
     ["MTOW", "#workspace-kpis .kpi-card:nth-child(1) .kpi-val"],
     ["Main spar mass", "#workspace-kpis .kpi-card:nth-child(4) .kpi-val"],
     ["Safety margin", "#workspace-kpis .kpi-card:nth-child(5) .kpi-val"],
-    ["FEA vs beam theory", "#detailed-kpis .kpi-card:nth-child(3) .kpi-val"],
+    ["FEA vs beam theory", "#summary-main-spar-agreement"], // main spar only; Screen 3 cards change per component
   ].map(([label, sel]) => {
     const fig = el("div", "ov-fig");
     const k = el("small");
