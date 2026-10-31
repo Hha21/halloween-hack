@@ -193,7 +193,7 @@ def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
 
 def nearest_feasible_passengers(spec: MissionSpec) -> SpecRelaxationProposal | None:
     """Most passengers (fewer than now) at which the full spiral converges, everything else unchanged."""
-    for passengers in range(spec.passenger_count - 1, -1, -1):
+    for passengers in range(int(round(spec.passenger_count)) - 1, -1, -1):  # JSON may send 1.0
         state = run_design_spiral(replace(spec, passenger_count=passengers), propose_relaxation=False)
         if state.converged and state.latest_sizing is not None:
             return SpecRelaxationProposal(
