@@ -57,6 +57,14 @@ class TestOrchestrator(unittest.TestCase):
         # ...and 10 km further does not.
         self.assertFalse(run_design_spiral(MissionSpec(range_m=proposal.new_value + 10_000.0)).converged)
 
+    def test_sized_spar_never_has_a_negative_margin(self) -> None:
+        # Thin, high-aspect-ratio wing: thick caps on a shallow spar used to give margin -0.10.
+        for spec in (MissionSpec(), MissionSpec(range_m=1_200_000.0, aspect_ratio=13.5, spar_material="al_7075_t6")):
+            spar = run_design_spiral(spec).latest_spar
+            self.assertGreaterEqual(spar.safety_margin, -1e-6)
+            for station in spar.stations:
+                self.assertLessEqual(station.bending_stress_pa, spar.allowable_yield_stress_pa * (1 + 1e-6))
+
     def test_closure_has_no_false_failures(self) -> None:
         # 4,000 km used to fail on the solver's starting guess; it closes (Raymer Eq. 3.4).
         state = run_design_spiral(MissionSpec(range_m=4_000_000.0))

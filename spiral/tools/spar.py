@@ -157,6 +157,7 @@ def size_spar(
     sections: list[SparStationSection] = []
     curvatures: list[float] = []
     web_buckling_governs = 0
+    section_overstressed = 0
 
     for st in loads.stations:
         # Spar depth = 85% of local aerofoil thickness; cap width 35% of depth.
@@ -176,10 +177,26 @@ def size_spar(
             web_buckling_governs += 1
 
         # Second moment of area of the idealised I-beam (Raymer Eq. 14.35: sigma = M z / I)
-        h_web = max(depth_m - 2.0 * cap_t, 0.01)
-        i_xx = (web_t * h_web**3) / 12.0 + 2.0 * cap_area_m2 * (0.5 * depth_m - 0.5 * cap_t) ** 2
+        def section(cap_t_m: float) -> tuple[float, float]:
+            h_web = max(depth_m - 2.0 * cap_t_m, 0.01)
+            i = (web_t * h_web**3) / 12.0 + 2.0 * cap_width_m * cap_t_m * (0.5 * depth_m - 0.5 * cap_t_m) ** 2
+            return i, abs(st.moment_nm) * (0.5 * depth_m) / i
 
-        bending_stress_pa = abs(st.moment_nm) * (0.5 * depth_m) / i_xx
+        i_xx, bending_stress_pa = section(cap_t)
+        if bending_stress_pa > sigma_allow:
+            # Thick caps on a shallow spar: the 0.9 d lever arm overestimates the real one, so thicken
+            # the caps by bisection until the outer-fibre stress is within F_cy.
+            lo_t, hi_t = cap_t, 0.45 * depth_m
+            if section(hi_t)[1] > sigma_allow:
+                section_overstressed += 1
+                cap_t = hi_t
+            else:
+                for _ in range(60):
+                    mid_t = 0.5 * (lo_t + hi_t)
+                    lo_t, hi_t = (mid_t, hi_t) if section(mid_t)[1] > sigma_allow else (lo_t, mid_t)
+                cap_t = hi_t
+            cap_area_m2 = cap_width_m * cap_t
+            i_xx, bending_stress_pa = section(cap_t)
         shear_stress_pa = abs(st.shear_n) / (depth_m * web_t)
 
         curvatures.append(st.moment_nm / (e_mod * i_xx))
@@ -273,7 +290,9 @@ def size_spar(
         ],
         warnings=list(mat_lookup.warnings)
         + ([f"Web shear buckling sets the web thickness at {web_buckling_governs} of {len(sections)} stations"]
-           if web_buckling_governs else []),
+           if web_buckling_governs else [])
+        + ([f"Spar too shallow: even near-solid caps exceed F_cy at {section_overstressed} station(s); "
+            "increase thickness_to_chord or reduce aspect_ratio"] if section_overstressed else []),
         provenance={
             "mass_both_wings_kg": prov(eq_caps, "cap + web volume x density, both wings"),
             "root_cap_area_m2": prov(eq_caps, "A_cap = M / (h F_cy)"),
