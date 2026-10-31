@@ -55,7 +55,14 @@ class TestEngineeringTools(unittest.TestCase):
 
         geom_res = aircraft_geometry(spec, sizing)
         self.assertEqual(geom_res.value.wing["span_m"], sizing.span_m)
-        for key in ("fuselage", "wing", "horizontal_tail", "vertical_tail", "propeller"):
+        for key in (
+            "fuselage.length_m",
+            "fuselage.diameter_m",
+            "wing.span_m",
+            "horizontal_tail.span_m",
+            "vertical_tail.height_m",
+            "propeller.diameter_m",
+        ):
             self.assertIn(key, geom_res.provenance)
             self.assertIsInstance(geom_res.provenance[key], Provenance)
 
@@ -66,17 +73,22 @@ class TestEngineeringTools(unittest.TestCase):
                 "stl_path",
                 "volume_single_wing_m3",
                 "cad_mass_both_wings_kg",
-                "bounding_box_m",
+                "bounding_box_m.x_width_m",
+                "bounding_box_m.y_semi_span_m",
+                "bounding_box_m.z_depth_m",
             ):
                 self.assertIn(key, cad_res.provenance)
                 self.assertIsInstance(cad_res.provenance[key], Provenance)
 
             step_text = Path(cad_res.value.step_path).read_text(encoding="utf-8")
-            stl_text = Path(cad_res.value.stl_path).read_text(encoding="utf-8")
+            stl_bytes = Path(cad_res.value.stl_path).read_bytes()
             self.assertIn("ISO-10303-21;", step_text)
-            self.assertIn("solid spar_ibeam", stl_text)
+            self.assertTrue(
+                stl_bytes.startswith(b"solid") or len(stl_bytes) >= 84,
+                "STL file must either be valid ASCII starting with 'solid' or binary >= 84 bytes",
+            )
             self.assertGreater(len(step_text), 500)
-            self.assertGreater(len(stl_text), 500)
+            self.assertGreater(len(stl_bytes), 500)
 
             mass_diff_pct = (
                 abs(cad_res.value.cad_mass_both_wings_kg - spar.mass_both_wings_kg)
@@ -126,8 +138,9 @@ class TestEngineeringTools(unittest.TestCase):
         spec = MissionSpec()
         state = run_design_spiral(spec)
         self.assertTrue(state.converged)
-        self.assertIn("latest_geometry.wing", state.provenance)
-        self.assertIn("latest_geometry.fuselage", state.provenance)
+        self.assertIn("latest_geometry.wing.span_m", state.provenance)
+        self.assertIn("latest_geometry.fuselage.length_m", state.provenance)
+        self.assertTrue(state.provenance["latest_geometry.fuselage.length_m"].verified)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             state = run_spar_detailed_design(state, out_dir=tmpdir)

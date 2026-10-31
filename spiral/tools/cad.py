@@ -349,7 +349,7 @@ def build_spar_cad(
             ),
             "volume_single_wing_m3": Provenance(
                 kind="simulation",
-                source="3D Prismoidal Section Integration of Tapered I-Beam",
+                source="3D Section Volume Integration of Tapered I-Beam",
                 verified=True,
             ),
             "cad_mass_both_wings_kg": Provenance(
@@ -357,9 +357,19 @@ def build_spar_cad(
                 source="3D CAD Solid Volume × Material Density (Both Semi-Spans)",
                 verified=True,
             ),
-            "bounding_box_m": Provenance(
+            "bounding_box_m.x_width_m": Provenance(
                 kind="simulation",
-                source="3D CAD Solid Envelope Bounding Box",
+                source="Maximum cap width across spanwise stations",
+                verified=True,
+            ),
+            "bounding_box_m.y_semi_span_m": Provenance(
+                kind="simulation",
+                source="Semi-span length of tapered I-beam CAD part",
+                verified=True,
+            ),
+            "bounding_box_m.z_depth_m": Provenance(
+                kind="simulation",
+                source="Maximum spar depth across spanwise stations",
                 verified=True,
             ),
         },
