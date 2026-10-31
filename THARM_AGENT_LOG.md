@@ -48,6 +48,27 @@
 | **R7** | **DONE** | Fixed infeasible relaxation banner and accept button in [`web/app.js`](web/app.js). Reads `rel.field_name`, `rel.old_value`, `rel.new_value`, `rel.unit`, `rel.estimated_mtow_kg`, and `rel.reasoning`. Handles `range_m` (km) as well as `passenger_count` and generic counts without throwing. Deletes `defaulted_fields[rel.field_name]`. |
 | **R8** | **DONE** | 1. Added `.prov-verified` class to `provBadge` in [`web/app.js`](web/app.js) when `p.verified` is true.<br>2. Removed brackets from badge labels (`eq`, `tbl`, `sim`, `assume`, `user`, `Gemini inferred`).<br>3. Relabeled `gemini_default` to `Gemini inferred` and handled assumption defaults.<br>4. Screen 4 sources ledger converted from inline styles/emoji to CSS classes (`source-item`, `source-cited`, `source-assumption`, `source-warning`, `ledger-heading`).<br>5. Updated Screen tabs and sidebar ladder names in [`web/index.html`](web/index.html) to standard order. |
 
+
+---
+
+## 📣 T1 (Oct 31, post-submission): request to Harry — activate component analyses (needs your files)
+
+Goal: make the "coming soon" components run with real, cited analyses. Sources checked against the Raymer 2ed PDF page images (2nd printing).
+
+| Component | Decision | Method (Raymer 2ed) |
+|---|---|---|
+| `horizontal_tail` | **Activate** | Manoeuvre speed V_p = V_s + K_p(V_L - V_s), K_p = 0.15 + 5400/(W+3300), GA cap 0.9 (Eqs. 14.12-14.13, p. 345); tail normal-force coefficient C_n = -0.55 down / +0.35 up, spanwise load proportional to chord (p. 347); tail t/c ~ wing t/c (p. 76). Then the existing `size_spar` -> CAD -> FEA chain. |
+| `main_landing_gear` | **Activate** | Oleo strut: N_gear = 3 GA (Table 11.5, p. 243), eta oleo fixed orifice 0.65-0.80 (Table 11.4, p. 242), sink speed 10 ft/s (p. 242), stroke Eq. 11.12 + 1 in, min 8 in (p. 244), length 2.5 S, D = 0.04 sqrt(L_oleo) (Eq. 11.13, p. 244), landing load W N_gear / 2 (Eq. 11.14, p. 245). |
+| `engine_mount` | **Stays coming soon** | Loads are in §14.5 (p. 348), but Raymer gives no piston engine weight (manufacturer data only), no truss geometry, and 4130 tube struts sit below the critical slenderness 91.5 (p. 375), where buckling needs a chart read (Fig. 14.32). Too many uncited numbers. |
+| `fuselage_frames` | **Stays coming soon** | Raymer describes ring-frame carry-through only qualitatively (Sec. 8.3, Fig. 8.8, pp. 162-163); no sizing method. |
+
+Changes in Harry-owned files (separate commit, additive and backward compatible; please review/revert freely):
+1. `spiral/contract.py`: new `HorizontalTailResult`, `LandingGearResult`; `ComponentStatus` gains optional `horizontal_tail`, `landing_gear`, `unavailable_reason`; `horizontal_tail` and `main_landing_gear` become `available=True`. `ComponentStepEvent.step` may also be `"loads"` / `"sizing"`.
+2. `spiral/agent/orchestrator.py`: `run_component_detailed_design(state, component_id, ...)` dispatching to the spar / tail / gear runs, with the same `component_step` -> `log` -> `component_done` stream.
+3. `server/app.py`: `POST /api/components/{component_id}` and `/api/components/{component_id}/stream` (the existing `/spar` routes are unchanged).
+4. `knowledge/tables/component_loads.yaml` + `knowledge/equations.yaml` rows. All new rows `verified: false`: they were read off the page image by Tharm's agent, not critic-checked. Run `extract_knowledge.py check` on them if you want the verified stamp.
+5. `fixtures/` regenerated.
+
 ---
 
 ## 3. Git & Ownership Boundaries (`DESIGN_SPEC.md` §6–7)
