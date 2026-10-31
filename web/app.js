@@ -503,6 +503,9 @@ async function renderDetailedView() {
   renderDetailedPipeline(id);
 
   const isSpar = view.kind === "spar";
+  publishMainSparSummary();
+  const screenEl = document.getElementById("screen-detailed");
+  if (screenEl) screenEl.dataset.compKind = view.kind; // styles.css hides the spar HUD for sizing-only components
   ["#screen-detailed .viewport-toolbar", "#screen-detailed .fea-charts-col"].forEach((sel) =>
     setFloatingPanel(document.querySelector(sel), isSpar)
   );
@@ -515,13 +518,14 @@ async function renderDetailedView() {
     const gear = comp[view.resultKey];
     const p = `${base}.${view.resultKey}`;
     if (kpiEl) {
+      // Slot order matters: overhaul.css makes card 3 the hero and folds cards 2, 4 and 5 behind "Show all".
       kpiEl.innerHTML = kpiCards([
-        { label: "Stroke (incl. margin)", val: fmt(gear?.stroke_m, 1000, 0, "mm"), prov: `${p}.stroke_m` },
-        { label: "Oleo Length", val: fmt(gear?.oleo_length_m, 1000, 0, "mm"), prov: `${p}.oleo_length_m` },
-        { label: "Oleo Diameter", val: fmt(gear?.oleo_diameter_m, 1000, 1, "mm"), prov: `${p}.oleo_diameter_m` },
         { label: "Landing Load / Strut", val: fmt(gear?.landing_load_per_strut_n, 1e-3, 2, "kN"), prov: `${p}.landing_load_per_strut_n` },
         { label: "Static Load / Strut", val: fmt(gear?.static_load_per_strut_n, 1e-3, 2, "kN"), prov: `${p}.static_load_per_strut_n` },
+        { label: "Stroke (incl. margin)", val: fmt(gear?.stroke_m, 1000, 0, "mm"), prov: `${p}.stroke_m` },
+        { label: "Oleo Length", val: fmt(gear?.oleo_length_m, 1000, 0, "mm"), prov: `${p}.oleo_length_m` },
         { label: "Gear Load Factor", val: gear ? `${gear.gear_load_factor}` : "—", prov: `${p}.gear_load_factor` },
+        { label: "Oleo Diameter", val: fmt(gear?.oleo_diameter_m, 1000, 1, "mm"), prov: `${p}.oleo_diameter_m` },
       ]);
     }
     const rows = [
@@ -572,14 +576,15 @@ async function renderDetailedView() {
       ]
     : [];
   if (kpiEl) {
+    // The six FEA cards keep the main spar's slots (card 3 = overhaul hero); tail load-case cards follow.
     kpiEl.innerHTML = kpiCards([
-      ...tailCards,
       { label: "FEA Peak von Mises", val: fea ? `${(fea.fea_max_von_mises_pa / 1e6).toFixed(1)} MPa` : "—", prov: `${base}.fea.fea_max_von_mises_pa` },
       { label: "Beam Theory Stress", val: fea ? `${(fea.beam_max_stress_pa / 1e6).toFixed(1)} MPa` : "—", prov: `${base}.fea.beam_max_stress_pa` },
       { label: "Stress Agreement", val: fea ? `${fea.stress_agreement_pct.toFixed(1)}%` : "—", prov: `${base}.fea.stress_agreement_pct` },
       { label: "FEA Tip Deflection", val: fea ? `${(fea.fea_tip_deflection_m * 1000).toFixed(1)} mm` : "—", prov: `${base}.fea.fea_tip_deflection_m` },
       { label: "Deflection Agreement", val: fea ? `${fea.deflection_agreement_pct.toFixed(1)}%` : "—", prov: `${base}.fea.deflection_agreement_pct` },
       { label: "CAD Spar Mass (2x)", val: cad ? `${cad.cad_mass_both_wings_kg.toFixed(2)} kg` : "—", prov: `${base}.cad.cad_mass_both_wings_kg` },
+      ...tailCards,
     ]);
   }
   if (analysisEl) {
@@ -710,8 +715,17 @@ function mdToHtml(md) {
     .replace(/\n\n/g, "<br/><br/>");
 }
 
+/* The main wing spar's FEA agreement, kept in a fixed node whichever component Screen 3 shows,
+ * so the overhaul's report cover never reads another component's KPI card. */
+function publishMainSparSummary() {
+  const el = document.getElementById("summary-main-spar-agreement");
+  const fea = currentState?.components?.main_wing_spar?.fea;
+  if (el) el.textContent = fea ? `${fea.stress_agreement_pct.toFixed(1)}%` : "";
+}
+
 function renderReportView() {
   if (!currentState) return;
+  publishMainSparSummary();
   document.getElementById("report-markdown").innerHTML = mdToHtml(currentState.report_markdown);
 
   const provEntries = Object.entries(currentState.provenance || {});
