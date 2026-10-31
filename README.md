@@ -35,6 +35,21 @@ The core rule: **Gemini decides and writes; Python computes.** Gemini never supp
 
 <p align="center"><img src="docs/screens/00-ask-raymer.png" alt="Ask Raymer: an answer grounded in critic-verified textbook items" width="70%"><br><sub><b>Ask Raymer:</b> the research agent answers only from critic-verified textbook items, with citations.</sub></p>
 
+## Agentic CAD: Gemini 4 Argon drives Blender
+
+<p align="center"><img src="docs/blender/airframe.png" alt="Light aircraft modelled in Blender by a Gemini 4 Argon agent from the converged design" width="80%"></p>
+
+Once the spiral closes, an airframe agent turns the numbers into a 3D model. **Gemini 4 Argon writes a Blender Python script** from the converged design (span, chords, fuselage, tails, wing position). **Python runs Blender headless** to build the model, export a `.glb` and render it. Then it **measures the model independently**: Spiral's own world bounding box, not the model's self-report, checked against the design. Any failure goes back to Argon to fix, in a verification loop of up to 3 attempts (`spiral/agent/blender_agent.py`, `POST /api/components/airframe`, the "Agentic CAD" panel on Screen 3).
+
+The run that produced this render (`scripts/blender_build.py`):
+
+| Attempt | Result | Time | What happened |
+|---|---|---|---|
+| 1 | ✗ | 62.6 s | Argon's script had a `SyntaxError`; Blender exited with code 1, so no model. The error went back to Argon. |
+| 2 | ✓ | 46.2 s | Fixed script built, exported and rendered. Span **11.051 m vs design 11.051 m**, length **8.25 m vs 8.25 m**. |
+
+Argon's final script: [`docs/blender/airframe.py`](docs/blender/airframe.py).
+
 ## Run it
 
 ```bash
