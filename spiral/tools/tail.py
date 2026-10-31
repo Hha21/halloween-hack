@@ -158,14 +158,18 @@ def horizontal_tail_spar(
 
     chord_load = eq(eq_tail, "load proportional to chord")
     provenance: dict[str, Provenance] = {
-        "stall_speed_ms": Provenance("user_input", "Mission spec stall speed (V_s in Eq. 14.12)"),
+        "stall_speed_ms": (
+            Provenance("assumption", f"Spec default stall speed (V_s in Eq. 14.12): {spec.defaulted_fields['stall_speed_ms']}", verified=False)
+            if "stall_speed_ms" in spec.defaulted_fields
+            else Provenance("user_input", "Mission spec stall speed (V_s in Eq. 14.12)")
+        ),
         "level_speed_ms": Provenance(
             "assumption", "V_L taken as the spec cruise speed (Eq. 14.12 asks for the maximum level speed)", verified=False
         ),
         "kp": eq(eq_vp, "K_p = 0.15 + 5400 / (W + 3300), capped at 0.9 for general aviation"),
         "maneuver_speed_ms": eq(eq_vp, "V_p = V_s + K_p (V_L - V_s)"),
         "air_density_kg_m3": Provenance("assumption", "ISA sea-level density, 1.225 kg/m^3", verified=False),
-        "dynamic_pressure_pa": Provenance("equation", "q = 0.5 rho V_p^2"),
+        "dynamic_pressure_pa": Provenance("equation", "q = 0.5 rho V_p^2", verified=False),
         "normal_force_coefficient": tbl(cn_row, "horizontal tail C_n = -0.55 down (governs) / +0.35 up"),
         "tail_area_m2": geometry_prov("trapezoid area from the tail span and chords"),
         "tail_span_m": geometry_prov("horizontal tail span"),
@@ -174,15 +178,17 @@ def horizontal_tail_spar(
         "thickness_to_chord": tbl(tc_row, "tail t/c taken equal to the wing t/c"),
         "limit_tail_load_n": eq(eq_tail, "P = |C_n| q S_HT"),
         "ultimate_tail_load_n": Provenance(
-            "equation", f"Limit tail load x ultimate factor {spec.ultimate_factor:g} (Raymer 2ed, p. 335; factor from the spec)"
+            "equation",
+            f"Limit tail load x ultimate factor {spec.ultimate_factor:g} (Raymer 2ed, p. 335; factor from the spec)",
+            verified=False,
         ),
-        "loads.n_ult": Provenance("equation", "Ultimate factor applied to the tail limit load (Raymer 2ed, p. 335)"),
+        "loads.n_ult": Provenance("equation", "Ultimate factor applied to the tail limit load (Raymer 2ed, p. 335)", verified=False),
         "loads.semi_span_m": geometry_prov("half the tail span"),
         "loads.root_shear_n": eq(eq_tail, "chord-proportional load integrated from the tip"),
         "loads.root_moment_nm": eq(eq_tail, "chord-proportional load integrated from the tip"),
-        "loads.stations[].y_m": Provenance("equation", "Uniform spanwise stations, centreline to tip"),
-        "loads.stations[].chord_m": Provenance("equation", "Linear taper between tail root and tip chord"),
-        "loads.stations[].elliptical_lift_n_per_m": Provenance("equation", "Not used for the tail: zero (load is chord-proportional)"),
+        "loads.stations[].y_m": Provenance("equation", "Uniform spanwise stations, centreline to tip", verified=False),
+        "loads.stations[].chord_m": Provenance("equation", "Linear taper between tail root and tip chord", verified=False),
+        "loads.stations[].elliptical_lift_n_per_m": Provenance("equation", "Not used for the tail: zero (load is chord-proportional)", verified=False),
         "loads.stations[].planform_lift_n_per_m": chord_load,
         "loads.stations[].schrenk_lift_n_per_m": eq(eq_tail, "chord-proportional load (not Schrenk; the field is shared with the wing)"),
         "loads.stations[].shear_n": eq(eq_tail, "shear integrated from the tip"),
