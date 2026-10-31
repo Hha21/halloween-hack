@@ -128,7 +128,7 @@ spiral/
 ├── books/                       # [both] drop textbook PDFs here — GITIGNORED
 │   └── README.md                # what to put here, copyright note
 │
-├── knowledge/                   # [Tharm]
+├── knowledge/                   # [Harry] RAG / textbook knowledge tables & equation registry
 │   ├── equations.yaml           # curated equation registry with citations (committed)
 │   ├── tables/
 │   │   ├── materials.yaml       # density, E, allowables
@@ -142,19 +142,19 @@ spiral/
 ├── spiral/                      # Python package
 │   ├── __init__.py
 │   ├── contract.py              # [both, frozen] shared schemas: MissionSpec, ToolResult, ToolError, DesignState, API payloads
-│   ├── tools/                   # [Tharm] deterministic aerostructures, FEA & geometry tools
+│   ├── tools/                   # deterministic engineering tools
 │   │   ├── __init__.py
-│   │   ├── lookup.py            # read knowledge tables
-│   │   ├── sizing.py            # conceptual sizing
-│   │   ├── spar.py              # spar loads (Schrenk) + preliminary I-beam spar sizing
-│   │   ├── cad.py               # CadQuery spar geometry → STEP/STL
-│   │   ├── fea.py               # gmsh + CalculiX static FEA check vs beam theory
-│   │   └── geometry.py          # rough aircraft geometry primitives for the 3D render
-│   └── agent/                   # [Harry]
+│   │   ├── lookup.py            # [Harry] read knowledge tables for RAG / sizing agents
+│   │   ├── sizing.py            # [Harry] mission & weight sizing agent calculations
+│   │   ├── spar.py              # [Harry] wing & spar parameter agent calculations (Schrenk + I-beam parameters)
+│   │   ├── geometry.py          # [Tharm] combine all agent outputs into 3D aircraft geometry primitives
+│   │   ├── cad.py               # [Tharm] combine agent parameters into 3D CAD (CadQuery STEP/STL)
+│   │   └── fea.py               # [Tharm] gmsh + CalculiX static FEA verification on the generated CAD
+│   └── agent/                   # [Harry] NL intake → multi-agent / RAG / notebook orchestration
 │       ├── __init__.py
-│       ├── orchestrator.py      # deterministic spiral loop + component design (always works)
-│       ├── gemini.py            # intake parsing, decisions on infeasible, report writing
-│       └── prompts/             # system prompts
+│       ├── orchestrator.py      # multi-agent spiral loop + component design trigger
+│       ├── gemini.py            # intake parsing, sub-agent reasoning, infeasible relaxation, report writing
+│       └── prompts/             # system prompts for intake, sub-agents, infeasible, report
 │           ├── intake.md
 │           ├── infeasible.md
 │           └── report.md
@@ -162,35 +162,62 @@ spiral/
 ├── server/                      # [Harry] FastAPI: parse, run (streamed laps), components, report
 │   ├── __init__.py
 │   └── app.py
-├── web/                         # [Tharm] frontend: intake, workspace (3D + plots), detailed FEA viewer, report
+├── web/                         # [Tharm] frontend: intake, workspace (3D aircraft + plots), detailed CAD/FEA viewer, report
 │   ├── index.html
 │   ├── styles.css
 │   ├── api_client.js            # typed wrapper around Harry's server endpoints & SSE stream
 │   └── app.js
-├── tests/                       # [Tharm] test_tools.py; [Harry] test_orchestrator.py
+├── tests/                       # [Harry] test_orchestrator.py; [Tharm] test_tools.py (CAD/FEA/geometry)
 │   ├── test_tools.py
 │   └── test_orchestrator.py
-└── artifacts/                   # generated STEP/STL/mesh JSON — GITIGNORED
+└── artifacts/                   # [Tharm] generated STEP/STL/mesh JSON — GITIGNORED
 ```
 
-## 7. Work split
+## 7. Roles & Work Split (Agentic Sizing → CAD, FEA & Frontend Synthesis)
 
-| | **Harry: Agent, Orchestrator & Backend** | **Tharm: Aerostructures, FEA & Frontend** |
+The system is split along a clean two-stage pipeline: **Harry** converts natural-language requirements into multi-agent engineering parameter outputs, and **Tharm** reads and combines all agent outputs into **3D CAD, FEA structural analysis, and the interactive Frontend**.
+
+```
+[Plain-English Requirements]
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PART 1 — HARRY: NL Intake → RAG / Notebook → Specialized Sub-Agents     │
+│  • Intake Agent: parses natural language into structured MissionSpec    │
+│  • RAG & Knowledge Layer: retrieves equations, tables & heuristics      │
+│  • Sub-Agents (Mission/Weight Agent, Wing/Spar Agent, Layout Agent):    │
+│    compute and output exact engineering parameters per component        │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ Frozen Schema (spiral/contract.py)
+                                    │ ConceptualSizingResult + SparLoadsResult
+                                    │ + SparSizingResult + AircraftGeometry
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PART 2 — THARM: Parameter Synthesis → 3D CAD + FEA + Frontend UI        │
+│  • Reads & combines parameter outputs from all of Harry's agents        │
+│  • 3D Aircraft & CAD Assembly (geometry.py, cad.py → STEP / STL)        │
+│  • Structural FEA Analysis (fea.py → gmsh + CalculiX 3D stress & defl.) │
+│  • Interactive Frontend (web/ → Three.js 3D viewer, FEA stress map, UI) │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+| | **Harry: NL → Multi-Agent, RAG & Component Parameter Sizing** | **Tharm: Multi-Agent Synthesis → 3D CAD, FEA & Frontend** |
 |---|---|---|
-| **Owns** | Gemini layer (intake, infeasible relaxation, report), deterministic spiral orchestrator, FastAPI + SSE server, book extraction script | Frontend UI + 3D aircraft/spar visualisation (`web/`, `geometry.py`), aerostructures & sizing tools (`sizing.py`, `spar.py`), CAD & FEA pipeline (`cad.py`, `fea.py`), knowledge tables (`knowledge/`, `lookup.py`) |
-| **Folders** | `spiral/agent/`, `server/`, `scripts/`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/`, `knowledge/`, `tests/test_tools.py` |
-| **First deliverable** | Orchestrator + FastAPI server running end-to-end against stub tools and streaming SSE events | Stub tools matching `spiral/contract.py` + Frontend shell rendering `DesignState` and 3D primitives |
-| **Reviews** | Prompt hygiene (Gemini never invents numbers outside `DesignState`); API payloads match `spiral/contract.py` | Tool physical plausibility, units (SI), FEA vs beam theory sanity check, UI traceability badges |
-| **Shared** | `spiral/contract.py` (frozen source of truth), `books/` | |
+| **Role Summary** | **Upstream Agentic Brain & Sizing:** Converts plain-English aircraft requirements into specialized agents (RAG/textbook lookup, notebook calculations, Mission/Weight Agent, Wing & Spar Parameter Agent) and outputs structured component parameters. | **Downstream CAD, FEA & Visual Synthesis:** Reads the parameter outputs from all of Harry's agents, combines them into 3D aircraft geometry & solid CAD (STEP/STL), runs FEA structural verification, and renders the 3D frontend & stress plots. |
+| **Owns** | • Plain-English intake → `MissionSpec`<br>• RAG / knowledge extraction (`scripts/extract_knowledge.py`, `knowledge/`, `lookup.py`)<br>• Specialized sizing & wing parameter agents (`spiral/agent/`, `sizing.py`, `spar.py`)<br>• FastAPI + SSE server (`server/app.py`) | • Combining all agent outputs into 3D aircraft geometry (`geometry.py`)<br>• Parametric 3D CAD generation (`cad.py` → CadQuery STEP/STL)<br>• Finite Element Analysis pipeline (`fea.py` → gmsh + CalculiX static stress/deflection)<br>• Frontend UI, Three.js 3D aircraft/FEA viewer & plots (`web/`) |
+| **Folders & Files** | `spiral/agent/`, `server/`, `scripts/`, `knowledge/`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/cad.py`, `spiral/tools/fea.py`, `spiral/tools/geometry.py`, `artifacts/`, `tests/test_tools.py` |
+| **Handoff Output / Input** | **Outputs** populated `DesignState` containing `ConceptualSizingResult`, `SparLoadsResult`, and `SparSizingResult` (exact SI numbers + citations). | **Consumes** Harry's agent outputs from `DesignState` to build `AircraftGeometry`, `SparCadResult` (STEP/STL), and `FeaResult` (3D von Mises stress mesh). |
+| **Reviews** | Prompt hygiene (agents never invent numbers outside `DesignState`); all agent outputs strictly match `spiral/contract.py`. | CAD geometry validity, FEA mesh/solver accuracy vs beam theory, 3D visual assembly, and UI traceability badges. |
+| **Shared** | `spiral/contract.py` (frozen source of truth), `books/` | `spiral/contract.py` (frozen source of truth), `books/` |
 
-**Rule:** neither person edits the other's folders. Any boundary change goes through `spiral/contract.py` first.
+**Golden Rule for the Split:** However Harry structures his internal sub-agents (RAG, notebook execution, wing agent, fuselage/tail agent), their final output **must populate the frozen dataclasses in `spiral/contract.py`** so Tharm's CAD builder (`cad.py`), FEA solver (`fea.py`), and 3D frontend (`web/`) can consume them without breaking.
 
 ---
 
 ## 8. The Explicit Contract (`spiral/contract.py`)
 
-`spiral/contract.py` is frozen at the start and serves as the single source of truth for **both boundaries** between Harry and Tharm:
-1. **Python Tool Boundary:** Harry's `spiral/agent/orchestrator.py` calls Tharm's functions in `spiral/tools/`.
+`spiral/contract.py` is frozen at the start and serves as the single source of truth for **both boundaries** between Harry's agents and Tharm's CAD/FEA/Frontend:
+1. **Agent-to-CAD/FEA Boundary:** Harry's agents output `ConceptualSizingResult`, `SparLoadsResult`, and `SparSizingResult`; Tharm's functions (`geometry.py`, `cad.py`, `fea.py`) consume those agent results to build the 3D geometry, CAD files, and FEA stress solution.
 2. **HTTP / SSE Boundary:** Tharm's `web/` frontend calls Harry's `server/app.py` FastAPI endpoints.
 
 ### 8.1 Conventions
@@ -244,7 +271,9 @@ class ToolError(Exception):
 | | `raw_description` | `str` | `""` | Original plain-English prompt |
 | | `defaulted_fields` | `dict[str, str]` | `{}` | Map of `field_name -> reason` for defaults chosen by Gemini |
 
-### 8.4 Python Tool Signatures & Return Schemas (`spiral/tools/` — owned by Tharm)
+### 8.4 Python Tool Signatures & Return Schemas (`spiral/tools/`)
+
+> **Ownership:** Tools 1–4 (`lookup.py`, `sizing.py`, `spar.py`) belong to **Harry's** agentic/RAG sizing layer; Tools 5–7 (`cad.py`, `fea.py`, `geometry.py`) belong to **Tharm's** CAD, FEA & 3D synthesis layer.
 
 #### 1. `spiral.tools.lookup.lookup(table: str, key: str) -> ToolResult[dict[str, Any]]`
 Reads `knowledge/tables/{table}.yaml` and returns row `key`. Appends a warning if `verified` is `False`.
@@ -418,13 +447,13 @@ Each SSE frame is `event: <type>\ndata: <json>\n\n`:
 
 ## 10. Timeline (from 12:00)
 
-| Time | Harry (Agent & Server) | Tharm (Aerostructures, FEA & Frontend) |
+| Time | Harry (NL → Multi-Agent, RAG & Sizing Parameters) | Tharm (Agent Outputs → 3D CAD, FEA & Frontend) |
 |---|---|---|
 | 12:00–12:25 | Repo, frozen `spiral/contract.py`, skeleton folders | Agree contract; verify stub tools & frontend shell |
-| 12:25–13:15 | Orchestrator + FastAPI server against stubs; Gemini intake | Real `conceptual_sizing`, `spar_loads`, `size_spar` + YAML tables |
-| 13:15–14:00 | Lunch → **Integration 1:** spiral converges end-to-end with real sizing & spar tools | |
-| 14:00–15:00 | Gemini infeasible relaxation + report generator + SSE polish | Frontend workspace (Three.js 3D morphing + convergence plot + FEA stress view) + CadQuery/CalculiX FEA |
-| 15:00–15:30 | **Integration 2:** detailed spar CAD/FEA in UI; demo rehearsal ×2 | |
+| 12:25–13:15 | Intake agent + RAG/knowledge lookup + Mission/Wing parameter agents (`sizing.py`, `spar.py`) | 3D aircraft geometry assembly (`geometry.py`) + Frontend shell + CadQuery CAD (`cad.py`) |
+| 13:15–14:00 | Lunch → **Integration 1:** Harry's agents output converged parameters into Tharm's 3D geometry & CAD | |
+| 14:00–15:00 | Multi-agent refinement, infeasible relaxation, report generator & SSE polish | CalculiX + gmsh FEA pipeline (`fea.py`) + Three.js 3D morphing & FEA stress viewer (`web/`) |
+| 15:00–15:30 | **Integration 2:** full agent → CAD → FEA loop live in UI; demo rehearsal ×2 | |
 | 15:30–16:00 | Freeze, README, backup screen recording, **submit** | |
 
 ## 11. Demo script (3 minutes)
