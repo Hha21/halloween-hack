@@ -122,6 +122,14 @@ def api_component_spar_stream(payload: dict[str, Any]) -> StreamingResponse:
     return _sse(lambda emit: run_spar_detailed_design(state, out_dir=str(ARTIFACTS_DIR), on_event=emit))
 
 
+@app.post("/api/ask")
+def api_ask(payload: dict[str, Any]) -> dict[str, Any]:
+    """Ask the textbook: {question} -> {answer_markdown, citations, source}. Answers cite critic-checked Raymer items."""
+    from spiral.agent.gemini import answer_textbook_question
+
+    return answer_textbook_question(str(payload.get("question", "")))
+
+
 @app.post("/api/report")
 def api_report(payload: dict[str, Any]) -> dict[str, Any]:
     state = DesignState.from_dict(payload.get("state", payload))

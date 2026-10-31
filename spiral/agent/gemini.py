@@ -377,6 +377,113 @@ def parse_intake_description(description: str) -> ToolResult[MissionSpec]:
     return result
 
 
+# ---------------------------------------------------------------------------
+# Ask the textbook: retrieval over the critic-checked knowledge base, answer only from it
+# ---------------------------------------------------------------------------
+
+_ASK_KINDS = ("equations", "tables", "rules_of_thumb")
+_NO_KB = (
+    "The textbook knowledge base isn't loaded in this copy. It is built locally from the scanned book by "
+    "`scripts/extract_knowledge.py` and never committed, for copyright reasons."
+)
+
+
+def _ask_items(hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    from spiral.tools.lookup import citation
+
+    items = []
+    for n, h in enumerate(hits, 1):
+        entry: dict[str, Any] = {"n": n, "citation": citation(h), "status": h.get("status"), "kind": h.get("kind"),
+                                 "book_page": h.get("book_page")}
+        if h.get("kind") == "equations":
+            entry.update(name=h.get("name", ""), latex=h.get("latex", ""), applicability=h.get("applicability", ""))
+        elif h.get("kind") == "tables":
+            entry.update(title=h.get("title", ""), columns=h.get("columns", []), rows=(h.get("rows") or [])[:14])
+        else:
+            entry.update(quantity=h.get("quantity", ""), value=h.get("value", ""), units=h.get("units", ""),
+                         applies_to=h.get("applies_to", ""), paraphrase=h.get("paraphrase", ""))
+        items.append(entry)
+    return items
+
+
+def _ask_number_problems(text: str, items: list[dict[str, Any]], question: str) -> list[str]:
+    """Numbers in the answer that don't appear in the items (or the question), as printed.
+
+    Book tables give bare numbers ("17") while answers add units ("17 lb/ft^2"), so this compares
+    values only, not dimensions: every number must be copied from a cited item.
+    """
+    def nums(s: str) -> set[float]:
+        out = set()
+        for m in re.findall(r"(?<![A-Za-z_])-?\d[\d,]*(?:\.\d+)?|(?<![\d])\.\d+", s):
+            try:
+                out.add(round(float(m.replace(",", "")), 6))
+            except ValueError:
+                pass
+        return out
+
+    allowed = nums(json.dumps(items, ensure_ascii=False)) | nums(question)
+    body = re.sub(r"\[\d+(?:\s*,\s*\d+)*\]", "", text)  # citation markers
+    body = re.sub(r"\$[^$]*\$", "", body)  # inline LaTeX symbols like $C_{HT}$
+    return [f"{v:g}" for v in sorted(nums(body)) if v not in allowed and abs(v) not in allowed]
+
+
+def _ask_fallback(items: list[dict[str, Any]]) -> str:
+    lines = ["Here is what Raymer (2nd ed.) has on that:"]
+    for it in items[:3]:
+        what = it.get("name") or it.get("title") or it.get("paraphrase") or it.get("quantity") or "item"
+        lines.append(f"- {what} [{it['n']}]")
+    return "\n".join(lines)
+
+
+def answer_textbook_question(question: str) -> dict[str, Any]:
+    """Answer a design question from the extracted, critic-checked Raymer items, citing each one.
+
+    Python retrieves the items (`search_knowledge`, disputed items excluded); Gemini (prompts/ask.md)
+    writes the answer from them only, citing [n]. The answer is used only if every number in it
+    appears in the items (one retry); otherwise, or offline, a cited list of the top items is returned.
+    """
+    question = question.strip()
+    if not question:
+        return {"answer_markdown": "Ask me anything about conceptual aircraft design.", "citations": [], "source": "none"}
+    try:
+        from spiral.tools.lookup import search_knowledge
+
+        hits = search_knowledge(question, kinds=_ASK_KINDS, limit=6).value
+    except ToolError:
+        return {"answer_markdown": _NO_KB, "citations": [], "source": "unavailable"}
+    if not hits:
+        return {"answer_markdown": "I couldn't find that in Raymer's conceptual design book.", "citations": [], "source": "search"}
+
+    items = _ask_items(hits)
+    answer, used, source = _ask_fallback(items), [it["n"] for it in items[:3]], "retrieval only"
+    if gemini_unavailable_reason() is None:
+        try:
+            system_prompt = (PROMPTS_DIR / "ask.md").read_text(encoding="utf-8")
+            schema = {
+                "type": "object",
+                "properties": {"answer": {"type": "string"}, "used": {"type": "array", "items": {"type": "integer"}}},
+                "required": ["answer", "used"],
+            }
+            base = "Question: " + question + "\n\nItems (JSON):\n" + json.dumps(items, ensure_ascii=False, indent=1)
+            user_text = base
+            for _attempt in range(2):
+                data = _generate_json(system_prompt, user_text, schema)
+                text = str(data.get("answer") or "").strip()[:1500]
+                cited = [n for n in (data.get("used") or []) if isinstance(n, int) and 1 <= n <= len(items)]
+                problems = _ask_number_problems(text, items, question) if text else ["empty answer"]
+                if not problems:
+                    answer, used, source = text, cited or used, f"Gemini ({gemini_model()})"
+                    break
+                user_text = base + "\n\nYour previous answer was rejected; these numbers are not in the items: " + "; ".join(problems)
+        except Exception:  # noqa: BLE001 - keep the retrieval-only answer
+            pass
+    return {
+        "answer_markdown": answer,
+        "citations": [items[n - 1] for n in dict.fromkeys(used)],
+        "source": source,
+    }
+
+
 def _describe_option(c: SpecRelaxationProposal) -> str:
     """One clause describing a computed option, e.g. 'range 5,570 -> 4,670 km (2,719 kg)'."""
     mtow = f"{c.estimated_mtow_kg:,.0f} kg" if c.estimated_mtow_kg else "inside the limit"
