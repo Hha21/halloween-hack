@@ -2,6 +2,9 @@
 
 *Paste-ready text for the submission form. Every number here is in the README or comes from a recorded run.*
 
+## Track
+Track 1: Frontier Agents with Gemini. Autonomous agents, multi-step reasoning and verification loops, built with Gemini 4 Argon.
+
 ## Tagline
 Describe an aircraft in plain English. Spiral sizes it, closes the design spiral, and shows where every number came from.
 
@@ -17,7 +20,8 @@ Aircraft design is a spiral. The mission sets the weight, the weight sizes the w
 - **Ask the textbook.** Questions such as "What tail volume coefficients suit a GA single?" get answers grounded only in critic-checked book items, with clickable citations.
 
 ## How we built it
-- **Gemini decides, Python computes.** Gemini (`gemini-3.5-flash`) reads, chooses and writes, but never supplies a number. Python computes everything. Every Gemini text that contains numbers passes a validator against the design state, with one retry and a deterministic fallback.
+- **Agents.** Intake agent: Gemini 3.5 Flash. Design lead, research agent (Ask Raymer) and report writer: **Gemini 4 Argon**. Textbook critic: Gemini 3.1 Pro.
+- **Gemini decides, Python computes.** The agents read, choose and write, but never supply a number. Python computes everything. Every Gemini text that contains numbers passes a validator against the design state, with one retry and a deterministic fallback.
 - **Knowledge pipeline.** Gemini read all 391 scanned PDF pages of Raymer as page images and extracted 692 equations, 118 tables and 886 rules of thumb. An independent critic model (`gemini-3.1-pro-preview`) checked every item against the same page: 596 equations confirmed, 96 disputed. A design constant is marked verified only when the critic confirmed that exact table or equation and every number in our table row appears in it.
 - **Stack.** Python, FastAPI and server-sent events stream the spiral lap by lap. Plain ES-module front end with Three.js (a particle "design spiral" that assembles the aircraft, the 3D workspace, and a stress-coloured spar). CadQuery for CAD.
 - **Runs without a key.** A static demo mode replays real recorded Gemini runs, so the front end works with no backend and no API key.
@@ -37,4 +41,4 @@ Aircraft design is a spiral. The mission sets the weight, the weight sizes the w
 More components (tail, landing gear, fuselage frames), higher-fidelity aerodynamics, more relaxation levers (cruise speed, reserve, materials), and export to real CAD and analysis tools.
 
 ## Built with
-Gemini 3.5 Flash · Gemini 3.1 Pro (critic) · Python · FastAPI · NumPy · CadQuery · Three.js · Remotion
+Gemini 4 Argon · Gemini 3.5 Flash · Gemini 3.1 Pro (critic) · Python · FastAPI · NumPy · CadQuery · Three.js · Remotion

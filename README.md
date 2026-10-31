@@ -4,7 +4,9 @@
 
 **Describe an aircraft in plain English. Spiral sizes it, closes the design spiral, and shows where every number came from.**
 
-*Halloween at Imperial: Gemini Edition.*
+*Halloween at Imperial: Gemini Edition · **Track 1: Frontier Agents with Gemini**, built with **Gemini 4 Argon**.*
+
+**▶ [Live demo](https://hha21.github.io/halloween-hack/web/)**: the full front end in your browser, replaying recorded Gemini runs; no install, no key. **🎬 [Demo video](docs/spiral-demo.mp4)**
 
 An agent turns your description into a structured spec. It then runs the conceptual and preliminary design spiral until MTOW converges: weight closure, then Schrenk spar loads, then I-beam spar sizing, then the spar mass goes back into the weight closure. Finally it carries the main wing spar to CAD and FEA. If the design can't close, Python finds the single-field changes that would close it, and Gemini, as design lead, picks one by what you asked for. Every number traces to an equation, a table row in the textbook, a simulation, or a flagged assumption.
 
@@ -30,6 +32,8 @@ The core rule: **Gemini decides and writes; Python computes.** Gemini never supp
 <td width="33%" valign="top"><img src="docs/screens/06-report.png" alt="Design report" width="100%"><br><sub><b>6.</b> Report, with the textbook items behind the numbers</sub></td>
 </tr>
 </table>
+
+<p align="center"><img src="docs/screens/00-ask-raymer.png" alt="Ask Raymer: an answer grounded in critic-verified textbook items" width="70%"><br><sub><b>Ask Raymer:</b> the research agent answers only from critic-verified textbook items, with citations.</sub></p>
 
 ## Run it
 
@@ -68,7 +72,7 @@ The full architecture and the frozen contract are in [DESIGN_SPEC.md](DESIGN_SPE
 
 ## How Gemini is used
 
-The default model is `gemini-3.5-flash` (set with `GEMINI_MODEL`). Intake, the infeasibility explanation and the report each have a deterministic offline fallback. It runs when `SPIRAL_OFFLINE=1` is set, when there is no API key, or when a call fails, so the app and the tests work without Gemini.
+Models: the reasoning agents (the design lead that chooses a relaxation, the research agent behind *Ask Raymer*, and the report writer) run on **`gemini-4-argon`** (`GEMINI_LEAD_MODEL`), falling back to the reader model if Argon is unavailable. The intake agent runs on `gemini-3.5-flash` (`GEMINI_MODEL`). The textbook critic ran on `gemini-3.1-pro-preview`. Intake, the infeasibility explanation and the report each have a deterministic offline fallback. It runs when `SPIRAL_OFFLINE=1` is set, when there is no API key, or when a call fails, so the app and the tests work without Gemini.
 
 | Stage | What Gemini does | What Python does |
 |---|---|---|

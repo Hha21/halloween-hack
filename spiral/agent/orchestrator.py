@@ -122,9 +122,9 @@ def mtow_class_limit() -> tuple[float, str]:
 
 def _lead_name() -> str:
     """Who chose the relaxation: Gemini when it is available, else the deterministic rule."""
-    from spiral.agent.gemini import gemini_model, gemini_unavailable_reason
+    from spiral.agent import gemini
 
-    return f"Gemini {gemini_model()}" if gemini_unavailable_reason() is None else "rule: smallest change"
+    return f"Gemini {gemini.LAST_MODEL}" if gemini.gemini_unavailable_reason() is None else "rule: smallest change"
 
 
 def _intake_log(spec: MissionSpec) -> AgentLogEntry:

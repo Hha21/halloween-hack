@@ -28,7 +28,9 @@ from spiral.tools.lookup import lookup
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
-DEFAULT_MODEL = "gemini-3.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash"  # fast reader: intake
+DEFAULT_LEAD_MODEL = "gemini-4-argon"  # reasoning agents: design lead, research (Ask Raymer), report writer
+LAST_MODEL = DEFAULT_MODEL  # the model that actually answered the latest call (for honest labels)
 GEMINI_TIMEOUT_MS = 30_000
 
 try:  # optional: the repo must import without the server dependencies
@@ -62,8 +64,20 @@ def gemini_unavailable_reason() -> str | None:
     return None
 
 
-def _generate_json(system_prompt: str, user_text: str, schema: dict[str, Any]) -> dict[str, Any]:
-    """One Gemini call with structured JSON output. Raises on any failure."""
+def gemini_lead_model() -> str:
+    """Model for the reasoning agents (design lead, research, report): Gemini 4 Argon by default."""
+    return os.environ.get("GEMINI_LEAD_MODEL", "").strip() or DEFAULT_LEAD_MODEL
+
+
+def _generate_json(
+    system_prompt: str, user_text: str, schema: dict[str, Any], model: str | None = None
+) -> dict[str, Any]:
+    """One Gemini call with structured JSON output. Raises on any failure.
+
+    `model` defaults to the fast reader; if a different model (e.g. the lead) fails, the call is
+    retried once on the reader. LAST_MODEL records which model actually answered.
+    """
+    global LAST_MODEL
     from google import genai
     from google.genai import types
 
@@ -71,20 +85,30 @@ def _generate_json(system_prompt: str, user_text: str, schema: dict[str, Any]) -
         api_key=os.environ["GEMINI_API_KEY"].strip(),
         http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
     )
-    response = client.models.generate_content(
-        model=gemini_model(),
-        contents=user_text,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            response_mime_type="application/json",
-            response_json_schema=schema,
-            thinking_config=types.ThinkingConfig(thinking_level="low"),
-        ),
-    )
-    data = json.loads(response.text or "")
-    if not isinstance(data, dict):
-        raise ValueError("Gemini returned JSON that is not an object")
-    return data
+    candidates = [model or gemini_model()]
+    if candidates[0] != gemini_model():
+        candidates.append(gemini_model())
+    last_error: Exception | None = None
+    for name in candidates:
+        try:
+            response = client.models.generate_content(
+                model=name,
+                contents=user_text,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                    response_json_schema=schema,
+                    thinking_config=types.ThinkingConfig(thinking_level="low"),
+                ),
+            )
+            data = json.loads(response.text or "")
+            if not isinstance(data, dict):
+                raise ValueError("Gemini returned JSON that is not an object")
+            LAST_MODEL = name
+            return data
+        except Exception as exc:  # noqa: BLE001 - try the next model, then re-raise
+            last_error = exc
+    raise last_error  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------------------
@@ -467,12 +491,12 @@ def answer_textbook_question(question: str) -> dict[str, Any]:
             base = "Question: " + question + "\n\nItems (JSON):\n" + json.dumps(items, ensure_ascii=False, indent=1)
             user_text = base
             for _attempt in range(2):
-                data = _generate_json(system_prompt, user_text, schema)
+                data = _generate_json(system_prompt, user_text, schema, model=gemini_lead_model())
                 text = str(data.get("answer") or "").strip()[:1500]
                 cited = [n for n in (data.get("used") or []) if isinstance(n, int) and 1 <= n <= len(items)]
                 problems = _ask_number_problems(text, items, question) if text else ["empty answer"]
                 if not problems:
-                    answer, used, source = text, cited or used, f"Gemini ({gemini_model()})"
+                    answer, used, source = text, cited or used, f"Gemini ({LAST_MODEL})"
                     break
                 user_text = base + "\n\nYour previous answer was rejected; these numbers are not in the items: " + "; ".join(problems)
         except Exception:  # noqa: BLE001 - keep the retrieval-only answer
@@ -582,7 +606,7 @@ def _gemini_choose_relaxation(state: DesignState, options: list[SpecRelaxationPr
     base = "Digest (JSON):\n" + json.dumps(digest, indent=1)
     user_text = base
     for _attempt in range(2):
-        data = _generate_json(system_prompt, user_text, schema)
+        data = _generate_json(system_prompt, user_text, schema, model=gemini_lead_model())
         choice = data.get("choice")
         text = str(data.get("reasoning") or "").strip()[:1100]
         problems = _number_problems(text, allowed) if text else ["empty answer"]
@@ -1200,7 +1224,7 @@ def _gemini_narrative(state: DesignState) -> tuple[dict[str, str] | None, str]:
     user_text = base_text
     problems: list[str] = []
     for _attempt in range(2):
-        narrative = _clean_narrative(_generate_json(system_prompt, user_text, report_schema()), state)
+        narrative = _clean_narrative(_generate_json(system_prompt, user_text, report_schema(), model=gemini_lead_model()), state)
         if not narrative["executive_summary"]:
             problems = ["empty executive_summary"]
         else:
@@ -1237,7 +1261,7 @@ def generate_report_markdown(state: DesignState) -> str:
         except Exception as exc:  # noqa: BLE001 - the report must never fail because of Gemini
             narrative, why_not = None, f"Gemini call failed ({type(exc).__name__}: {str(exc)[:120]})"
         if narrative is not None:
-            report = _narrative_report(state, narrative, source=f"Gemini ({gemini_model()})")
+            report = _narrative_report(state, narrative, source=f"Gemini ({LAST_MODEL})")
         else:
             state.warnings.append(f"{REPORT_WARNING_PREFIX}{why_not}; showing the computed sections only.")
             report = _deterministic_report(state, note="No narrative: see Warnings. Every section is computed from the design state.")
