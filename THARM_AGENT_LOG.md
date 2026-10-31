@@ -73,9 +73,9 @@ Changes in Harry-owned files (separate commit, additive and backward compatible;
 
 ---
 
-## 📣 T2 (Oct 31, after 16:15): tail/gear rebased onto Harry's `eda837a`, overhaul fixes
+## 📣 T2 (Oct 31, after 16:21): tail/gear rebased onto Harry's `5ac9cdc`, overhaul fixes
 
-The T1 branch now sits on `eda837a` (only conflict: `server/app.py`, kept both `/api/ask` and `/api/components/{id}`). With the overhaul on, three clashes were fixed:
+The T1 branch now sits on `5ac9cdc` (only conflict on the way: `server/app.py`, kept `/api/ask`, `/api/components/airframe` and `/api/components/{id}`; the catch-all stays last so it never shadows `spar` or `airframe`). With the overhaul on, three clashes were fixed:
 1. `#detailed-kpis` slots: the tail keeps the spar's six FEA cards in slots 1-6 (card 3 "Stress Agreement" stays the hero) and adds its load-case cards after; the gear puts stroke in slot 3. (`web/app.js`)
 2. **One line in Harry's `web/overhaul.js`** (`dossierCover`): "FEA vs beam theory" now reads `#summary-main-spar-agreement`, a hidden node `app.js` keeps set to the main spar's agreement. Before, after viewing the gear the cover showed the oleo diameter (36.3 mm). Separate commit; revert freely if you prefer another hook.
 3. The spar HUD is hidden for sizing-only components via `#screen-detailed[data-comp-kind="sizing"] .ov-hud` (`web/styles.css`).
