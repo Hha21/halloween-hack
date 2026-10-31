@@ -1,4 +1,4 @@
-"""Knowledge table lookup tool (Owner: Tharm).
+"""Knowledge table lookup tool (Owner: Harry).
 
 Contract:
     lookup(table: str, key: str) -> ToolResult[dict[str, Any]]

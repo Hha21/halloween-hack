@@ -1,0 +1,51 @@
+{
+  "spec": {
+    "crew_count": 1,
+    "passenger_count": 3,
+    "person_mass_kg": 86.0,
+    "baggage_mass_kg": 50.0,
+    "range_m": 1000000.0,
+    "cruise_speed_ms": 59.16,
+    "cruise_altitude_m": 2500.0,
+    "stall_speed_ms": 28.29,
+    "reserve_s": 2700.0,
+    "aspect_ratio": 7.5,
+    "taper_ratio": 0.6,
+    "thickness_to_chord": 0.15,
+    "cl_max": 1.6,
+    "ld_max": 11.0,
+    "prop_efficiency": 0.8,
+    "bsfc_kg_per_j": 6.8e-08,
+    "limit_load_factor": 3.8,
+    "ultimate_factor": 1.5,
+    "spar_material": "al_2024_t3",
+    "wing_position": "high",
+    "name": "GA-4 Touring",
+    "raw_description": "Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt.",
+    "defaulted_fields": {
+      "aspect_ratio": "Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
+      "taper_ratio": "Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
+      "thickness_to_chord": "Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
+      "cl_max": "Defaulted to 1.60 (single-slotted flap GA configuration)",
+      "ld_max": "Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
+      "limit_load_factor": "Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
+      "spar_material": "Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
+      "wing_position": "Defaulted to high wing (Cessna 172 touring baseline)"
+    }
+  },
+  "sources": [
+    "Raymer 6ed, Table 4.1 & Ch. 3.4 (GA Baseline Heuristics)",
+    "CS-23 / FAR Part 23 Normal Category Airworthiness Standards"
+  ],
+  "assumptions": [
+    "aspect_ratio: Defaulted to 7.5 (Raymer Table 4.1 typical GA single-engine)",
+    "taper_ratio: Defaulted to 0.60 (Raymer Ch. 4.3 tapered GA wing)",
+    "thickness_to_chord: Defaulted to 0.15 (NACA 2415 / 23015 root airfoil class)",
+    "cl_max: Defaulted to 1.60 (single-slotted flap GA configuration)",
+    "ld_max: Defaulted to 11.0 (Raymer Ch. 3.4 typical fixed-gear GA)",
+    "limit_load_factor: Defaulted to +3.8g (CS-23 / FAR 23 normal category)",
+    "spar_material: Defaulted to al_2024_t3 (MIL-HDBK-5J standard spar alloy)",
+    "wing_position: Defaulted to high wing (Cessna 172 touring baseline)"
+  ],
+  "warnings": []
+}

@@ -1,4 +1,7 @@
-"""Deterministic engineering, FEA, and geometry tools (Owner: Tharm)."""
+"""Deterministic engineering tools.
+
+Owners (DESIGN_SPEC §7): Harry - lookup, sizing, spar; Tharm - geometry, cad, fea.
+"""
 
 from spiral.tools.cad import build_spar_cad
 from spiral.tools.fea import run_fea

@@ -1,4 +1,4 @@
-# Typical Aircraft Class Values & Valid Ranges (Owner: Tharm)
+# Typical Aircraft Class Values & Valid Ranges (Owner: Harry)
 # Used to flag out-of-range warnings when user specs exceed historical heuristics.
 
 ga_single_engine:

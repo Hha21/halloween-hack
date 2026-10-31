@@ -1,20 +1,21 @@
 """FastAPI server implementing the HTTP & SSE contract (Owner: Harry).
 
-Endpoints (consumed by Tharm's `web/api_client.js`):
-- POST /api/intake
-- POST /api/spiral/run-sync
-- POST /api/spiral/stream
-- POST /api/components/spar
-- POST /api/report
+Endpoints (consumed by Tharm's `web/api_client.js`; payload types in spiral/contract.py §7):
+- POST /api/intake                  IntakeRequest  -> IntakeResponse
+- POST /api/spiral/run-sync         SpiralRequest  -> DesignState
+- POST /api/spiral/stream           SpiralRequest  -> SSE
+- POST /api/components/spar         StateRequest   -> DesignState
+- POST /api/components/spar/stream  StateRequest   -> SSE
+- POST /api/report                  StateRequest   -> ReportResponse
 - GET  /artifacts/{filename}
 """
 
 from __future__ import annotations
 
-import json
-from dataclasses import asdict
+import queue
+import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,12 +29,13 @@ from spiral.agent import (
     run_spar_detailed_design,
 )
 from spiral.contract import (
-    AircraftGeometry,
-    ConceptualSizingResult,
     DesignState,
+    ErrorEvent,
+    IntakeResponse,
     MissionSpec,
-    SparLoadsResult,
-    SparSizingResult,
+    ReportResponse,
+    ToolError,
+    format_sse,
 )
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -52,75 +54,79 @@ app.add_middleware(
 )
 
 
+def _spec_from(payload: dict[str, Any]) -> MissionSpec:
+    return MissionSpec.from_dict(payload.get("spec", payload))
+
+
+def _state_from(payload: dict[str, Any]) -> DesignState:
+    state = DesignState.from_dict(payload.get("state", payload))
+    if state.latest_spar is None or state.latest_loads is None:
+        state = run_design_spiral(state.spec)
+    return state
+
+
+def _sse(run: Callable[[Callable[[str, Any], None]], Any]) -> StreamingResponse:
+    """Run `run(emit)` in a worker thread and stream each emitted event as it happens."""
+    frames: queue.Queue[str | None] = queue.Queue()
+
+    def worker() -> None:
+        try:
+            run(lambda event_type, payload: frames.put(format_sse(event_type, payload)))
+        except ToolError as exc:
+            frames.put(format_sse("error", ErrorEvent(message=exc.message, tool_error=exc.to_dict())))
+        except Exception as exc:  # noqa: BLE001 - surface every failure to the UI
+            frames.put(format_sse("error", ErrorEvent(message=str(exc))))
+        finally:
+            frames.put(None)
+
+    threading.Thread(target=worker, daemon=True).start()
+
+    def stream():
+        while (frame := frames.get()) is not None:
+            yield frame
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
+
+
 @app.post("/api/intake")
 def api_intake(payload: dict[str, Any]) -> dict[str, Any]:
-    description = str(payload.get("description", ""))
-    res = parse_intake_description(description)
-    return {
-        "spec": res.value.to_dict(),
-        "sources": res.sources,
-        "assumptions": res.assumptions,
-        "warnings": res.warnings,
-    }
+    res = parse_intake_description(str(payload.get("description", "")))
+    return IntakeResponse(
+        spec=res.value,
+        sources=res.sources,
+        assumptions=res.assumptions,
+        warnings=res.warnings,
+    ).to_dict()
 
 
 @app.post("/api/spiral/run-sync")
 def api_spiral_run_sync(payload: dict[str, Any]) -> dict[str, Any]:
-    spec_data = payload.get("spec", payload)
-    spec = MissionSpec.from_dict(spec_data)
-    state = run_design_spiral(spec)
-    return state.to_dict()
+    return run_design_spiral(_spec_from(payload)).to_dict()
 
 
 @app.post("/api/spiral/stream")
 def api_spiral_stream(payload: dict[str, Any]) -> StreamingResponse:
-    spec_data = payload.get("spec", payload)
-    spec = MissionSpec.from_dict(spec_data)
-    events: list[tuple[str, dict[str, Any]]] = []
-
-    def record_event(event_type: str, data: dict[str, Any]) -> None:
-        serialised = json.loads(json.dumps(data, default=lambda o: asdict(o)))
-        events.append((event_type, serialised))
-
-    run_design_spiral(spec, on_event=record_event)
-
-    def event_generator():
-        for ev_type, ev_data in events:
-            yield f"event: {ev_type}\ndata: {json.dumps(ev_data)}\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    spec = _spec_from(payload)
+    return _sse(lambda emit: run_design_spiral(spec, on_event=emit))
 
 
 @app.post("/api/components/spar")
 def api_component_spar(payload: dict[str, Any]) -> dict[str, Any]:
-    state_dict = payload.get("state", payload)
-    spec = MissionSpec.from_dict(state_dict.get("spec", {}))
-    state = DesignState(spec=spec)
-    if state_dict.get("latest_sizing"):
-        state.latest_sizing = ConceptualSizingResult.from_dict(state_dict["latest_sizing"])
-    if state_dict.get("latest_loads"):
-        state.latest_loads = SparLoadsResult.from_dict(state_dict["latest_loads"])
-    if state_dict.get("latest_spar"):
-        state.latest_spar = SparSizingResult.from_dict(state_dict["latest_spar"])
-    if state_dict.get("latest_geometry"):
-        state.latest_geometry = AircraftGeometry.from_dict(state_dict["latest_geometry"])
-
-    if state.latest_spar is None or state.latest_loads is None:
-        state = run_design_spiral(spec)
-
-    state = run_spar_detailed_design(state, out_dir=str(ARTIFACTS_DIR))
+    state = run_spar_detailed_design(_state_from(payload), out_dir=str(ARTIFACTS_DIR))
     return state.to_dict()
+
+
+@app.post("/api/components/spar/stream")
+def api_component_spar_stream(payload: dict[str, Any]) -> StreamingResponse:
+    state = _state_from(payload)
+    return _sse(lambda emit: run_spar_detailed_design(state, out_dir=str(ARTIFACTS_DIR), on_event=emit))
 
 
 @app.post("/api/report")
 def api_report(payload: dict[str, Any]) -> dict[str, Any]:
-    state_dict = payload.get("state", payload)
-    spec = MissionSpec.from_dict(state_dict.get("spec", {}))
-    state = run_design_spiral(spec)
-    if state.converged:
-        state = run_spar_detailed_design(state, out_dir=str(ARTIFACTS_DIR))
+    state = DesignState.from_dict(payload.get("state", payload))
     report_md = generate_report_markdown(state)
-    return {"report_markdown": report_md, "state": state.to_dict()}
+    return ReportResponse(report_markdown=report_md, state=state).to_dict()
 
 
 app.mount("/artifacts", StaticFiles(directory=str(ARTIFACTS_DIR)), name="artifacts")

@@ -6,10 +6,10 @@ See [DESIGN_SPEC.md](DESIGN_SPEC.md) for the full architecture and explicit cont
 
 ## Work Split
 
-| | **Harry (Agent, Orchestrator & Server)** | **Tharm (Aerostructures, FEA & Frontend)** |
+| | **Harry (NL → Multi-Agent, RAG & Sizing Parameters)** | **Tharm (Agent Outputs → 3D CAD, FEA & Frontend)** |
 |---|---|---|
-| **Folders** | `spiral/agent/`, `server/`, `scripts/`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/`, `knowledge/`, `tests/test_tools.py` |
-| **Shared Contract** | `spiral/contract.py` (frozen dataclasses + HTTP/SSE schemas) | `spiral/contract.py` |
+| **Folders & Files** | `spiral/agent/`, `server/`, `scripts/`, `knowledge/`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/cad.py`, `spiral/tools/fea.py`, `spiral/tools/geometry.py`, `artifacts/`, `tests/test_tools.py` |
+| **Shared** | `spiral/contract.py` (frozen dataclasses + HTTP/SSE schemas), `fixtures/` (example payloads) | `spiral/contract.py`, `fixtures/` |
 
 ## Quickstart
 
@@ -22,4 +22,7 @@ pip install -r requirements.txt
 
 # 3. Start the FastAPI server + frontend on http://localhost:8000
 uvicorn server.app:app --reload --port 8000
+
+# 4. After changing spiral/contract.py, regenerate the example payloads in fixtures/
+python3 scripts/generate_fixtures.py
 ```

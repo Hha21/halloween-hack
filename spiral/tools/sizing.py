@@ -1,4 +1,4 @@
-"""Conceptual aircraft sizing tool (Owner: Tharm).
+"""Conceptual aircraft sizing tool (Owner: Harry).
 
 Contract:
     conceptual_sizing(
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import math
 
-from spiral.contract import ConceptualSizingResult, MissionSpec, ToolError, ToolResult
+from spiral.contract import ConceptualSizingResult, MissionSpec, Provenance, ToolError, ToolResult
 
 
 def conceptual_sizing(
@@ -20,7 +20,7 @@ def conceptual_sizing(
 ) -> ToolResult[ConceptualSizingResult]:
     """Placeholder/stub for conceptual sizing (Raymer Ch. 3 & Ch. 5).
 
-    TODO (Tharm): Replace or refine with verified Raymer weight closure, ISA atmosphere,
+    TODO (Harry): Replace or refine with verified Raymer weight closure, ISA atmosphere,
     and table lookups from `knowledge/tables/weight_fractions.yaml`.
     """
     warnings: list[str] = []
@@ -159,4 +159,14 @@ def conceptual_sizing(
             "Installed power sized for 75% continuous cruise throttle setting",
         ],
         warnings=warnings,
+        # TODO (Harry): set verified=True once each citation is checked against the page.
+        provenance={
+            "mtow_kg": Provenance("equation", "Raymer 6ed, Ch. 3, Eq. 3.4 (Weight Closure)", verified=False),
+            "empty_fraction": Provenance("table", "knowledge/tables/weight_fractions.yaml#ga_single_engine", verified=False),
+            "fuel_fraction": Provenance("equation", "Raymer 6ed, Ch. 3, Eq. 3.7–3.8 (Breguet Range & Loiter)", verified=False),
+            "wing_loading_pa": Provenance("equation", "Raymer 6ed, Ch. 5, Eq. 5.6 (Stall Wing Loading)", verified=False),
+            "wing_area_m2": Provenance("equation", "Raymer 6ed, Ch. 5, Eq. 5.6 (Stall Wing Loading)", verified=False),
+            "cruise_power_w": Provenance("assumption", f"Cruise at L/D_max = {spec.ld_max}", verified=False),
+            "installed_power_w": Provenance("assumption", "75% continuous cruise throttle setting", verified=False),
+        },
     )

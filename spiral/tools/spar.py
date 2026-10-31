@@ -1,4 +1,4 @@
-"""Main wing spar loads (Schrenk) and preliminary I-beam sizing (Owner: Tharm).
+"""Main wing spar loads (Schrenk) and preliminary I-beam sizing (Owner: Harry).
 
 Contracts:
     spar_loads(
@@ -25,6 +25,7 @@ from spiral.contract import (
     SparLoadsResult,
     SparSizingResult,
     SparStationLoad,
+    Provenance,
     SparStationSection,
     ToolResult,
 )
@@ -41,7 +42,7 @@ def spar_loads(
 ) -> ToolResult[SparLoadsResult]:
     """Placeholder/stub for Schrenk spanwise lift, shear, and bending moment.
 
-    TODO (Tharm): Verify numerical integration and structural relief assumptions if desired.
+    TODO (Harry): Verify numerical integration and structural relief assumptions if desired.
     """
     g = 9.80665
     semi_span_m = span_m / 2.0
@@ -100,6 +101,10 @@ def spar_loads(
             "Cantilever wing root at y = 0 m; aero lift carried 100% by main spar",
         ],
         warnings=[],
+        provenance={
+            "root_shear_n": Provenance("equation", "Schrenk (1940) NACA TM 948", verified=False),
+            "root_moment_nm": Provenance("equation", "Schrenk (1940) NACA TM 948", verified=False),
+        },
     )
 
 
@@ -110,7 +115,7 @@ def size_spar(
 ) -> ToolResult[SparSizingResult]:
     """Placeholder/stub for preliminary I-section spar sizing and beam deflection.
 
-    TODO (Tharm): Refine flange/web geometry rules, buckling checks, and deflection integration.
+    TODO (Harry): Refine flange/web geometry rules, buckling checks, and deflection integration.
     """
     mat_lookup = lookup("materials", material_key)
     mat = mat_lookup.value
@@ -217,4 +222,14 @@ def size_spar(
             f"Minimum gauge constraints: cap >= {min_cap_t*1e3:.1f} mm, web >= {min_web_t*1e3:.1f} mm",
         ],
         warnings=list(mat_lookup.warnings),
+        provenance={
+            "mass_both_wings_kg": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
+            "max_bending_stress_pa": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
+            "allowable_yield_stress_pa": Provenance(
+                "table", str(mat.get("source", f"knowledge/tables/materials.yaml#{material_key}")),
+                verified=bool(mat.get("verified", False)),
+            ),
+            "safety_margin": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
+            "tip_deflection_m": Provenance("equation", "Euler-Bernoulli double integration of M/EI", verified=False),
+        },
     )

@@ -225,8 +225,10 @@ The system is split along a clean two-stage pipeline: **Harry** converts natural
 - Tools are **pure, deterministic Python functions**. Dataclasses in, `ToolResult[T]` out, 100% JSON-serialisable via `.to_dict()`.
 - On unrecoverable physical/mathematical failure, a tool raises **`ToolError`** with an actionable message for Gemini (`"Fuel fraction 0.62 exceeds plausible limit 0.45: reduce range_m or increase ld_max"`).
 - **Never return `NaN`, `inf`, or silently clamp.** Out-of-range heuristic inputs still compute, and append a human-readable string to `ToolResult.warnings`.
+- Every contract dataclass has `.to_dict()` and `.from_dict()`, so any payload survives a JSON round trip (the frontend posts `DesignState` back unchanged).
+- **Fixtures:** `fixtures/` holds one real example of every payload (intake response, converged/detailed `DesignState`, report, all three SSE streams, stress mesh). Build against them with no backend running. Regenerate with `python3 scripts/generate_fixtures.py` after any contract change; `tests/test_contract.py` fails if they drift.
 
-### 8.2 Envelope Types: `ToolResult[T]` and `ToolError`
+### 8.2 Envelope Types: `ToolResult[T]`, `Provenance` and `ToolError`
 
 ```python
 @dataclass
@@ -235,6 +237,14 @@ class ToolResult(Generic[T]):
     sources: list[str] = field(default_factory=list)      # e.g. ["Raymer 6ed Eq. 3.4 (p. 25)", "knowledge/tables/materials.yaml#al_2024_t3"]
     assumptions: list[str] = field(default_factory=list)  # e.g. ["Cruise at L/D_max = 11.0"]
     warnings: list[str] = field(default_factory=list)     # e.g. ["aspect_ratio=11.0 outside typical GA range [6.0, 9.0]"]
+    provenance: dict[str, Provenance] = field(default_factory=dict)  # per field of `value`, e.g. "mtow_kg"
+
+@dataclass
+class Provenance:                 # drives the per-number source badge in the UI
+    kind: str                     # "equation" | "table" | "simulation" | "assumption" | "user_input" | "gemini_default"
+    source: str                   # e.g. "Raymer 6ed, Ch. 3, Eq. 3.4"
+    verified: bool = True         # False -> amber badge (citation not yet checked against the page)
+    warning: str | None = None    # set -> amber badge (e.g. heuristic outside valid range)
 
 class ToolError(Exception):
     tool_name: str
@@ -403,10 +413,24 @@ class DesignState:
     sources: list[str]
     assumptions: list[str]
     warnings: list[str]
-    log: list[AgentLogEntry]
+    provenance: dict[str, Provenance]  # see below
+    log: list[AgentLogEntry]           # each entry has an ISO 8601 UTC `timestamp`
     components: dict[str, ComponentStatus]  # "main_wing_spar", "main_landing_gear", "horizontal_tail", "engine_mount", "fuselage_frames"
     report_markdown: str | None
+
+@dataclass
+class ComponentStatus:
+    component_id: str
+    name: str
+    available: bool                    # False -> "coming soon"
+    status: str                        # "pending" | "running_cad" | "running_fea" | "completed" | "coming_soon"
+    cad: SparCadResult | None
+    fea: FeaResult | None
+    artifact_urls: dict[str, str]      # "step" | "stl" | "stress_mesh" -> "/artifacts/<file>"
 ```
+
+- **Provenance keys** are dotted paths into the `DesignState` JSON: `spec.range_m`, `latest_sizing.mtow_kg`, `latest_spar.safety_margin`, `components.main_wing_spar.fea.fea_max_von_mises_pa`. List items use `[]` (`latest_spar.stations[].bending_stress_pa`); values in `history[]` reuse the matching `latest_*` key. The orchestrator builds this from each tool's `ToolResult.provenance`. A displayed number with no entry gets a grey "no source" badge so the gap is visible.
+- **Files:** the frontend uses only `artifact_urls`. `SparCadResult.step_path` and `FeaResult.stress_mesh_path` are server filesystem paths.
 
 ---
 
@@ -419,18 +443,24 @@ Harry's FastAPI server runs on `http://localhost:8000` (with CORS enabled for lo
 | `POST /api/intake` | `{ "description": str }` | `{ "spec": MissionSpec, "sources": list[str], "assumptions": list[str], "warnings": list[str] }` | Gemini parses plain-English prompt into `MissionSpec` and records defaulted fields. |
 | `POST /api/spiral/run-sync` | `{ "spec": MissionSpec }` | `DesignState` (JSON) | Runs the full conceptual + preliminary spar spiral loop and returns the final `DesignState`. |
 | `POST /api/spiral/stream` | `{ "spec": MissionSpec }` | `text/event-stream` (SSE) | Streams live events (`lap`, `log`, `converged`, `infeasible`) during the spiral loop. |
-| `POST /api/components/spar` | `{ "state": DesignState }` | `DesignState` (with `components["main_wing_spar"]` populated with `cad` and `fea`) | Runs `build_spar_cad` + `run_fea` on the converged spar and updates `DesignState`. |
-| `POST /api/report` | `{ "state": DesignState }` | `{ "report_markdown": str, "state": DesignState }` | Generates the source-cited markdown design report from `DesignState`. |
-| `GET /artifacts/{filename}` | — | Binary/JSON file | Serves generated `spar.step`, `spar.stl`, and `spar_stress_mesh.json`. |
+| `POST /api/components/spar` | `{ "state": DesignState }` | `DesignState` (with `components["main_wing_spar"]` populated with `cad`, `fea` and `artifact_urls`) | Runs `build_spar_cad` + `run_fea` on the converged spar and updates `DesignState`. |
+| `POST /api/components/spar/stream` | `{ "state": DesignState }` | `text/event-stream` (SSE) | Same as above, streaming `component_step` events for the CAD → FEA step indicators. |
+| `POST /api/report` | `{ "state": DesignState }` | `{ "report_markdown": str, "state": DesignState }` | Generates the source-cited markdown design report from the posted `DesignState` (does not re-run the spiral). |
+| `GET /artifacts/{filename}` | — | Binary/JSON file | Serves generated `spar.step`, `spar.stl`, and `spar_stress_mesh.json` (use `ComponentStatus.artifact_urls`). |
 
-#### SSE Event Payloads (`POST /api/spiral/stream`)
-Each SSE frame is `event: <type>\ndata: <json>\n\n`:
-- `lap`: `{ "lap_record": LapRecord, "sizing": ConceptualSizingResult, "spar": SparSizingResult, "geometry": AircraftGeometry }`
-- `log`: `{ "entry": AgentLogEntry }` (`timestamp`, `stage`, `message`, `citations`, `level`)
+Request and response types are the dataclasses in `spiral/contract.py` §7 (`IntakeRequest`, `IntakeResponse`, `SpiralRequest`, `StateRequest`, `ReportResponse`).
+
+#### SSE Event Payloads
+Each SSE frame is `event: <type>\ndata: <json>\n\n`, built by `format_sse()`; `SSE_EVENTS` maps each type to its dataclass. `EventSource` cannot POST, so read the stream with `fetch()` and a `ReadableStream` reader, splitting frames on blank lines.
+- `lap`: `{ "lap_record": LapRecord, "sizing": ConceptualSizingResult, "loads": SparLoadsResult, "spar": SparSizingResult, "geometry": AircraftGeometry }`
+- `log`: `{ "entry": AgentLogEntry }` (`lap`, `stage`, `message`, `citations`, `level`, `timestamp`)
 - `converged`: `{ "state": DesignState }`
 - `infeasible`: `{ "reason": str, "proposed_relaxation": SpecRelaxationProposal | None, "state": DesignState }`
 - `component_step`: `{ "component_id": "main_wing_spar", "step": "cad" | "fea", "status": "running" | "done" }`
 - `component_done`: `{ "component_id": "main_wing_spar", "component": ComponentStatus, "state": DesignState }`
+- `error`: `{ "message": str, "tool_error": ToolError.to_dict() | None }`
+
+Stream order: `/api/spiral/stream` sends `log`/`lap` pairs, then exactly one of `converged`, `infeasible` or `error`. `/api/components/spar/stream` sends `component_step` events and a `log`, then `component_done` or `error`.
 
 ---
 

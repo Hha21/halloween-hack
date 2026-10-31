@@ -1,17 +1,84 @@
-"""Frozen contract between Harry (Agent & Server) and Tharm (Aerostructures, FEA & Frontend).
+"""Frozen contract between Harry (intake, agents, sizing, server) and Tharm (geometry, CAD, FEA, frontend).
+
+Two boundaries (DESIGN_SPEC.md section 8):
+
+1. Agent-to-CAD/FEA (Python). Harry's sizing tools output ConceptualSizingResult,
+   SparLoadsResult and SparSizingResult; the orchestrator passes them to Tharm's
+   aircraft_geometry(), build_spar_cad() and run_fea() in spiral/tools/.
+2. HTTP / SSE (JSON). Every request, response and event payload between server/app.py and
+   web/api_client.js is the `.to_dict()` of a dataclass in this module (section 7 below).
+
+Example payloads for both boundaries live in `fixtures/`, so each side can build against them
+without the other running. Regenerate with `python3 scripts/generate_fixtures.py` after any
+change here; `tests/test_contract.py` checks the fixtures still parse.
 
 Conventions:
-- SI units everywhere (kg, m, s, N, W, Pa, J). Field names carry unit suffixes.
-- Tools are pure, deterministic Python functions returning ToolResult[T] or raising ToolError.
+- SI units everywhere (kg, m, s, N, W, Pa, J). Numeric field names carry a unit suffix.
+- Tools are pure, deterministic functions returning ToolResult[T] or raising ToolError.
 - Never return NaN or silently clamp; out-of-range inputs compute and append to warnings.
+- Change this file only when both people agree, then regenerate the fixtures.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from typing import Any, Generic, TypeVar
+import json
+import types
+from dataclasses import asdict, dataclass, field, fields, is_dataclass
+from datetime import datetime, timezone
+from typing import Any, Generic, TypeVar, Union, get_args, get_origin, get_type_hints
 
 T = TypeVar("T")
+
+ARTIFACTS_URL_PREFIX = "/artifacts"
+
+
+# ---------------------------------------------------------------------------
+# 0. Serialisation helpers
+# ---------------------------------------------------------------------------
+
+
+def _build(tp: Any, data: Any) -> Any:
+    """Rebuild a value of type `tp` from its JSON form (inverse of dataclasses.asdict)."""
+    if data is None:
+        return None
+    origin = get_origin(tp)
+    if origin in (Union, types.UnionType):
+        args = [a for a in get_args(tp) if a is not type(None)]
+        return _build(args[0], data) if len(args) == 1 else data
+    if origin is list:
+        (item_tp,) = get_args(tp)
+        return [_build(item_tp, x) for x in data]
+    if origin is dict:
+        _, value_tp = get_args(tp)
+        return {k: _build(value_tp, v) for k, v in data.items()}
+    if is_dataclass(tp):
+        if isinstance(data, tp):
+            return data
+        hints = get_type_hints(tp)
+        names = {f.name for f in fields(tp) if f.init}
+        # Unknown keys are ignored so older/newer payloads still load.
+        return tp(**{k: _build(hints[k], v) for k, v in data.items() if k in names})
+    if tp is float and isinstance(data, int):
+        return float(data)
+    return data
+
+
+class _Serialisable:
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)  # type: ignore[call-overload]
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Any:
+        return _build(cls, data)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+# ---------------------------------------------------------------------------
+# 1. Tool envelope & provenance
+# ---------------------------------------------------------------------------
 
 
 class ToolError(Exception):
@@ -41,25 +108,38 @@ class ToolError(Exception):
 
 
 @dataclass
+class Provenance(_Serialisable):
+    """Where one displayed number comes from. Drives the source badge in the UI."""
+
+    kind: str  # "equation" | "table" | "simulation" | "assumption" | "user_input" | "gemini_default"
+    source: str  # e.g. "Raymer 6ed Eq. 3.4 (p. 25)", "knowledge/tables/materials.yaml#al_2024_t3"
+    verified: bool = True  # False -> amber badge: citation not yet checked against the page
+    warning: str | None = None  # set -> amber badge: e.g. heuristic used outside its valid range
+
+
+@dataclass
 class ToolResult(Generic[T]):
-    """Standard envelope returned by every deterministic tool in spiral.tools."""
+    """Standard envelope returned by every deterministic tool."""
 
     value: T
     sources: list[str] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # Keyed by field name of `value` ("mtow_kg"); the orchestrator prefixes it into
+    # DesignState.provenance ("latest_sizing.mtow_kg").
+    provenance: dict[str, Provenance] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 # ---------------------------------------------------------------------------
-# 1. Mission Specification (Intake Output)
+# 2. Mission Specification (intake output, confirmed in the UI)
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class MissionSpec:
+class MissionSpec(_Serialisable):
     """Structured aircraft design specification (all SI units)."""
 
     # Payload
@@ -97,7 +177,7 @@ class MissionSpec:
     # Meta
     name: str = "GA-4 Touring"
     raw_description: str = ""
-    defaulted_fields: dict[str, str] = field(default_factory=dict)
+    defaulted_fields: dict[str, str] = field(default_factory=dict)  # field_name -> reason
 
     @property
     def n_ult(self) -> float:
@@ -107,23 +187,14 @@ class MissionSpec:
     def payload_mass_kg(self) -> float:
         return (self.crew_count + self.passenger_count) * self.person_mass_kg + self.baggage_mass_kg
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> MissionSpec:
-        valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
-        filtered = {k: v for k, v in data.items() if k in valid_keys}
-        return cls(**filtered)
-
 
 # ---------------------------------------------------------------------------
-# 2. Conceptual Sizing Contract (spiral.tools.sizing)
+# 3. Agent outputs (Harry: spiral.tools.sizing, spiral.tools.spar)
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class ConceptualSizingResult:
+class ConceptualSizingResult(_Serialisable):
     """Output of conceptual_sizing()."""
 
     mtow_kg: float
@@ -142,25 +213,15 @@ class ConceptualSizingResult:
     mac_m: float
     cruise_power_w: float
     installed_power_w: float
+    # "warmup_takeoff", "climb", "cruise", "loiter", "landing"
     segment_fractions: dict[str, float] = field(default_factory=dict)
+    # "wing_spar", "remaining_empty", "fuel", "crew", "passengers", "baggage"
     mass_breakdown_kg: dict[str, float] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> ConceptualSizingResult:
-        return cls(**data)
-
-
-# ---------------------------------------------------------------------------
-# 3. Preliminary Spar Loads & Sizing Contract (spiral.tools.spar)
-# ---------------------------------------------------------------------------
 
 
 @dataclass
-class SparStationLoad:
-    """Spanwise load station from y=0 (root) to y=b/2 (tip)."""
+class SparStationLoad(_Serialisable):
+    """Spanwise load station from y=0 (root) to y=b/2 (tip), at ultimate load."""
 
     y_m: float
     chord_m: float
@@ -172,7 +233,7 @@ class SparStationLoad:
 
 
 @dataclass
-class SparLoadsResult:
+class SparLoadsResult(_Serialisable):
     """Output of spar_loads()."""
 
     n_ult: float
@@ -181,30 +242,13 @@ class SparLoadsResult:
     root_moment_nm: float
     stations: list[SparStationLoad] = field(default_factory=list)
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SparLoadsResult:
-        stations = [
-            s if isinstance(s, SparStationLoad) else SparStationLoad(**s)
-            for s in data.get("stations", [])
-        ]
-        return cls(
-            n_ult=data["n_ult"],
-            semi_span_m=data["semi_span_m"],
-            root_shear_n=data["root_shear_n"],
-            root_moment_nm=data["root_moment_nm"],
-            stations=stations,
-        )
-
 
 @dataclass
-class SparStationSection:
-    """Spanwise I-beam section dimensions and stresses from y=0 (root) to y=b/2 (tip)."""
+class SparStationSection(_Serialisable):
+    """Spanwise I-beam section and beam-theory stresses from y=0 (root) to y=b/2 (tip)."""
 
     y_m: float
-    depth_m: float
+    depth_m: float  # outer depth, outside of top cap to outside of bottom cap
     cap_area_m2: float
     cap_width_m: float
     cap_thickness_m: float
@@ -215,7 +259,7 @@ class SparStationSection:
 
 
 @dataclass
-class SparSizingResult:
+class SparSizingResult(_Serialisable):
     """Output of size_spar()."""
 
     material_key: str
@@ -230,63 +274,30 @@ class SparSizingResult:
     max_bending_stress_pa: float
     max_shear_stress_pa: float
     allowable_yield_stress_pa: float
-    safety_margin: float
+    safety_margin: float  # allowable / max - 1
     tip_deflection_m: float
     stations: list[SparStationSection] = field(default_factory=list)
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SparSizingResult:
-        stations = [
-            s if isinstance(s, SparStationSection) else SparStationSection(**s)
-            for s in data.get("stations", [])
-        ]
-        return cls(
-            material_key=data["material_key"],
-            mass_both_wings_kg=data["mass_both_wings_kg"],
-            semi_span_mass_kg=data["semi_span_mass_kg"],
-            root_depth_m=data["root_depth_m"],
-            tip_depth_m=data["tip_depth_m"],
-            root_cap_area_m2=data["root_cap_area_m2"],
-            root_cap_width_m=data["root_cap_width_m"],
-            root_cap_thickness_m=data["root_cap_thickness_m"],
-            root_web_thickness_m=data["root_web_thickness_m"],
-            max_bending_stress_pa=data["max_bending_stress_pa"],
-            max_shear_stress_pa=data["max_shear_stress_pa"],
-            allowable_yield_stress_pa=data["allowable_yield_stress_pa"],
-            safety_margin=data["safety_margin"],
-            tip_deflection_m=data["tip_deflection_m"],
-            stations=stations,
-        )
-
 
 # ---------------------------------------------------------------------------
-# 4. Detailed CAD & FEA Contract (spiral.tools.cad, spiral.tools.fea)
+# 4. Detailed CAD & FEA (Tharm: spiral.tools.cad, spiral.tools.fea)
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class SparCadResult:
-    """Output of build_spar_cad()."""
+class SparCadResult(_Serialisable):
+    """Output of build_spar_cad(). Paths are filesystem paths; the frontend uses
+    ComponentStatus.artifact_urls instead."""
 
     step_path: str
     stl_path: str
     volume_single_wing_m3: float
     cad_mass_both_wings_kg: float
-    bounding_box_m: dict[str, float] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SparCadResult:
-        return cls(**data)
+    bounding_box_m: dict[str, float] = field(default_factory=dict)  # x_width_m, y_semi_span_m, z_depth_m
 
 
 @dataclass
-class FeaStationResult:
+class FeaStationResult(_Serialisable):
     """Spanwise comparison between 3D FEA and Euler-Bernoulli beam theory."""
 
     y_m: float
@@ -297,7 +308,7 @@ class FeaStationResult:
 
 
 @dataclass
-class FeaResult:
+class FeaResult(_Serialisable):
     """Output of run_fea()."""
 
     solver_name: str
@@ -311,36 +322,14 @@ class FeaResult:
     stress_mesh_path: str | None = None
     stations: list[FeaStationResult] = field(default_factory=list)
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> FeaResult:
-        stations = [
-            s if isinstance(s, FeaStationResult) else FeaStationResult(**s)
-            for s in data.get("stations", [])
-        ]
-        return cls(
-            solver_name=data["solver_name"],
-            fea_max_von_mises_pa=data["fea_max_von_mises_pa"],
-            fea_tip_deflection_m=data["fea_tip_deflection_m"],
-            beam_max_stress_pa=data["beam_max_stress_pa"],
-            beam_tip_deflection_m=data["beam_tip_deflection_m"],
-            stress_agreement_pct=data["stress_agreement_pct"],
-            deflection_agreement_pct=data["deflection_agreement_pct"],
-            safety_margin_fea=data["safety_margin_fea"],
-            stress_mesh_path=data.get("stress_mesh_path"),
-            stations=stations,
-        )
-
 
 # ---------------------------------------------------------------------------
-# 5. 3D Aircraft Geometry Contract (spiral.tools.geometry)
+# 5. 3D Aircraft Geometry (Tharm: spiral.tools.geometry)
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class AircraftGeometry:
+class AircraftGeometry(_Serialisable):
     """Parametric Three.js primitives (all dimensions in metres)."""
 
     fuselage: dict[str, float] = field(default_factory=dict)
@@ -349,22 +338,15 @@ class AircraftGeometry:
     vertical_tail: dict[str, float] = field(default_factory=dict)
     propeller: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> AircraftGeometry:
-        return cls(**data)
-
 
 # ---------------------------------------------------------------------------
-# 6. DesignState & Orchestrator / API Schemas
+# 6. DesignState (Harry's orchestrator produces; Tharm's frontend renders)
 # ---------------------------------------------------------------------------
 
 
 @dataclass
-class LapRecord:
-    """Summary of a single lap around the design spiral."""
+class LapRecord(_Serialisable):
+    """Summary of a single lap around the design spiral (one point on the convergence plot)."""
 
     lap: int
     mtow_kg: float
@@ -378,12 +360,9 @@ class LapRecord:
     tip_deflection_m: float
     geometry: AircraftGeometry
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
-
 
 @dataclass
-class AgentLogEntry:
+class AgentLogEntry(_Serialisable):
     """Traceable agent decision or calculation log item."""
 
     lap: int
@@ -391,13 +370,14 @@ class AgentLogEntry:
     message: str
     citations: list[str] = field(default_factory=list)
     level: str = "info"  # "info" | "warning" | "error"
+    timestamp: str = field(default_factory=_now_iso)  # ISO 8601, UTC
 
 
 @dataclass
-class SpecRelaxationProposal:
+class SpecRelaxationProposal(_Serialisable):
     """Gemini's single proposed parameter relaxation when the spiral is infeasible."""
 
-    field_name: str
+    field_name: str  # a MissionSpec field
     old_value: float
     new_value: float
     unit: str
@@ -406,7 +386,7 @@ class SpecRelaxationProposal:
 
 
 @dataclass
-class ComponentStatus:
+class ComponentStatus(_Serialisable):
     """Detailed design status for a structural component."""
 
     component_id: str
@@ -415,6 +395,8 @@ class ComponentStatus:
     status: str = "pending"  # "pending" | "running_cad" | "running_fea" | "completed" | "coming_soon"
     cad: SparCadResult | None = None
     fea: FeaResult | None = None
+    # What the frontend downloads/fetches: "step", "stl", "stress_mesh" -> "/artifacts/<file>"
+    artifact_urls: dict[str, str] = field(default_factory=dict)
 
 
 def default_components() -> dict[str, ComponentStatus]:
@@ -453,8 +435,16 @@ def default_components() -> dict[str, ComponentStatus]:
 
 
 @dataclass
-class DesignState:
-    """Complete state of a design spiral session."""
+class DesignState(_Serialisable):
+    """Complete state of a design session. The frontend renders this and posts it back.
+
+    `provenance` keys are dotted paths into this object's JSON:
+        "spec.range_m", "latest_sizing.mtow_kg", "latest_spar.safety_margin",
+        "components.main_wing_spar.fea.fea_max_von_mises_pa"
+    List items use "[]": "latest_spar.stations[].bending_stress_pa". Values in `history[]`
+    reuse the matching `latest_*` key. A displayed number with no entry is a gap on the
+    workflow side: show a grey "no source" badge so it gets noticed.
+    """
 
     spec: MissionSpec = field(default_factory=MissionSpec)
     lap: int = 0
@@ -469,9 +459,113 @@ class DesignState:
     sources: list[str] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    provenance: dict[str, Provenance] = field(default_factory=dict)
     log: list[AgentLogEntry] = field(default_factory=list)
     components: dict[str, ComponentStatus] = field(default_factory=default_components)
     report_markdown: str | None = None
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+
+# ---------------------------------------------------------------------------
+# 7. Boundary 2: API & SSE payloads (server/app.py <-> web/api_client.js)
+# ---------------------------------------------------------------------------
+#
+#   POST /api/intake                 IntakeRequest  -> IntakeResponse
+#   POST /api/spiral/run-sync        SpiralRequest  -> DesignState
+#   POST /api/spiral/stream          SpiralRequest  -> SSE: lap/log ..., then converged | infeasible | error
+#   POST /api/components/spar        StateRequest   -> DesignState (components.main_wing_spar filled)
+#   POST /api/components/spar/stream StateRequest   -> SSE: component_step/log ..., then component_done | error
+#   POST /api/report                 StateRequest   -> ReportResponse
+#   GET  /artifacts/{filename}                      -> files named in ComponentStatus.artifact_urls
+
+
+@dataclass
+class IntakeRequest(_Serialisable):
+    description: str
+
+
+@dataclass
+class IntakeResponse(_Serialisable):
+    spec: MissionSpec  # spec.defaulted_fields says which fields Gemini filled in, and why
+    sources: list[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SpiralRequest(_Serialisable):
+    spec: MissionSpec
+
+
+@dataclass
+class StateRequest(_Serialisable):
+    state: DesignState  # send back the last DesignState received, unchanged
+
+
+@dataclass
+class ReportResponse(_Serialisable):
+    report_markdown: str
+    state: DesignState
+
+
+@dataclass
+class LapEvent(_Serialisable):
+    lap_record: LapRecord
+    sizing: ConceptualSizingResult
+    loads: SparLoadsResult
+    spar: SparSizingResult
+    geometry: AircraftGeometry
+
+
+@dataclass
+class LogEvent(_Serialisable):
+    entry: AgentLogEntry
+
+
+@dataclass
+class ConvergedEvent(_Serialisable):
+    state: DesignState
+
+
+@dataclass
+class InfeasibleEvent(_Serialisable):
+    reason: str
+    proposed_relaxation: SpecRelaxationProposal | None
+    state: DesignState
+
+
+@dataclass
+class ComponentStepEvent(_Serialisable):
+    component_id: str
+    step: str  # "cad" | "fea"
+    status: str  # "running" | "done"
+
+
+@dataclass
+class ComponentDoneEvent(_Serialisable):
+    component_id: str
+    component: ComponentStatus
+    state: DesignState
+
+
+@dataclass
+class ErrorEvent(_Serialisable):
+    message: str
+    tool_error: dict[str, Any] | None = None  # ToolError.to_dict() when a tool raised
+
+
+SSE_EVENTS: dict[str, type] = {
+    "lap": LapEvent,
+    "log": LogEvent,
+    "converged": ConvergedEvent,
+    "infeasible": InfeasibleEvent,
+    "component_step": ComponentStepEvent,
+    "component_done": ComponentDoneEvent,
+    "error": ErrorEvent,
+}
+
+
+def format_sse(event_type: str, payload: _Serialisable) -> str:
+    """One SSE frame: `event: <type>\\ndata: <json>\\n\\n`."""
+    if event_type not in SSE_EVENTS:
+        raise ValueError(f"Unknown SSE event type: {event_type}")
+    return f"event: {event_type}\ndata: {json.dumps(payload.to_dict())}\n\n"
