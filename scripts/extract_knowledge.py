@@ -434,21 +434,30 @@ def check(out: Path, write: bool) -> None:
                     walk(v)
 
         walk(yaml.safe_load(path.read_text(encoding="utf-8")))
+        verdicts: dict[int, bool] = {}
         for row in rows:
             source = str(row["source"])
             if short not in source or source.startswith("Derived"):
                 continue  # derived results are ours, not printed in the book: never auto-verified
+            if source.startswith("Converted"):
+                continue  # SI conversion of an `as_printed` child: inherits its verdict below
             cands = _candidates(kb, source)
             values = _row_values(row)
             backed = [c for c in cands if c.get("status") in _OK]
             found = {v: any(round(v, 6) in _numbers(c) or round(v * 100, 6) in _numbers(c) for c in backed) for v in values}
             ok = bool(backed) and all(found.values())
             results.setdefault(path, {})[source] = ok
+            verdicts[id(row)] = ok
             missing = [f"{v:g}" for v, hit in found.items() if not hit]
             statuses = sorted({c.get("status", "?") for c in cands}) or ["not found"]
             print(f"{'OK  ' if ok else 'FAIL'} {path.relative_to(ROOT_DIR)} :: {source}")
             print(f"       items={len(cands)} status={statuses} values={[f'{v:g}' for v in values]}"
                   + (f" missing={missing}" if missing else ""))
+        for row in rows:
+            child = row.get("as_printed")
+            if str(row["source"]).startswith("Converted") and isinstance(child, dict) and id(child) in verdicts:
+                results.setdefault(path, {})[str(row["source"])] = verdicts[id(child)]
+                print(f"{'OK  ' if verdicts[id(child)] else 'FAIL'} {path.relative_to(ROOT_DIR)} :: {row['source']} (via as_printed)")
 
     if write:
         for path, by_source in results.items():

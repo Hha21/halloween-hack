@@ -47,12 +47,12 @@
       "mtow_kg": 1319.26,
       "empty_mass_kg": 740.94,
       "fuel_mass_kg": 184.32,
-      "spar_mass_kg": 33.94,
+      "spar_mass_kg": 38.09,
       "mtow_change_pct": 0.0,
       "wing_area_m2": 16.49,
       "span_m": 11.195,
-      "max_bending_stress_pa": 326035121.4,
-      "tip_deflection_m": 0.58105,
+      "max_bending_stress_pa": 306615786.1,
+      "tip_deflection_m": 0.54056,
       "geometry": {
         "fuselage": {
           "length_m": 8.339,
@@ -93,45 +93,45 @@
     },
     {
       "lap": 1,
-      "mtow_kg": 1252.8,
-      "empty_mass_kg": 683.76,
-      "fuel_mass_kg": 175.03,
-      "spar_mass_kg": 31.66,
-      "mtow_change_pct": -5.038,
-      "wing_area_m2": 15.659,
-      "span_m": 10.909,
-      "max_bending_stress_pa": 325653898.7,
-      "tip_deflection_m": 0.56397,
+      "mtow_kg": 1262.33,
+      "empty_mass_kg": 691.97,
+      "fuel_mass_kg": 176.37,
+      "spar_mass_kg": 35.74,
+      "mtow_change_pct": -4.315,
+      "wing_area_m2": 15.779,
+      "span_m": 10.951,
+      "max_bending_stress_pa": 306676438.9,
+      "tip_deflection_m": 0.52847,
       "geometry": {
         "fuselage": {
-          "length_m": 8.241,
+          "length_m": 8.255,
           "diameter_m": 1.22,
-          "nose_length_m": 1.813,
-          "cabin_length_m": 2.967,
-          "tailcone_length_m": 3.461
+          "nose_length_m": 1.816,
+          "cabin_length_m": 2.972,
+          "tailcone_length_m": 3.467
         },
         "wing": {
-          "span_m": 10.909,
-          "root_chord_m": 1.98,
-          "tip_chord_m": 0.891,
+          "span_m": 10.951,
+          "root_chord_m": 1.987,
+          "tip_chord_m": 0.894,
           "thickness_to_chord": 0.15,
-          "x_le_m": 2.637,
+          "x_le_m": 2.642,
           "z_m": 0.52,
           "dihedral_deg": 2.0,
           "position": "high"
         },
         "horizontal_tail": {
-          "span_m": 3.923,
-          "root_chord_m": 1.189,
-          "tip_chord_m": 0.773,
-          "x_le_m": 6.922,
+          "span_m": 3.942,
+          "root_chord_m": 1.195,
+          "tip_chord_m": 0.776,
+          "x_le_m": 6.934,
           "z_m": 0.15
         },
         "vertical_tail": {
-          "height_m": 1.597,
-          "root_chord_m": 1.288,
-          "tip_chord_m": 0.708,
-          "x_le_m": 6.722,
+          "height_m": 1.605,
+          "root_chord_m": 1.294,
+          "tip_chord_m": 0.712,
+          "x_le_m": 6.734,
           "z_m": 0.25
         },
         "propeller": {
@@ -142,45 +142,45 @@
     },
     {
       "lap": 2,
-      "mtow_kg": 1247.55,
-      "empty_mass_kg": 679.25,
-      "fuel_mass_kg": 174.3,
-      "spar_mass_kg": 31.48,
-      "mtow_change_pct": -0.419,
-      "wing_area_m2": 15.594,
-      "span_m": 10.886,
-      "max_bending_stress_pa": 325609056.7,
-      "tip_deflection_m": 0.56256,
+      "mtow_kg": 1256.93,
+      "empty_mass_kg": 687.32,
+      "fuel_mass_kg": 175.61,
+      "spar_mass_kg": 35.51,
+      "mtow_change_pct": -0.428,
+      "wing_area_m2": 15.711,
+      "span_m": 10.927,
+      "max_bending_stress_pa": 306649914.7,
+      "tip_deflection_m": 0.52713,
       "geometry": {
         "fuselage": {
-          "length_m": 8.233,
+          "length_m": 8.247,
           "diameter_m": 1.22,
-          "nose_length_m": 1.811,
-          "cabin_length_m": 2.964,
-          "tailcone_length_m": 3.458
+          "nose_length_m": 1.814,
+          "cabin_length_m": 2.969,
+          "tailcone_length_m": 3.464
         },
         "wing": {
-          "span_m": 10.886,
-          "root_chord_m": 1.976,
-          "tip_chord_m": 0.889,
+          "span_m": 10.927,
+          "root_chord_m": 1.983,
+          "tip_chord_m": 0.892,
           "thickness_to_chord": 0.15,
-          "x_le_m": 2.635,
+          "x_le_m": 2.639,
           "z_m": 0.52,
           "dihedral_deg": 2.0,
           "position": "high"
         },
         "horizontal_tail": {
-          "span_m": 3.913,
-          "root_chord_m": 1.186,
-          "tip_chord_m": 0.771,
-          "x_le_m": 6.916,
+          "span_m": 3.932,
+          "root_chord_m": 1.191,
+          "tip_chord_m": 0.774,
+          "x_le_m": 6.928,
           "z_m": 0.15
         },
         "vertical_tail": {
-          "height_m": 1.593,
-          "root_chord_m": 1.285,
-          "tip_chord_m": 0.707,
-          "x_le_m": 6.716,
+          "height_m": 1.601,
+          "root_chord_m": 1.291,
+          "tip_chord_m": 0.71,
+          "x_le_m": 6.728,
           "z_m": 0.25
         },
         "propeller": {
@@ -191,22 +191,22 @@
     }
   ],
   "latest_sizing": {
-    "mtow_kg": 1247.55,
-    "empty_mass_kg": 679.25,
-    "fuel_mass_kg": 174.3,
+    "mtow_kg": 1256.93,
+    "empty_mass_kg": 687.32,
+    "fuel_mass_kg": 175.61,
     "payload_mass_kg": 394.0,
-    "empty_fraction": 0.5445,
+    "empty_fraction": 0.5468,
     "fuel_fraction": 0.1397,
-    "spar_mass_used_kg": 31.66,
-    "statistical_spar_mass_kg": 60.16,
+    "spar_mass_used_kg": 35.74,
+    "statistical_spar_mass_kg": 60.53,
     "wing_loading_pa": 784.56,
-    "wing_area_m2": 15.594,
-    "span_m": 10.886,
-    "root_chord_m": 1.976,
-    "tip_chord_m": 0.889,
-    "mac_m": 1.501,
-    "cruise_power_w": 82249.4,
-    "installed_power_w": 143567.2,
+    "wing_area_m2": 15.711,
+    "span_m": 10.927,
+    "root_chord_m": 1.983,
+    "tip_chord_m": 0.892,
+    "mac_m": 1.507,
+    "cruise_power_w": 82867.9,
+    "installed_power_w": 144646.7,
     "segment_fractions": {
       "warmup_takeoff": 0.97,
       "climb": 0.985,
@@ -215,9 +215,9 @@
       "landing": 0.995
     },
     "mass_breakdown_kg": {
-      "wing_spar": 31.66,
-      "remaining_empty": 647.59,
-      "fuel": 174.3,
+      "wing_spar": 35.74,
+      "remaining_empty": 651.58,
+      "fuel": 175.61,
       "crew": 86.0,
       "passengers": 258.0,
       "baggage": 50.0
@@ -225,196 +225,196 @@
   },
   "latest_loads": {
     "n_ult": 5.7,
-    "semi_span_m": 5.443,
-    "root_shear_n": 34794.77,
-    "root_moment_nm": 81390.25,
+    "semi_span_m": 5.463,
+    "root_shear_n": 35056.44,
+    "root_moment_nm": 82310.14,
     "stations": [
       {
         "y_m": 0.0,
-        "chord_m": 1.976,
-        "elliptical_lift_n_per_m": 8156.34,
-        "planform_lift_n_per_m": 8836.44,
-        "schrenk_lift_n_per_m": 8496.39,
-        "shear_n": 34794.77,
-        "moment_nm": 81390.25
+        "chord_m": 1.983,
+        "elliptical_lift_n_per_m": 8186.83,
+        "planform_lift_n_per_m": 8869.94,
+        "schrenk_lift_n_per_m": 8528.38,
+        "shear_n": 35056.44,
+        "moment_nm": 82310.14
       },
       {
-        "y_m": 0.2722,
-        "chord_m": 1.9217,
-        "elliptical_lift_n_per_m": 8146.14,
-        "planform_lift_n_per_m": 8593.4,
-        "schrenk_lift_n_per_m": 8369.77,
-        "shear_n": 32499.29,
-        "moment_nm": 72231.53
+        "y_m": 0.2732,
+        "chord_m": 1.9284,
+        "elliptical_lift_n_per_m": 8176.59,
+        "planform_lift_n_per_m": 8625.94,
+        "schrenk_lift_n_per_m": 8401.26,
+        "shear_n": 32743.85,
+        "moment_nm": 73048.62
       },
       {
-        "y_m": 0.5443,
-        "chord_m": 1.8673,
-        "elliptical_lift_n_per_m": 8115.46,
-        "planform_lift_n_per_m": 8350.35,
-        "schrenk_lift_n_per_m": 8232.9,
-        "shear_n": 30240.5,
-        "moment_nm": 63695.78
+        "y_m": 0.5464,
+        "chord_m": 1.8739,
+        "elliptical_lift_n_per_m": 8145.79,
+        "planform_lift_n_per_m": 8381.93,
+        "schrenk_lift_n_per_m": 8263.86,
+        "shear_n": 30467.39,
+        "moment_nm": 64413.96
       },
       {
-        "y_m": 0.8165,
-        "chord_m": 1.8129,
-        "elliptical_lift_n_per_m": 8064.06,
-        "planform_lift_n_per_m": 8107.3,
-        "schrenk_lift_n_per_m": 8085.68,
-        "shear_n": 28019.54,
-        "moment_nm": 55766.59
+        "y_m": 0.8195,
+        "chord_m": 1.8194,
+        "elliptical_lift_n_per_m": 8094.2,
+        "planform_lift_n_per_m": 8137.93,
+        "schrenk_lift_n_per_m": 8116.07,
+        "shear_n": 28230.71,
+        "moment_nm": 56398.73
       },
       {
-        "y_m": 1.0886,
-        "chord_m": 1.7586,
-        "elliptical_lift_n_per_m": 7991.55,
-        "planform_lift_n_per_m": 7864.26,
-        "schrenk_lift_n_per_m": 7927.9,
-        "shear_n": 25840.89,
-        "moment_nm": 48438.88
+        "y_m": 1.0927,
+        "chord_m": 1.7648,
+        "elliptical_lift_n_per_m": 8021.42,
+        "planform_lift_n_per_m": 7893.93,
+        "schrenk_lift_n_per_m": 7957.68,
+        "shear_n": 26035.04,
+        "moment_nm": 48986.03
       },
       {
-        "y_m": 1.3607,
-        "chord_m": 1.7043,
-        "elliptical_lift_n_per_m": 7897.34,
-        "planform_lift_n_per_m": 7621.21,
-        "schrenk_lift_n_per_m": 7759.27,
-        "shear_n": 23706.65,
-        "moment_nm": 41697.94
+        "y_m": 1.3659,
+        "chord_m": 1.7103,
+        "elliptical_lift_n_per_m": 7926.86,
+        "planform_lift_n_per_m": 7649.93,
+        "schrenk_lift_n_per_m": 7788.4,
+        "shear_n": 23884.13,
+        "moment_nm": 42167.07
       },
       {
-        "y_m": 1.6329,
-        "chord_m": 1.6499,
-        "elliptical_lift_n_per_m": 7780.65,
-        "planform_lift_n_per_m": 7378.16,
-        "schrenk_lift_n_per_m": 7579.41,
-        "shear_n": 21619.06,
-        "moment_nm": 35529.11
+        "y_m": 1.639,
+        "chord_m": 1.6557,
+        "elliptical_lift_n_per_m": 7809.74,
+        "planform_lift_n_per_m": 7405.93,
+        "schrenk_lift_n_per_m": 7607.83,
+        "shear_n": 21781.77,
+        "moment_nm": 35931.39
       },
       {
-        "y_m": 1.905,
-        "chord_m": 1.5956,
-        "elliptical_lift_n_per_m": 7640.45,
-        "planform_lift_n_per_m": 7135.11,
-        "schrenk_lift_n_per_m": 7387.78,
-        "shear_n": 19582.77,
-        "moment_nm": 29923.6
+        "y_m": 1.9122,
+        "chord_m": 1.6012,
+        "elliptical_lift_n_per_m": 7669.01,
+        "planform_lift_n_per_m": 7161.93,
+        "schrenk_lift_n_per_m": 7415.47,
+        "shear_n": 19729.59,
+        "moment_nm": 30260.94
       },
       {
-        "y_m": 2.1772,
-        "chord_m": 1.5412,
-        "elliptical_lift_n_per_m": 7475.41,
-        "planform_lift_n_per_m": 6892.07,
-        "schrenk_lift_n_per_m": 7183.74,
-        "shear_n": 17599.59,
-        "moment_nm": 24863.08
+        "y_m": 2.1854,
+        "chord_m": 1.5466,
+        "elliptical_lift_n_per_m": 7503.35,
+        "planform_lift_n_per_m": 6917.92,
+        "schrenk_lift_n_per_m": 7210.64,
+        "shear_n": 17731.66,
+        "moment_nm": 25143.73
       },
       {
-        "y_m": 2.4493,
-        "chord_m": 1.4869,
-        "elliptical_lift_n_per_m": 7283.84,
-        "planform_lift_n_per_m": 6649.02,
-        "schrenk_lift_n_per_m": 6966.43,
-        "shear_n": 15674.46,
-        "moment_nm": 20336.15
+        "y_m": 2.4586,
+        "chord_m": 1.4921,
+        "elliptical_lift_n_per_m": 7311.07,
+        "planform_lift_n_per_m": 6673.92,
+        "schrenk_lift_n_per_m": 6992.5,
+        "shear_n": 15791.51,
+        "moment_nm": 20564.46
       },
       {
-        "y_m": 2.7215,
-        "chord_m": 1.4325,
-        "elliptical_lift_n_per_m": 7063.6,
-        "planform_lift_n_per_m": 6405.97,
-        "schrenk_lift_n_per_m": 6734.79,
-        "shear_n": 13809.72,
-        "moment_nm": 16323.35
+        "y_m": 2.7317,
+        "chord_m": 1.4375,
+        "elliptical_lift_n_per_m": 7090.0,
+        "planform_lift_n_per_m": 6429.92,
+        "schrenk_lift_n_per_m": 6759.96,
+        "shear_n": 13913.61,
+        "moment_nm": 16508.23
       },
       {
-        "y_m": 2.9936,
-        "chord_m": 1.3782,
-        "elliptical_lift_n_per_m": 6811.89,
-        "planform_lift_n_per_m": 6162.93,
-        "schrenk_lift_n_per_m": 6487.41,
-        "shear_n": 12010.84,
-        "moment_nm": 12810.46
+        "y_m": 3.0049,
+        "chord_m": 1.3829,
+        "elliptical_lift_n_per_m": 6837.35,
+        "planform_lift_n_per_m": 6185.92,
+        "schrenk_lift_n_per_m": 6511.64,
+        "shear_n": 12100.71,
+        "moment_nm": 12954.67
       },
       {
-        "y_m": 3.2658,
-        "chord_m": 1.3238,
-        "elliptical_lift_n_per_m": 6525.07,
-        "planform_lift_n_per_m": 5919.88,
-        "schrenk_lift_n_per_m": 6222.48,
-        "shear_n": 10281.02,
-        "moment_nm": 9776.54
+        "y_m": 3.2781,
+        "chord_m": 1.3284,
+        "elliptical_lift_n_per_m": 6549.46,
+        "planform_lift_n_per_m": 5941.92,
+        "schrenk_lift_n_per_m": 6245.69,
+        "shear_n": 10358.06,
+        "moment_nm": 9886.8
       },
       {
-        "y_m": 3.5379,
-        "chord_m": 1.2694,
-        "elliptical_lift_n_per_m": 6198.28,
-        "planform_lift_n_per_m": 5676.83,
-        "schrenk_lift_n_per_m": 5937.56,
-        "shear_n": 8626.65,
-        "moment_nm": 7204.15
+        "y_m": 3.5513,
+        "chord_m": 1.2738,
+        "elliptical_lift_n_per_m": 6221.45,
+        "planform_lift_n_per_m": 5697.92,
+        "schrenk_lift_n_per_m": 5959.68,
+        "shear_n": 8690.81,
+        "moment_nm": 7284.72
       },
       {
-        "y_m": 3.8101,
-        "chord_m": 1.2151,
-        "elliptical_lift_n_per_m": 5824.79,
-        "planform_lift_n_per_m": 5433.79,
-        "schrenk_lift_n_per_m": 5629.29,
-        "shear_n": 7052.4,
-        "moment_nm": 5070.23
+        "y_m": 3.8245,
+        "chord_m": 1.2193,
+        "elliptical_lift_n_per_m": 5846.57,
+        "planform_lift_n_per_m": 5453.92,
+        "schrenk_lift_n_per_m": 5650.24,
+        "shear_n": 7104.89,
+        "moment_nm": 5127.03
       },
       {
-        "y_m": 4.0823,
-        "chord_m": 1.1607,
-        "elliptical_lift_n_per_m": 5394.91,
-        "planform_lift_n_per_m": 5190.74,
-        "schrenk_lift_n_per_m": 5292.83,
-        "shear_n": 5565.9,
-        "moment_nm": 3352.88
+        "y_m": 4.0976,
+        "chord_m": 1.1647,
+        "elliptical_lift_n_per_m": 5415.08,
+        "planform_lift_n_per_m": 5209.91,
+        "schrenk_lift_n_per_m": 5312.5,
+        "shear_n": 5607.93,
+        "moment_nm": 3391.09
       },
       {
-        "y_m": 4.3544,
-        "chord_m": 1.1064,
-        "elliptical_lift_n_per_m": 4893.8,
-        "planform_lift_n_per_m": 4947.69,
-        "schrenk_lift_n_per_m": 4920.75,
-        "shear_n": 4176.34,
-        "moment_nm": 2027.45
+        "y_m": 4.3708,
+        "chord_m": 1.1102,
+        "elliptical_lift_n_per_m": 4912.1,
+        "planform_lift_n_per_m": 4965.91,
+        "schrenk_lift_n_per_m": 4939.01,
+        "shear_n": 4207.57,
+        "moment_nm": 2050.29
       },
       {
-        "y_m": 4.6265,
-        "chord_m": 1.052,
-        "elliptical_lift_n_per_m": 4296.62,
-        "planform_lift_n_per_m": 4704.65,
-        "schrenk_lift_n_per_m": 4500.63,
-        "shear_n": 2894.56,
-        "moment_nm": 1065.45
+        "y_m": 4.644,
+        "chord_m": 1.0556,
+        "elliptical_lift_n_per_m": 4312.68,
+        "planform_lift_n_per_m": 4721.91,
+        "schrenk_lift_n_per_m": 4517.3,
+        "shear_n": 2915.84,
+        "moment_nm": 1077.23
       },
       {
-        "y_m": 4.8987,
-        "chord_m": 0.9977,
-        "elliptical_lift_n_per_m": 3555.27,
-        "planform_lift_n_per_m": 4461.6,
-        "schrenk_lift_n_per_m": 4008.43,
-        "shear_n": 1736.48,
-        "moment_nm": 435.17
+        "y_m": 4.9171,
+        "chord_m": 1.0011,
+        "elliptical_lift_n_per_m": 3568.56,
+        "planform_lift_n_per_m": 4477.91,
+        "schrenk_lift_n_per_m": 4023.23,
+        "shear_n": 1749.63,
+        "moment_nm": 440.16
       },
       {
-        "y_m": 5.1708,
-        "chord_m": 0.9433,
-        "elliptical_lift_n_per_m": 2546.82,
-        "planform_lift_n_per_m": 4218.55,
-        "schrenk_lift_n_per_m": 3382.68,
-        "shear_n": 730.92,
-        "moment_nm": 99.48
+        "y_m": 5.1903,
+        "chord_m": 0.9466,
+        "elliptical_lift_n_per_m": 2556.34,
+        "planform_lift_n_per_m": 4233.91,
+        "schrenk_lift_n_per_m": 3395.12,
+        "shear_n": 736.28,
+        "moment_nm": 100.58
       },
       {
-        "y_m": 5.443,
-        "chord_m": 0.889,
+        "y_m": 5.4635,
+        "chord_m": 0.892,
         "elliptical_lift_n_per_m": 0.0,
-        "planform_lift_n_per_m": 3975.5,
-        "schrenk_lift_n_per_m": 1987.75,
+        "planform_lift_n_per_m": 3989.91,
+        "schrenk_lift_n_per_m": 1994.95,
         "shear_n": 0.0,
         "moment_nm": 0.0
       }
@@ -422,283 +422,283 @@
   },
   "latest_spar": {
     "material_key": "al_2024_t3",
-    "mass_both_wings_kg": 31.48,
-    "semi_span_mass_kg": 15.74,
-    "root_depth_m": 0.2519,
-    "tip_depth_m": 0.1133,
-    "root_cap_area_m2": 0.00104,
-    "root_cap_width_m": 0.0882,
-    "root_cap_thickness_m": 0.0118,
-    "root_web_thickness_m": 0.0015,
-    "max_bending_stress_pa": 325609056.7,
-    "max_shear_stress_pa": 92071577.9,
-    "allowable_yield_stress_pa": 345000000.0,
-    "safety_margin": 0.06,
-    "tip_deflection_m": 0.56256,
+    "mass_both_wings_kg": 35.51,
+    "semi_span_mass_kg": 17.75,
+    "root_depth_m": 0.2528,
+    "tip_depth_m": 0.1137,
+    "root_cap_area_m2": 0.001071,
+    "root_cap_width_m": 0.0885,
+    "root_cap_thickness_m": 0.0121,
+    "root_web_thickness_m": 0.00292,
+    "max_bending_stress_pa": 306649914.7,
+    "max_shear_stress_pa": 47546961.1,
+    "allowable_yield_stress_pa": 337800000.0,
+    "safety_margin": 0.102,
+    "tip_deflection_m": 0.52713,
     "stations": [
       {
         "y_m": 0.0,
-        "depth_m": 0.2519,
-        "cap_area_m2": 0.00104,
-        "cap_width_m": 0.0882,
-        "cap_thickness_m": 0.0118,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 325609056.7,
-        "shear_stress_pa": 92071577.9,
+        "depth_m": 0.2528,
+        "cap_area_m2": 0.001071,
+        "cap_width_m": 0.0885,
+        "cap_thickness_m": 0.0121,
+        "web_thickness_m": 0.00292,
+        "bending_stress_pa": 306649914.7,
+        "shear_stress_pa": 47546961.1,
         "deflection_m": 0.0
       },
       {
-        "y_m": 0.2722,
-        "depth_m": 0.245,
-        "cap_area_m2": 0.000949,
-        "cap_width_m": 0.0858,
-        "cap_thickness_m": 0.01107,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 323361354.3,
-        "shear_stress_pa": 88427396.6,
-        "deflection_m": 0.00132
+        "y_m": 0.2732,
+        "depth_m": 0.2459,
+        "cap_area_m2": 0.000977,
+        "cap_width_m": 0.0861,
+        "cap_thickness_m": 0.01136,
+        "web_thickness_m": 0.00282,
+        "bending_stress_pa": 304536359.4,
+        "shear_stress_pa": 47155408.1,
+        "deflection_m": 0.00123
       },
       {
-        "y_m": 0.5443,
-        "depth_m": 0.2381,
-        "cap_area_m2": 0.000862,
-        "cap_width_m": 0.0833,
-        "cap_thickness_m": 0.01034,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 320891131.9,
-        "shear_stress_pa": 84678552.7,
-        "deflection_m": 0.00532
+        "y_m": 0.5464,
+        "depth_m": 0.2389,
+        "cap_area_m2": 0.000887,
+        "cap_width_m": 0.0836,
+        "cap_thickness_m": 0.0106,
+        "web_thickness_m": 0.00273,
+        "bending_stress_pa": 302211579.6,
+        "shear_stress_pa": 46694901.4,
+        "deflection_m": 0.00494
       },
       {
-        "y_m": 0.8165,
-        "depth_m": 0.2311,
-        "cap_area_m2": 0.000777,
-        "cap_width_m": 0.0809,
-        "cap_thickness_m": 0.0096,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 318151860.2,
-        "shear_stress_pa": 80813833.5,
-        "deflection_m": 0.01205
+        "y_m": 0.8195,
+        "depth_m": 0.232,
+        "cap_area_m2": 0.0008,
+        "cap_width_m": 0.0812,
+        "cap_thickness_m": 0.00985,
+        "web_thickness_m": 0.00264,
+        "bending_stress_pa": 299661197.0,
+        "shear_stress_pa": 46162018.4,
+        "deflection_m": 0.01119
       },
       {
-        "y_m": 1.0886,
-        "depth_m": 0.2242,
-        "cap_area_m2": 0.000696,
-        "cap_width_m": 0.0785,
-        "cap_thickness_m": 0.00887,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 315097297.6,
-        "shear_stress_pa": 76831436.8,
-        "deflection_m": 0.02157
+        "y_m": 1.0927,
+        "depth_m": 0.225,
+        "cap_area_m2": 0.000716,
+        "cap_width_m": 0.0788,
+        "cap_thickness_m": 0.00909,
+        "web_thickness_m": 0.00254,
+        "bending_stress_pa": 296857516.6,
+        "shear_stress_pa": 45549751.9,
+        "deflection_m": 0.02003
       },
       {
-        "y_m": 1.3607,
-        "depth_m": 0.2173,
-        "cap_area_m2": 0.000618,
-        "cap_width_m": 0.0761,
-        "cap_thickness_m": 0.00813,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 311676376.1,
-        "shear_stress_pa": 72731526.1,
-        "deflection_m": 0.03393
+        "y_m": 1.3659,
+        "depth_m": 0.2181,
+        "cap_area_m2": 0.000636,
+        "cap_width_m": 0.0763,
+        "cap_thickness_m": 0.00833,
+        "web_thickness_m": 0.00244,
+        "bending_stress_pa": 293746198.3,
+        "shear_stress_pa": 44841940.7,
+        "deflection_m": 0.03151
       },
       {
-        "y_m": 1.6329,
-        "depth_m": 0.2104,
-        "cap_area_m2": 0.000544,
-        "cap_width_m": 0.0736,
-        "cap_thickness_m": 0.00739,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 307821336.5,
-        "shear_stress_pa": 68513750.3,
-        "deflection_m": 0.04921
+        "y_m": 1.639,
+        "depth_m": 0.2111,
+        "cap_area_m2": 0.00056,
+        "cap_width_m": 0.0739,
+        "cap_thickness_m": 0.00758,
+        "web_thickness_m": 0.00234,
+        "bending_stress_pa": 290299853.8,
+        "shear_stress_pa": 44034637.3,
+        "deflection_m": 0.04569
       },
       {
-        "y_m": 1.905,
-        "depth_m": 0.2034,
-        "cap_area_m2": 0.000474,
-        "cap_width_m": 0.0712,
-        "cap_thickness_m": 0.00665,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 303427344.7,
-        "shear_stress_pa": 64172454.6,
-        "deflection_m": 0.06744
+        "y_m": 1.9122,
+        "depth_m": 0.2042,
+        "cap_area_m2": 0.000488,
+        "cap_width_m": 0.0715,
+        "cap_thickness_m": 0.00682,
+        "web_thickness_m": 0.00224,
+        "bending_stress_pa": 286430439.4,
+        "shear_stress_pa": 43104814.0,
+        "deflection_m": 0.06263
       },
       {
-        "y_m": 2.1772,
-        "depth_m": 0.1965,
-        "cap_area_m2": 0.000407,
-        "cap_width_m": 0.0688,
-        "cap_thickness_m": 0.00592,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 298374434.6,
-        "shear_stress_pa": 59709317.4,
-        "deflection_m": 0.0887
+        "y_m": 2.1854,
+        "depth_m": 0.1972,
+        "cap_area_m2": 0.000419,
+        "cap_width_m": 0.069,
+        "cap_thickness_m": 0.00608,
+        "web_thickness_m": 0.00214,
+        "bending_stress_pa": 282077209.3,
+        "shear_stress_pa": 42043942.4,
+        "deflection_m": 0.08238
       },
       {
-        "y_m": 2.4493,
-        "depth_m": 0.1896,
-        "cap_area_m2": 0.000345,
-        "cap_width_m": 0.0664,
-        "cap_thickness_m": 0.00521,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 292475568.4,
-        "shear_stress_pa": 55120022.0,
-        "deflection_m": 0.11303
+        "y_m": 2.4586,
+        "depth_m": 0.1902,
+        "cap_area_m2": 0.000356,
+        "cap_width_m": 0.0666,
+        "cap_thickness_m": 0.00534,
+        "web_thickness_m": 0.00203,
+        "bending_stress_pa": 277108934.9,
+        "shear_stress_pa": 40825017.2,
+        "deflection_m": 0.105
       },
       {
-        "y_m": 2.7215,
-        "depth_m": 0.1826,
-        "cap_area_m2": 0.000288,
-        "cap_width_m": 0.0639,
-        "cap_thickness_m": 0.0045,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 285487996.9,
-        "shear_stress_pa": 50406761.8,
-        "deflection_m": 0.14049
+        "y_m": 2.7317,
+        "depth_m": 0.1833,
+        "cap_area_m2": 0.000296,
+        "cap_width_m": 0.0641,
+        "cap_thickness_m": 0.00462,
+        "web_thickness_m": 0.00193,
+        "bending_stress_pa": 271395628.8,
+        "shear_stress_pa": 39432767.3,
+        "deflection_m": 0.13053
       },
       {
-        "y_m": 2.9936,
-        "depth_m": 0.1757,
-        "cap_area_m2": 0.000235,
-        "cap_width_m": 0.0615,
-        "cap_thickness_m": 0.00382,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 277039296.1,
-        "shear_stress_pa": 45567971.1,
-        "deflection_m": 0.17111
+        "y_m": 3.0049,
+        "depth_m": 0.1763,
+        "cap_area_m2": 0.000242,
+        "cap_width_m": 0.0617,
+        "cap_thickness_m": 0.00392,
+        "web_thickness_m": 0.00181,
+        "bending_stress_pa": 264699286.1,
+        "shear_stress_pa": 37832122.7,
+        "deflection_m": 0.15903
       },
       {
-        "y_m": 3.2658,
-        "depth_m": 0.1688,
-        "cap_area_m2": 0.000187,
-        "cap_width_m": 0.0591,
-        "cap_thickness_m": 0.00316,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 266598597.4,
-        "shear_stress_pa": 40608073.2,
-        "deflection_m": 0.20493
+        "y_m": 3.2781,
+        "depth_m": 0.1694,
+        "cap_area_m2": 0.000192,
+        "cap_width_m": 0.0593,
+        "cap_thickness_m": 0.00324,
+        "web_thickness_m": 0.0017,
+        "bending_stress_pa": 256689321.7,
+        "shear_stress_pa": 35985010.7,
+        "deflection_m": 0.19054
       },
       {
-        "y_m": 3.5379,
-        "depth_m": 0.1618,
-        "cap_area_m2": 0.000143,
-        "cap_width_m": 0.0566,
-        "cap_thickness_m": 0.00253,
-        "web_thickness_m": 0.0015,
-        "bending_stress_pa": 253352841.4,
-        "shear_stress_pa": 35533848.0,
-        "deflection_m": 0.24193
+        "y_m": 3.5513,
+        "depth_m": 0.1624,
+        "cap_area_m2": 0.000148,
+        "cap_width_m": 0.0568,
+        "cap_thickness_m": 0.0026,
+        "web_thickness_m": 0.00158,
+        "bending_stress_pa": 246896861.0,
+        "shear_stress_pa": 33854236.3,
+        "deflection_m": 0.22508
       },
       {
-        "y_m": 3.8101,
-        "depth_m": 0.1549,
-        "cap_area_m2": 0.000108,
-        "cap_width_m": 0.0542,
+        "y_m": 3.8245,
+        "depth_m": 0.1555,
+        "cap_area_m2": 0.000109,
+        "cap_width_m": 0.0544,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 231328573.7,
-        "shear_stress_pa": 30347538.6,
-        "deflection_m": 0.28209
+        "bending_stress_pa": 232279585.2,
+        "shear_stress_pa": 30468097.8,
+        "deflection_m": 0.26266
       },
       {
-        "y_m": 4.0823,
-        "depth_m": 0.148,
+        "y_m": 4.0976,
+        "depth_m": 0.1485,
         "cap_area_m2": 0.000104,
-        "cap_width_m": 0.0518,
+        "cap_width_m": 0.052,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 167962024.0,
-        "shear_stress_pa": 25073442.8,
-        "deflection_m": 0.32513
+        "bending_stress_pa": 168687257.8,
+        "shear_stress_pa": 25176019.4,
+        "deflection_m": 0.30305
       },
       {
-        "y_m": 4.3544,
-        "depth_m": 0.1411,
+        "y_m": 4.3708,
+        "depth_m": 0.1416,
         "cap_area_m2": 9.9e-05,
-        "cap_width_m": 0.0494,
+        "cap_width_m": 0.0495,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 112006761.8,
-        "shear_stress_pa": 19737049.8,
-        "deflection_m": 0.37046
+        "bending_stress_pa": 112477714.6,
+        "shear_stress_pa": 19816579.0,
+        "deflection_m": 0.34574
       },
       {
-        "y_m": 4.6265,
-        "depth_m": 0.1341,
+        "y_m": 4.644,
+        "depth_m": 0.1346,
         "cap_area_m2": 9.4e-05,
-        "cap_width_m": 0.0469,
+        "cap_width_m": 0.0471,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 65252776.8,
-        "shear_stress_pa": 14386838.6,
-        "deflection_m": 0.41741
+        "bending_stress_pa": 65514761.7,
+        "shear_stress_pa": 14443181.3,
+        "deflection_m": 0.39004
       },
       {
-        "y_m": 4.8987,
-        "depth_m": 0.1272,
+        "y_m": 4.9171,
+        "depth_m": 0.1276,
         "cap_area_m2": 8.9e-05,
-        "cap_width_m": 0.0445,
+        "cap_width_m": 0.0447,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 29705745.8,
-        "shear_stress_pa": 9100565.3,
-        "deflection_m": 0.4654
+        "bending_stress_pa": 29837729.0,
+        "shear_stress_pa": 9138340.0,
+        "deflection_m": 0.43533
       },
       {
-        "y_m": 5.1708,
-        "depth_m": 0.1203,
+        "y_m": 5.1903,
+        "depth_m": 0.1207,
         "cap_area_m2": 8.4e-05,
-        "cap_width_m": 0.0421,
+        "cap_width_m": 0.0422,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
-        "bending_stress_pa": 7617794.8,
-        "shear_stress_pa": 4051525.4,
-        "deflection_m": 0.51388
+        "bending_stress_pa": 7647056.6,
+        "shear_stress_pa": 4067008.3,
+        "deflection_m": 0.48114
       },
       {
-        "y_m": 5.443,
-        "depth_m": 0.1133,
-        "cap_area_m2": 7.9e-05,
-        "cap_width_m": 0.0397,
+        "y_m": 5.4635,
+        "depth_m": 0.1137,
+        "cap_area_m2": 8e-05,
+        "cap_width_m": 0.0398,
         "cap_thickness_m": 0.002,
         "web_thickness_m": 0.0015,
         "bending_stress_pa": 0.0,
         "shear_stress_pa": 0.0,
-        "deflection_m": 0.56256
+        "deflection_m": 0.52713
       }
     ]
   },
   "latest_geometry": {
     "fuselage": {
-      "length_m": 8.233,
+      "length_m": 8.247,
       "diameter_m": 1.22,
-      "nose_length_m": 1.811,
-      "cabin_length_m": 2.964,
-      "tailcone_length_m": 3.458
+      "nose_length_m": 1.814,
+      "cabin_length_m": 2.969,
+      "tailcone_length_m": 3.464
     },
     "wing": {
-      "span_m": 10.886,
-      "root_chord_m": 1.976,
-      "tip_chord_m": 0.889,
+      "span_m": 10.927,
+      "root_chord_m": 1.983,
+      "tip_chord_m": 0.892,
       "thickness_to_chord": 0.15,
-      "x_le_m": 2.635,
+      "x_le_m": 2.639,
       "z_m": 0.52,
       "dihedral_deg": 2.0,
       "position": "high"
     },
     "horizontal_tail": {
-      "span_m": 3.913,
-      "root_chord_m": 1.186,
-      "tip_chord_m": 0.771,
-      "x_le_m": 6.916,
+      "span_m": 3.932,
+      "root_chord_m": 1.191,
+      "tip_chord_m": 0.774,
+      "x_le_m": 6.928,
       "z_m": 0.15
     },
     "vertical_tail": {
-      "height_m": 1.593,
-      "root_chord_m": 1.285,
-      "tip_chord_m": 0.707,
-      "x_le_m": 6.716,
+      "height_m": 1.601,
+      "root_chord_m": 1.291,
+      "tip_chord_m": 0.71,
+      "x_le_m": 6.728,
       "z_m": 0.25
     },
     "propeller": {
@@ -713,18 +713,22 @@
     "Raymer 2ed, Ch. 3 (p. 22)",
     "Raymer 2ed, Eq. 3.11 (p. 23)",
     "Raymer 2ed, Eq. 3.4 (p. 12)",
+    "Raymer 2ed, Eq. 3.6 (p. 17)",
     "Raymer 2ed, Eq. 3.8 (p. 17)",
+    "Raymer 2ed, Eq. 5.2 (p. 81)",
     "Raymer 2ed, Eq. 5.6 (p. 85)",
-    "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)",
     "Raymer 2ed, Table 3.1 (p. 13)",
     "Raymer 2ed, Table 3.2 (p. 16)",
     "Raymer 2ed, Table 3.4 (p. 19)",
     "Raymer 2ed, Table 5.2 (p. 79)",
-    "Schrenk (1940) NACA TM 948 (Spanwise Lift Distribution)",
+    "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk's approximation",
     "knowledge/equations.yaml#schrenk_lift_distribution",
-    "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-    "knowledge/equations.yaml#ibeam_cap_sizing",
-    "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+    "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam",
+    "Raymer 2ed, Eq. 14.35 (p. 383)",
+    "Raymer 2ed, Eq. 14.36 (p. 384)",
+    "Raymer 2ed, Eq. 14.37 (p. 385)",
+    "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
+    "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
     "knowledge/tables/materials.yaml#al_2024_t3",
     "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
     "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
@@ -741,8 +745,14 @@
     "Stall wing loading at ISA sea-level density (1.225 kg/m^3)",
     "Ultimate manoeuvring load factor n_ult = 5.70",
     "Cantilever wing root at y = 0 m; aero lift carried 100% by main spar",
-    "Spar depth = 85% of local airfoil thickness",
-    "Minimum gauge constraints: cap >= 2.0 mm, web >= 1.5 mm",
+    "No inertia relief from wing structure or fuel (conservative)",
+    "Ultimate load = 1.5 x limit load (Raymer 2ed, p. 335)",
+    "Spar depth = 85% of local aerofoil thickness; cap width = 35% of depth",
+    "Caps sized at ultimate load to compression yield F_cy = 338 MPa (compression cap governs; crippling not modelled)",
+    "Tension cap margin against F_tu = 483 MPa: +0.57",
+    "Web: no shear failure (F_su = 234 MPa) and no shear buckling, unstiffened panel, K = 4.8 (classical long simply supported panel; Raymer gives K as a chart, Fig. 14.42)",
+    "Minimum gauges: cap >= 2.0 mm, web >= 1.5 mm (assumption)",
+    "Mass counts caps and web only: no stiffeners, ribs or fittings",
     "Tail moment arm = 52% of fuselage length",
     "Wing configuration: high wing",
     "Symmetric left/right main wing spars; root clamped face at y = 0 m",
@@ -750,12 +760,7 @@
     "Distributed Schrenk ultimate load applied along upper/lower cap nodes"
   ],
   "warnings": [
-    "Table entry not yet verified against the book: Raymer 2ed, Table 3.1 (p. 13)",
-    "Table entry not yet verified against the book: Raymer 2ed, Table 3.2 (p. 16)",
-    "Table entry not yet verified against the book: Raymer 2ed, Eq. 3.11 (p. 23)",
-    "Table entry not yet verified against the book: Raymer 2ed, Table 3.4 (p. 19)",
-    "Table entry not yet verified against the book: Raymer 2ed, Ch. 3 (p. 22)",
-    "Table entry not yet verified against the book: Raymer 2ed, Table 5.2 (p. 79)",
+    "Web shear buckling sets the web thickness at 14 of 21 stations",
     "Using placeholder STEP/STL geometry until CadQuery loft is enabled.",
     "Running stub FEA preview until CalculiX binary execution is enabled."
   ],
@@ -883,31 +888,31 @@
     "latest_sizing.mtow_kg": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 3.4 (p. 12): weight closure",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.empty_mass_kg": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.1 (p. 13): We/W0 = A W0^C",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.empty_fraction": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.1 (p. 13): We/W0 = A W0^C",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.fuel_mass_kg": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 3.11 (p. 23): Wf/W0 = 1.06 (1 - Wx/W0)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.fuel_fraction": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 3.11 (p. 23): Wf/W0 = 1.06 (1 - Wx/W0)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.statistical_spar_mass_kg": {
@@ -919,43 +924,43 @@
     "latest_sizing.segment_fractions.warmup_takeoff": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.2 (p. 16)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.segment_fractions.climb": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.2 (p. 16)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.segment_fractions.landing": {
       "kind": "table",
       "source": "Raymer 2ed, Table 3.2 (p. 16)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.segment_fractions.cruise": {
       "kind": "equation",
-      "source": "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18): Breguet range, propeller",
-      "verified": false,
+      "source": "Raymer 2ed, Eq. 3.6 (p. 17): Breguet range, propeller",
+      "verified": true,
       "warning": null
     },
     "latest_sizing.segment_fractions.loiter": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 3.8 (p. 17): loiter endurance at 0.866 L/D max",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.wing_loading_pa": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 5.6 (p. 85): W/S = 1/2 rho Vs^2 CLmax",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.wing_area_m2": {
       "kind": "equation",
       "source": "Raymer 2ed, Eq. 5.6 (p. 85): S = W0 g / (W/S)",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_sizing.span_m": {
@@ -984,55 +989,73 @@
     },
     "latest_sizing.cruise_power_w": {
       "kind": "equation",
-      "source": "P = (W0 g / (L/D)) V / eta_p, cruise T/W = 1/(L/D) (Raymer 2ed, Eq. 5.2)",
-      "verified": false,
+      "source": "Raymer 2ed, Eq. 5.2 (p. 81): P = (W0 g / (L/D)) V / eta_p",
+      "verified": true,
       "warning": null
     },
     "latest_sizing.installed_power_w": {
       "kind": "table",
       "source": "Raymer 2ed, Table 5.2 (p. 79): 0.07 hp/lb x MTOW",
-      "verified": false,
+      "verified": true,
       "warning": null
     },
     "latest_loads.root_shear_n": {
       "kind": "equation",
-      "source": "Schrenk (1940) NACA TM 948",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root",
       "verified": false,
       "warning": null
     },
     "latest_loads.root_moment_nm": {
       "kind": "equation",
-      "source": "Schrenk (1940) NACA TM 948",
+      "source": "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root",
       "verified": false,
       "warning": null
     },
     "latest_spar.mass_both_wings_kg": {
       "kind": "equation",
-      "source": "Megson, Ch. 9 (I-Beam Sizing)",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: cap + web volume x density, both wings",
       "verified": false,
+      "warning": null
+    },
+    "latest_spar.root_cap_area_m2": {
+      "kind": "equation",
+      "source": "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam: A_cap = M / (h F_cy)",
+      "verified": false,
+      "warning": null
+    },
+    "latest_spar.root_web_thickness_m": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 14.37 (p. 385): max(shear strength, no-buckling with K = 4.8, min gauge)",
+      "verified": true,
       "warning": null
     },
     "latest_spar.max_bending_stress_pa": {
       "kind": "equation",
-      "source": "Megson, Ch. 9 (I-Beam Sizing)",
-      "verified": false,
+      "source": "Raymer 2ed, Eq. 14.35 (p. 383): sigma = M z / I",
+      "verified": true,
+      "warning": null
+    },
+    "latest_spar.max_shear_stress_pa": {
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 14.36 (p. 384): tau = V / (d t_web)",
+      "verified": true,
       "warning": null
     },
     "latest_spar.allowable_yield_stress_pa": {
       "kind": "table",
-      "source": "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+      "source": "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
       "verified": true,
       "warning": null
     },
     "latest_spar.safety_margin": {
       "kind": "equation",
-      "source": "Megson, Ch. 9 (I-Beam Sizing)",
-      "verified": false,
+      "source": "Raymer 2ed, Eq. 14.35 (p. 383): F_cy / sigma_max - 1",
+      "verified": true,
       "warning": null
     },
     "latest_spar.tip_deflection_m": {
       "kind": "equation",
-      "source": "Euler-Bernoulli double integration of M/EI",
+      "source": "Euler-Bernoulli: double integration of M/(EI) from a clamped root",
       "verified": false,
       "warning": null
     }
@@ -1041,111 +1064,127 @@
     {
       "lap": 0,
       "stage": "preliminary",
-      "message": "Lap 0: MTOW = 1319.3 kg (+0.00%), Spar mass = 33.9 kg, Safety margin = +0.06",
+      "message": "Lap 0: MTOW = 1319.3 kg (+0.00%), Spar mass = 38.1 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
         "Raymer 2ed, Eq. 3.4 (p. 12)",
+        "Raymer 2ed, Eq. 3.6 (p. 17)",
         "Raymer 2ed, Eq. 3.8 (p. 17)",
+        "Raymer 2ed, Eq. 5.2 (p. 81)",
         "Raymer 2ed, Eq. 5.6 (p. 85)",
-        "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)",
         "Raymer 2ed, Table 3.1 (p. 13)",
         "Raymer 2ed, Table 3.2 (p. 16)",
         "Raymer 2ed, Table 3.4 (p. 19)",
         "Raymer 2ed, Table 5.2 (p. 79)",
-        "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-        "knowledge/equations.yaml#ibeam_cap_sizing",
-        "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+        "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam",
+        "Raymer 2ed, Eq. 14.35 (p. 383)",
+        "Raymer 2ed, Eq. 14.36 (p. 384)",
+        "Raymer 2ed, Eq. 14.37 (p. 385)",
+        "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
+        "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T13:41:43+00:00"
+      "timestamp": "2026-10-31T13:57:15+00:00"
     },
     {
       "lap": 1,
       "stage": "preliminary",
-      "message": "Lap 1: MTOW = 1252.8 kg (-5.04%), Spar mass = 31.7 kg, Safety margin = +0.06",
+      "message": "Lap 1: MTOW = 1262.3 kg (-4.32%), Spar mass = 35.7 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
         "Raymer 2ed, Eq. 3.4 (p. 12)",
+        "Raymer 2ed, Eq. 3.6 (p. 17)",
         "Raymer 2ed, Eq. 3.8 (p. 17)",
+        "Raymer 2ed, Eq. 5.2 (p. 81)",
         "Raymer 2ed, Eq. 5.6 (p. 85)",
-        "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)",
         "Raymer 2ed, Table 3.1 (p. 13)",
         "Raymer 2ed, Table 3.2 (p. 16)",
         "Raymer 2ed, Table 3.4 (p. 19)",
         "Raymer 2ed, Table 5.2 (p. 79)",
-        "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-        "knowledge/equations.yaml#ibeam_cap_sizing",
-        "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+        "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam",
+        "Raymer 2ed, Eq. 14.35 (p. 383)",
+        "Raymer 2ed, Eq. 14.36 (p. 384)",
+        "Raymer 2ed, Eq. 14.37 (p. 385)",
+        "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
+        "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T13:41:43+00:00"
+      "timestamp": "2026-10-31T13:57:15+00:00"
     },
     {
       "lap": 2,
       "stage": "preliminary",
-      "message": "Lap 2: MTOW = 1247.5 kg (-0.42%), Spar mass = 31.5 kg, Safety margin = +0.06",
+      "message": "Lap 2: MTOW = 1256.9 kg (-0.43%), Spar mass = 35.5 kg, Safety margin = +0.10",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
         "Raymer 2ed, Eq. 3.4 (p. 12)",
+        "Raymer 2ed, Eq. 3.6 (p. 17)",
         "Raymer 2ed, Eq. 3.8 (p. 17)",
+        "Raymer 2ed, Eq. 5.2 (p. 81)",
         "Raymer 2ed, Eq. 5.6 (p. 85)",
-        "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)",
         "Raymer 2ed, Table 3.1 (p. 13)",
         "Raymer 2ed, Table 3.2 (p. 16)",
         "Raymer 2ed, Table 3.4 (p. 19)",
         "Raymer 2ed, Table 5.2 (p. 79)",
-        "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-        "knowledge/equations.yaml#ibeam_cap_sizing",
-        "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+        "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam",
+        "Raymer 2ed, Eq. 14.35 (p. 383)",
+        "Raymer 2ed, Eq. 14.36 (p. 384)",
+        "Raymer 2ed, Eq. 14.37 (p. 385)",
+        "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
+        "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T13:41:43+00:00"
+      "timestamp": "2026-10-31T13:57:15+00:00"
     },
     {
       "lap": 2,
       "stage": "convergence",
-      "message": "Converged on lap 2: |\u0394MTOW| = 0.419% < 0.50% threshold.",
+      "message": "Converged on lap 2: |\u0394MTOW| = 0.428% < 0.50% threshold.",
       "citations": [
         "Raymer 2ed, Ch. 3 (p. 22)",
         "Raymer 2ed, Eq. 3.11 (p. 23)",
         "Raymer 2ed, Eq. 3.4 (p. 12)",
+        "Raymer 2ed, Eq. 3.6 (p. 17)",
         "Raymer 2ed, Eq. 3.8 (p. 17)",
+        "Raymer 2ed, Eq. 5.2 (p. 81)",
         "Raymer 2ed, Eq. 5.6 (p. 85)",
-        "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)",
         "Raymer 2ed, Table 3.1 (p. 13)",
         "Raymer 2ed, Table 3.2 (p. 16)",
         "Raymer 2ed, Table 3.4 (p. 19)",
         "Raymer 2ed, Table 5.2 (p. 79)",
-        "Schrenk (1940) NACA TM 948 (Spanwise Lift Distribution)",
+        "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk's approximation",
         "knowledge/equations.yaml#schrenk_lift_distribution",
-        "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-        "knowledge/equations.yaml#ibeam_cap_sizing",
-        "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)",
+        "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam",
+        "Raymer 2ed, Eq. 14.35 (p. 383)",
+        "Raymer 2ed, Eq. 14.36 (p. 384)",
+        "Raymer 2ed, Eq. 14.37 (p. 385)",
+        "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
+        "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3",
         "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
         "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T13:41:43+00:00"
+      "timestamp": "2026-10-31T13:57:15+00:00"
     },
     {
       "lap": 2,
       "stage": "detailed",
-      "message": "Detailed Spar FEA complete (CalculiX + gmsh (Stub Preview)): Peak von Mises = 372.8 MPa vs Beam Theory = 325.6 MPa (85.5% agreement).",
+      "message": "Detailed Spar FEA complete (CalculiX + gmsh (Stub Preview)): Peak von Mises = 327.9 MPa vs Beam Theory = 306.6 MPa (93.1% agreement).",
       "citations": [
         "CadQuery 3D Parametric I-Section Loft Generator (spiral.tools.cad)",
         "CalculiX CrunchiX 3D Linear Static Solver & gmsh Tetrahedral Mesher",
         "Megson Ch. 9 Euler-Bernoulli & Timoshenko Shear Comparison"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T13:41:43+00:00"
+      "timestamp": "2026-10-31T13:57:15+00:00"
     }
   ],
   "components": {
@@ -1157,171 +1196,171 @@
       "cad": {
         "step_path": "artifacts/spar.step",
         "stl_path": "artifacts/spar.stl",
-        "volume_single_wing_m3": 0.005662,
-        "cad_mass_both_wings_kg": 31.48,
+        "volume_single_wing_m3": 0.006413,
+        "cad_mass_both_wings_kg": 35.51,
         "bounding_box_m": {
-          "x_width_m": 0.0882,
-          "y_semi_span_m": 5.443,
-          "z_depth_m": 0.2519
+          "x_width_m": 0.0885,
+          "y_semi_span_m": 5.463,
+          "z_depth_m": 0.2528
         }
       },
       "fea": {
         "solver_name": "CalculiX + gmsh (Stub Preview)",
-        "fea_max_von_mises_pa": 372832600.9,
-        "fea_tip_deflection_m": 0.57831,
-        "beam_max_stress_pa": 325609056.7,
-        "beam_tip_deflection_m": 0.56256,
-        "stress_agreement_pct": 85.5,
+        "fea_max_von_mises_pa": 327893114.4,
+        "fea_tip_deflection_m": 0.54189,
+        "beam_max_stress_pa": 306649914.7,
+        "beam_tip_deflection_m": 0.52713,
+        "stress_agreement_pct": 93.07,
         "deflection_agreement_pct": 97.2,
-        "safety_margin_fea": -0.075,
+        "safety_margin_fea": 0.03,
         "stress_mesh_path": "artifacts/spar_stress_mesh.json",
         "stations": [
           {
             "y_m": 0.0,
-            "fea_von_mises_pa": 372832600.9,
-            "beam_stress_pa": 325609056.7,
+            "fea_von_mises_pa": 327893114.4,
+            "beam_stress_pa": 306649914.7,
             "fea_deflection_m": 0.0,
             "beam_deflection_m": 0.0
           },
           {
-            "y_m": 0.2722,
-            "fea_von_mises_pa": 368060114.1,
-            "beam_stress_pa": 323361354.3,
-            "fea_deflection_m": 0.00136,
-            "beam_deflection_m": 0.00132
+            "y_m": 0.2732,
+            "fea_von_mises_pa": 325605388.1,
+            "beam_stress_pa": 304536359.4,
+            "fea_deflection_m": 0.00126,
+            "beam_deflection_m": 0.00123
           },
           {
-            "y_m": 0.5443,
-            "fea_von_mises_pa": 363065570.3,
-            "beam_stress_pa": 320891131.9,
-            "fea_deflection_m": 0.00547,
-            "beam_deflection_m": 0.00532
+            "y_m": 0.5464,
+            "fea_von_mises_pa": 323076137.3,
+            "beam_stress_pa": 302211579.6,
+            "fea_deflection_m": 0.00508,
+            "beam_deflection_m": 0.00494
           },
           {
-            "y_m": 0.8165,
-            "fea_von_mises_pa": 357802558.5,
-            "beam_stress_pa": 318151860.2,
-            "fea_deflection_m": 0.01239,
-            "beam_deflection_m": 0.01205
+            "y_m": 0.8195,
+            "fea_von_mises_pa": 320289569.4,
+            "beam_stress_pa": 299661197.0,
+            "fea_deflection_m": 0.0115,
+            "beam_deflection_m": 0.01119
           },
           {
-            "y_m": 1.0886,
-            "fea_von_mises_pa": 346405029.7,
-            "beam_stress_pa": 315097297.6,
-            "fea_deflection_m": 0.02217,
-            "beam_deflection_m": 0.02157
+            "y_m": 1.0927,
+            "fea_von_mises_pa": 311467950.8,
+            "beam_stress_pa": 296857516.6,
+            "fea_deflection_m": 0.02059,
+            "beam_deflection_m": 0.02003
           },
           {
-            "y_m": 1.3607,
-            "fea_von_mises_pa": 340511247.9,
-            "beam_stress_pa": 311676376.1,
-            "fea_deflection_m": 0.03488,
-            "beam_deflection_m": 0.03393
+            "y_m": 1.3659,
+            "fea_von_mises_pa": 308102657.2,
+            "beam_stress_pa": 293746198.3,
+            "fea_deflection_m": 0.03239,
+            "beam_deflection_m": 0.03151
           },
           {
-            "y_m": 1.6329,
-            "fea_von_mises_pa": 334215972.2,
-            "beam_stress_pa": 307821336.5,
-            "fea_deflection_m": 0.05059,
-            "beam_deflection_m": 0.04921
+            "y_m": 1.639,
+            "fea_von_mises_pa": 304365462.5,
+            "beam_stress_pa": 290299853.8,
+            "fea_deflection_m": 0.04697,
+            "beam_deflection_m": 0.04569
           },
           {
-            "y_m": 1.905,
-            "fea_von_mises_pa": 327422090.3,
-            "beam_stress_pa": 303427344.7,
-            "fea_deflection_m": 0.06933,
-            "beam_deflection_m": 0.06744
+            "y_m": 1.9122,
+            "fea_von_mises_pa": 300160295.5,
+            "beam_stress_pa": 286430439.4,
+            "fea_deflection_m": 0.06438,
+            "beam_deflection_m": 0.06263
           },
           {
-            "y_m": 2.1772,
-            "fea_von_mises_pa": 320021501.2,
-            "beam_stress_pa": 298374434.6,
-            "fea_deflection_m": 0.09118,
-            "beam_deflection_m": 0.0887
+            "y_m": 2.1854,
+            "fea_von_mises_pa": 295424373.6,
+            "beam_stress_pa": 282077209.3,
+            "fea_deflection_m": 0.08469,
+            "beam_deflection_m": 0.08238
           },
           {
-            "y_m": 2.4493,
-            "fea_von_mises_pa": 311836678.8,
-            "beam_stress_pa": 292475568.4,
-            "fea_deflection_m": 0.11619,
-            "beam_deflection_m": 0.11303
+            "y_m": 2.4586,
+            "fea_von_mises_pa": 290017872.5,
+            "beam_stress_pa": 277108934.9,
+            "fea_deflection_m": 0.10794,
+            "beam_deflection_m": 0.105
           },
           {
-            "y_m": 2.7215,
-            "fea_von_mises_pa": 302637343.1,
-            "beam_stress_pa": 285487996.9,
-            "fea_deflection_m": 0.14442,
-            "beam_deflection_m": 0.14049
+            "y_m": 2.7317,
+            "fea_von_mises_pa": 283807429.2,
+            "beam_stress_pa": 271395628.8,
+            "fea_deflection_m": 0.13418,
+            "beam_deflection_m": 0.13053
           },
           {
-            "y_m": 2.9936,
-            "fea_von_mises_pa": 292061438.1,
-            "beam_stress_pa": 277039296.1,
-            "fea_deflection_m": 0.1759,
-            "beam_deflection_m": 0.17111
+            "y_m": 3.0049,
+            "fea_von_mises_pa": 276545216.4,
+            "beam_stress_pa": 264699286.1,
+            "fea_deflection_m": 0.16348,
+            "beam_deflection_m": 0.15903
           },
           {
-            "y_m": 3.2658,
-            "fea_von_mises_pa": 279589154.2,
-            "beam_stress_pa": 266598597.4,
-            "fea_deflection_m": 0.21067,
-            "beam_deflection_m": 0.20493
+            "y_m": 3.2781,
+            "fea_von_mises_pa": 267891168.6,
+            "beam_stress_pa": 256689321.7,
+            "fea_deflection_m": 0.19588,
+            "beam_deflection_m": 0.19054
           },
           {
-            "y_m": 3.5379,
-            "fea_von_mises_pa": 264415766.2,
-            "beam_stress_pa": 253352841.4,
-            "fea_deflection_m": 0.2487,
-            "beam_deflection_m": 0.24193
+            "y_m": 3.5513,
+            "fea_von_mises_pa": 257369083.8,
+            "beam_stress_pa": 246896861.0,
+            "fea_deflection_m": 0.23138,
+            "beam_deflection_m": 0.22508
           },
           {
-            "y_m": 3.8101,
-            "fea_von_mises_pa": 240610174.3,
-            "beam_stress_pa": 231328573.7,
-            "fea_deflection_m": 0.28999,
-            "beam_deflection_m": 0.28209
+            "y_m": 3.8245,
+            "fea_von_mises_pa": 241597753.4,
+            "beam_stress_pa": 232279585.2,
+            "fea_deflection_m": 0.27001,
+            "beam_deflection_m": 0.26266
           },
           {
-            "y_m": 4.0823,
-            "fea_von_mises_pa": 175926004.0,
-            "beam_stress_pa": 167962024.0,
-            "fea_deflection_m": 0.33423,
-            "beam_deflection_m": 0.32513
+            "y_m": 4.0976,
+            "fea_von_mises_pa": 176683193.9,
+            "beam_stress_pa": 168687257.8,
+            "fea_deflection_m": 0.31154,
+            "beam_deflection_m": 0.30305
           },
           {
-            "y_m": 4.3544,
-            "fea_von_mises_pa": 118715442.4,
-            "beam_stress_pa": 112006761.8,
-            "fea_deflection_m": 0.38083,
-            "beam_deflection_m": 0.37046
+            "y_m": 4.3708,
+            "fea_von_mises_pa": 119212878.1,
+            "beam_stress_pa": 112477714.6,
+            "fea_deflection_m": 0.35542,
+            "beam_deflection_m": 0.34574
           },
           {
-            "y_m": 4.6265,
-            "fea_von_mises_pa": 70764143.7,
-            "beam_stress_pa": 65252776.8,
-            "fea_deflection_m": 0.4291,
-            "beam_deflection_m": 0.41741
+            "y_m": 4.644,
+            "fea_von_mises_pa": 71047390.7,
+            "beam_stress_pa": 65514761.7,
+            "fea_deflection_m": 0.40096,
+            "beam_deflection_m": 0.39004
           },
           {
-            "y_m": 4.8987,
-            "fea_von_mises_pa": 34022987.6,
-            "beam_stress_pa": 29705745.8,
-            "fea_deflection_m": 0.47843,
-            "beam_deflection_m": 0.4654
+            "y_m": 4.9171,
+            "fea_von_mises_pa": 34172018.7,
+            "beam_stress_pa": 29837729.0,
+            "fea_deflection_m": 0.44752,
+            "beam_deflection_m": 0.43533
           },
           {
-            "y_m": 5.1708,
-            "fea_von_mises_pa": 10441712.2,
-            "beam_stress_pa": 7617794.8,
-            "fea_deflection_m": 0.52827,
-            "beam_deflection_m": 0.51388
+            "y_m": 5.1903,
+            "fea_von_mises_pa": 10481728.2,
+            "beam_stress_pa": 7647056.6,
+            "fea_deflection_m": 0.49461,
+            "beam_deflection_m": 0.48114
           },
           {
-            "y_m": 5.443,
+            "y_m": 5.4635,
             "fea_von_mises_pa": 0.0,
             "beam_stress_pa": 0.0,
-            "fea_deflection_m": 0.57831,
-            "beam_deflection_m": 0.56256
+            "fea_deflection_m": 0.54189,
+            "beam_deflection_m": 0.52713
           }
         ]
       },

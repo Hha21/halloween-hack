@@ -21,7 +21,7 @@ import math
 from typing import Any
 
 from spiral.contract import ConceptualSizingResult, MissionSpec, Provenance, ToolError, ToolResult
-from spiral.tools.lookup import lookup
+from spiral.tools.lookup import equation, lookup
 
 G = 9.80665  # m/s^2
 RHO_SL = 1.225  # kg/m^3, ISA sea level
@@ -188,11 +188,12 @@ def conceptual_sizing(
         },
     )
 
-    eq_closure = {"source": "Raymer 2ed, Eq. 3.4 (p. 12)", "verified": ew.get("verified")}
-    eq_breguet = {"source": "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)", "verified": sfc.get("verified")}
-    eq_loiter = {"source": "Raymer 2ed, Eq. 3.8 (p. 17)", "verified": loiter_ld.get("verified")}
-    eq_stall = {"source": "Raymer 2ed, Eq. 5.6 (p. 85)", "verified": False}
-    sources = sorted({r["source"] for r in (ew, seg, trapped, sfc, loiter_ld, hp_w, eq_closure, eq_breguet, eq_loiter, eq_stall)})
+    eq_closure = equation("weight_closure")
+    eq_breguet = equation("breguet_range_prop")
+    eq_loiter = equation("loiter_endurance_prop")
+    eq_stall = equation("stall_wing_loading")
+    eq_cruise = equation("cruise_thrust_matching")
+    sources = sorted({r["source"] for r in (ew, seg, trapped, sfc, loiter_ld, hp_w, eq_closure, eq_breguet, eq_loiter, eq_stall, eq_cruise)})
 
     return ToolResult(
         value=result,
@@ -223,7 +224,7 @@ def conceptual_sizing(
             "root_chord_m": Provenance("equation", "c_root = 2S / (b (1 + taper)) (trapezoidal wing)"),
             "tip_chord_m": Provenance("equation", "c_tip = taper x c_root (trapezoidal wing)"),
             "mac_m": Provenance("equation", "MAC = 2/3 c_root (1 + l + l^2)/(1 + l) (trapezoidal wing)"),
-            "cruise_power_w": Provenance("equation", "P = (W0 g / (L/D)) V / eta_p, cruise T/W = 1/(L/D) (Raymer 2ed, Eq. 5.2)", verified=False),
+            "cruise_power_w": _prov("equation", eq_cruise, "P = (W0 g / (L/D)) V / eta_p"),
             "installed_power_w": power_prov,
         },
     )

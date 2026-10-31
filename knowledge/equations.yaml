@@ -10,77 +10,77 @@ equations:
     latex: "W_0 = \\frac{W_{\\text{crew}} + W_{\\text{payload}}}{1 - (W_f / W_0) - (W_e / W_0)}"
     source: "Raymer 2ed, Eq. 3.4 (p. 12)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   empty_weight_fraction_ga:
     name: "Statistical empty-weight fraction (GA single engine)"
     latex: "\\frac{W_e}{W_0} = A \\cdot W_0^C \\quad (A = 2.36, C = -0.18, W_0 \\text{ in lb})"
     source: "Raymer 2ed, Table 3.1 (p. 13)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   breguet_range_prop:
     name: "Breguet cruise weight fraction (propeller, SI form)"
     latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{R \\cdot \\text{bsfc} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
     source: "Raymer 2ed, Eq. 3.6 (p. 17)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   prop_equivalent_sfc:
     name: "Propeller equivalent thrust SFC"
     latex: "C = C_{\\text{bhp}} \\frac{V}{550 \\eta_p}"
     source: "Raymer 2ed, Eq. 3.10 (p. 18)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   loiter_endurance_prop:
     name: "Loiter weight fraction (propeller, SI form)"
     latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{E \\cdot V \\cdot \\text{bsfc} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
     source: "Raymer 2ed, Eq. 3.8 (p. 17)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   fuel_fraction_allowance:
     name: "Total fuel fraction with 6% reserve and trapped fuel"
     latex: "\\frac{W_f}{W_0} = 1.06 \\left(1 - \\frac{W_x}{W_0}\\right)"
     source: "Raymer 2ed, Eq. 3.11 (p. 23)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   stall_wing_loading:
     name: "Stall-speed wing loading"
     latex: "\\frac{W}{S} = \\frac{1}{2} \\rho V_{\\text{stall}}^2 C_{L,\\max}"
     source: "Raymer 2ed, Eq. 5.6 (p. 85)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   cruise_thrust_matching:
     name: "Cruise thrust-to-weight equals 1/(L/D)"
     latex: "\\left(\\frac{T}{W}\\right)_{\\text{cruise}} = \\frac{1}{(L/D)_{\\text{cruise}}}"
     source: "Raymer 2ed, Eq. 5.2 (p. 81)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: false
+    verified: true
 
   schrenk_lift_distribution:
     name: "Schrenk spanwise lift approximation"
     latex: "L'(y) = \\frac{1}{2} \\left( L'_{\\text{elliptical}}(y) + L'_{\\text{planform}}(y) \\right)"
-    source: "Schrenk (1940), NACA TM 948 (not in our book set)"
+    source: "Raymer 2ed, Fig. 14.10 (p. 343)"
     tool: "spiral.tools.spar.spar_loads"
-    verified: false
+    verified: true
 
   beam_bending_stress:
     name: "Beam bending stress"
     latex: "\\sigma_x = \\frac{M z}{I_y}"
     source: "Raymer 2ed, Eq. 14.35 (p. 383)"
     tool: "spiral.tools.spar.size_spar"
-    verified: false
+    verified: true
 
   beam_shear_stress:
     name: "Beam shear stress"
     latex: "\\tau = \\frac{V}{b I_y} \\int_{z_1}^{h/2} z \\, dA"
     source: "Raymer 2ed, Eq. 14.36 (p. 384)"
     tool: "spiral.tools.spar.size_spar"
-    verified: false
+    verified: true
 
   ibeam_cap_sizing:
     name: "I-beam spar cap area and web shear sizing (idealised: caps carry bending, web carries shear)"
@@ -88,3 +88,10 @@ equations:
     source: "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam"
     tool: "spiral.tools.spar.size_spar"
     verified: false
+
+  web_shear_buckling:
+    name: "Shear buckling stress of a flat web panel"
+    latex: "F_{\\text{shear buckle}} = K E \\left(\\frac{t}{b}\\right)^2"
+    source: "Raymer 2ed, Eq. 14.37 (p. 385)"
+    tool: "spiral.tools.spar.size_spar"
+    verified: true

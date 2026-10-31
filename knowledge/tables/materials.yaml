@@ -1,28 +1,55 @@
-# Structural Materials Table (Owner: Harry)
-# All values in SI units (kg/m3, Pa).
+# Structural materials table (Owner: Harry). Read by spiral/tools/spar.py and cad.py.
+# SI values are converted from Raymer 2ed, Table 14.3 "Typical metal properties (room temperature)".
+# `as_printed` holds the numbers exactly as the book prints them (ksi, Msi, lb/in^3) so
+# `scripts/extract_knowledge.py check` can verify them; the SI row inherits that result.
+# Conversions: 1 ksi = 6.894757 MPa, 1 Msi = 6.894757 GPa, 1 lb/in^3 = 27,679.9 kg/m^3.
 
 al_2024_t3:
-  name: "Aluminium 2024-T3"
-  density_kg_m3: 2780.0
-  youngs_modulus_pa: 73100000000.0
-  poissons_ratio: 0.33
-  yield_strength_pa: 345000000.0
-  ultimate_strength_pa: 483000000.0
-  shear_strength_pa: 283000000.0
-  min_cap_thickness_m: 0.0020
+  name: "Aluminium 2024 (clad), extrusions"
+  density_kg_m3: 2768.0
+  youngs_modulus_pa: 74460000000.0
+  shear_modulus_pa: 28270000000.0
+  poissons_ratio: 0.33  # not in Table 14.3: typical aluminium value (assumption)
+  yield_strength_pa: 358500000.0  # F_ty
+  ultimate_strength_pa: 482600000.0  # F_tu
+  compression_yield_strength_pa: 337800000.0  # F_cy: governs the compression cap
+  shear_strength_pa: 234400000.0  # F_su
+  min_cap_thickness_m: 0.0020  # minimum gauges: assumption, not from the book
   min_web_thickness_m: 0.0015
-  source: "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)"
+  source: "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
   verified: true
+  as_printed:
+    density_lb_in3: 0.100
+    ftu_ksi: 70
+    fty_ksi: 52
+    fcy_ksi: 49
+    fsu_ksi: 34
+    e_msi: 10.8
+    g_msi: 4.1
+    source: "Raymer 2ed, Table 14.3 (p. 366)"
+    verified: true
 
 al_7075_t6:
-  name: "Aluminium 7075-T6"
-  density_kg_m3: 2810.0
-  youngs_modulus_pa: 71700000000.0
-  poissons_ratio: 0.33
-  yield_strength_pa: 503000000.0
-  ultimate_strength_pa: 572000000.0
-  shear_strength_pa: 331000000.0
+  name: "Aluminium 7075-T6 (clad), sheet"
+  density_kg_m3: 2795.7
+  youngs_modulus_pa: 71020000000.0
+  shear_modulus_pa: 26890000000.0
+  poissons_ratio: 0.33  # assumption
+  yield_strength_pa: 441300000.0  # F_ty
+  ultimate_strength_pa: 496400000.0  # F_tu
+  compression_yield_strength_pa: 434400000.0  # F_cy
+  shear_strength_pa: 296500000.0  # F_su
   min_cap_thickness_m: 0.0020
   min_web_thickness_m: 0.0015
-  source: "MIL-HDBK-5J / MMPDS-01, Table 3.7.4.0(b)"
+  source: "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 7075-T6 sheet"
   verified: true
+  as_printed:
+    density_lb_in3: 0.101
+    ftu_ksi: 72
+    fty_ksi: 64
+    fcy_ksi: 63
+    fsu_ksi: 43
+    e_msi: 10.3
+    g_msi: 3.9
+    source: "Raymer 2ed, Table 14.3 (p. 366)"
+    verified: true

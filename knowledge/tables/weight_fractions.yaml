@@ -10,18 +10,18 @@ ga_single_engine:
     w0_units: lb
     note: "We/W0 = A * W0^C with W0 in lb (row: General aviation - single engine)"
     source: "Raymer 2ed, Table 3.1 (p. 13)"
-    verified: false
+    verified: true
   segment_weight_fractions:
     warmup_takeoff: 0.970
     climb: 0.985
     landing: 0.995
     source: "Raymer 2ed, Table 3.2 (p. 16)"
-    verified: false
+    verified: true
   trapped_reserve_allowance:
     multiplier: 1.06
     note: "Wf/W0 = 1.06 * (1 - Wx/W0): 6% for reserve and trapped fuel"
     source: "Raymer 2ed, Eq. 3.11 (p. 23)"
-    verified: false
+    verified: true
   propeller_sfc:
     # Piston-prop, fixed pitch. Cbhp in (lb/hr)/hp.
     cruise_cbhp: 0.4
@@ -29,17 +29,17 @@ ga_single_engine:
     loiter_cbhp: 0.5
     loiter_eta_p: 0.7
     source: "Raymer 2ed, Table 3.4 (p. 19)"
-    verified: false
+    verified: true
   loiter_ld_factor:
     value: 0.866
     note: "Propeller aircraft loiter most efficiently at 86.6% of L/D max; they cruise at L/D max"
     source: "Raymer 2ed, Ch. 3 (p. 22)"
-    verified: false
+    verified: true
   hp_to_weight:
     hp_per_lb: 0.07
     note: "Statistical installed power check (row: General aviation - single engine)"
     source: "Raymer 2ed, Table 5.2 (p. 79)"
-    verified: false
+    verified: true
   statistical_spar_share_of_empty:
     fraction: 0.085
     note: "Lap-0 guess for the main spar's share of empty weight, replaced by the sized spar from lap 1"

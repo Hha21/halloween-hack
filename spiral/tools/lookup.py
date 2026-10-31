@@ -51,6 +51,18 @@ _FALLBACK_TABLES: dict[str, dict[str, dict[str, Any]]] = {
 }
 
 
+def equation(key: str) -> dict[str, Any]:
+    """Row `key` of knowledge/equations.yaml (name, latex, source, verified); a stub if missing."""
+    try:
+        import yaml  # type: ignore
+
+        data = yaml.safe_load((KNOWLEDGE_TABLES_DIR.parent / "equations.yaml").read_text(encoding="utf-8")) or {}
+        row = (data.get("equations") or {}).get(key)
+    except (ImportError, OSError):
+        row = None
+    return dict(row) if row else {"name": key, "source": f"knowledge/equations.yaml#{key}", "verified": False}
+
+
 def lookup(table: str, key: str) -> ToolResult[dict[str, Any]]:
     """Read `knowledge/tables/{table}.yaml` and return `key` with its citation."""
     table_path = KNOWLEDGE_TABLES_DIR / f"{table}.yaml"

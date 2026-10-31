@@ -12,7 +12,7 @@ ga_single_engine:
     min_valid: 6.0
     max_valid: 10.0
     source: "Raymer 2ed, Table 4.1 (p. 51)"
-    verified: false
+    verified: true
   taper_ratio:
     # Raymer p. 55: unswept wings typically 0.4-0.5; p. 56: 0.45 gives a near-elliptical lift distribution.
     # Valid range kept wide: rectangular (1.0) wings are common on GA aircraft.
@@ -20,7 +20,7 @@ ga_single_engine:
     min_valid: 0.2
     max_valid: 1.0
     source: "Raymer 2ed, Ch. 4 (p. 56)"
-    verified: false
+    verified: true
   thickness_to_chord:
     # Read from a trend chart (t/c vs design Mach), so the number can't be checked automatically.
     typical: 0.15
@@ -39,4 +39,4 @@ ga_single_engine:
     c_ht: 0.70
     c_vt: 0.04
     source: "Raymer 2ed, Table 6.4 (p. 112)"
-    verified: false
+    verified: true

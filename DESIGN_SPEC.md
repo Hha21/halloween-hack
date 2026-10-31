@@ -469,7 +469,7 @@ Stream order: `/api/spiral/stream` sends `log`/`lap` pairs, then exactly one of 
 1. **Intake:** parse description → `MissionSpec`. State every default chosen in `defaulted_fields`. User confirms.
 2. **Layout:** retrieve heuristics, log cited choices.
 3. **Spiral:** `conceptual_sizing` → `spar_loads` → `size_spar` → `aircraft_geometry` → loop with `spar_mass_kg`, until converged ($|\Delta \text{MTOW}| < 0.5\%$) or infeasible.
-4. **If infeasible:** Gemini reads `infeasible_reason` and `history` and proposes **one** `SpecRelaxationProposal` with reasoning (e.g. "range 5,570 km → 4,790 km closes at 2,715 kg"). Python computes the numbers by re-running the spiral (bisection on range); Gemini only writes the reasoning. User accepts → re-run.
+4. **If infeasible:** Gemini reads `infeasible_reason` and `history` and proposes **one** `SpecRelaxationProposal` with reasoning (e.g. "range 5,570 km → 4,660 km closes at 2,720 kg"). Python computes the numbers by re-running the spiral (bisection on range); Gemini only writes the reasoning. User accepts → re-run.
 5. **Detailed:** on user click, `build_spar_cad` → `run_fea` → compare with beam theory.
 6. **Report:** narrative from `DesignState` only. Gemini may not introduce numbers that aren't in the state.
 
@@ -490,7 +490,7 @@ Stream order: `/api/spiral/stream` sends `log`/`lap` pairs, then exactly one of 
 
 1. **Problem (30 s):** the design spiral, weeks per lap.
 2. **Live (90 s):** type the touring-aircraft description → spec form appears with defaults explained → workspace: the aircraft morphs, MTOW converges on the plot, log fills with cited decisions → Detailed: click the wing spar → stress-coloured part, FEA vs beam theory.
-3. **Twist (30 s):** "Make it fly London to New York non-stop" (5,570 km). MTOW settles at about 3.3 t, above the single-engine class limit; the agent explains why and proposes the nearest feasible mission (4,790 km at 2,715 kg). (2,500 km closes at about 1.66 t, so it is not a failure case.)
+3. **Twist (30 s):** "Make it fly London to New York non-stop" (5,570 km). MTOW climbs lap by lap (3.38 → 3.48 t) as the sized spar feeds back, ending above the single-engine class limit; the agent explains why and proposes the nearest feasible mission (4,660 km at 2,720 kg). (2,500 km closes at about 1.66 t, so it is not a failure case.)
 4. **Close (30 s):** traceability (hover any number → its source), who it's for (small aircraft startups, student design teams, early trade studies), next steps (more components, higher fidelity, export to real CAD tools).
 
 ## 12. Risks and fallbacks

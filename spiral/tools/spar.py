@@ -29,7 +29,7 @@ from spiral.contract import (
     SparStationSection,
     ToolResult,
 )
-from spiral.tools.lookup import lookup
+from spiral.tools.lookup import equation, lookup
 
 
 def spar_loads(
@@ -40,9 +40,10 @@ def spar_loads(
     n_ult: float,
     n_stations: int = 21,
 ) -> ToolResult[SparLoadsResult]:
-    """Placeholder/stub for Schrenk spanwise lift, shear, and bending moment.
+    """Schrenk spanwise lift at ultimate load, integrated tip to root for shear and bending.
 
-    TODO (Harry): Verify numerical integration and structural relief assumptions if desired.
+    Schrenk's approximation (Raymer 2ed, Fig. 14.10, p. 343): lift per unit span is the average of
+    an elliptical distribution and one proportional to local chord, each carrying half the total.
     """
     g = 9.80665
     semi_span_m = span_m / 2.0
@@ -93,19 +94,27 @@ def spar_loads(
     return ToolResult(
         value=result,
         sources=[
-            "Schrenk (1940) NACA TM 948 (Spanwise Lift Distribution)",
+            "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk's approximation",
             "knowledge/equations.yaml#schrenk_lift_distribution",
         ],
         assumptions=[
             f"Ultimate manoeuvring load factor n_ult = {n_ult:.2f}",
             "Cantilever wing root at y = 0 m; aero lift carried 100% by main spar",
+            "No inertia relief from wing structure or fuel (conservative)",
+            "Ultimate load = 1.5 x limit load (Raymer 2ed, p. 335)",
         ],
         warnings=[],
         provenance={
-            "root_shear_n": Provenance("equation", "Schrenk (1940) NACA TM 948", verified=False),
-            "root_moment_nm": Provenance("equation", "Schrenk (1940) NACA TM 948", verified=False),
+            "root_shear_n": Provenance("equation", "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root", verified=False),
+            "root_moment_nm": Provenance("equation", "Raymer 2ed, Fig. 14.10 (p. 343): Schrenk lift, integrated tip to root", verified=False),
         },
     )
+
+
+# Shear-buckling coefficient for a long, simply supported flat web panel in F = K E (t/b)^2 form.
+# Raymer gives K as a chart (Fig. 14.42, p. 386); 4.8 is the classical value (k_s = 5.35 with
+# K = k_s pi^2 / (12 (1 - nu^2))), so it stays a flagged assumption.
+WEB_SHEAR_BUCKLING_K = 4.8
 
 
 def size_spar(
@@ -113,43 +122,53 @@ def size_spar(
     thickness_to_chord: float,
     material_key: str = "al_2024_t3",
 ) -> ToolResult[SparSizingResult]:
-    """Placeholder/stub for preliminary I-section spar sizing and beam deflection.
+    """Preliminary I-section spar sizing at ultimate load, with beam deflection (Raymer 2ed, Ch. 14).
 
-    TODO (Harry): Refine flange/web geometry rules, buckling checks, and deflection integration.
+    Caps carry all the bending and the web all the shear (Raymer p. 385). In positive g the top cap
+    is in compression and governs a symmetric I-beam, so caps are sized to compression yield F_cy
+    (crippling isn't modelled, so F_cy is an upper bound). The tension margin against F_tu is
+    reported separately. The web must neither fail in shear (F_su) nor buckle (Eq. 14.37,
+    unstiffened panel of height = spar depth). Minimum gauges apply throughout.
     """
     mat_lookup = lookup("materials", material_key)
     mat = mat_lookup.value
     rho = float(mat["density_kg_m3"])
     e_mod = float(mat["youngs_modulus_pa"])
-    sigma_allow = float(mat["yield_strength_pa"])
+    sigma_allow = float(mat.get("compression_yield_strength_pa", mat["yield_strength_pa"]))
+    sigma_tu = float(mat.get("ultimate_strength_pa", sigma_allow))
     tau_allow = float(mat["shear_strength_pa"])
     min_cap_t = float(mat.get("min_cap_thickness_m", 0.002))
     min_web_t = float(mat.get("min_web_thickness_m", 0.0015))
 
     sections: list[SparStationSection] = []
     curvatures: list[float] = []
+    web_buckling_governs = 0
 
     for st in loads.stations:
-        # Spar depth = 85% of local airfoil thickness
+        # Spar depth = 85% of local aerofoil thickness; cap width 35% of depth.
         depth_m = max(0.85 * thickness_to_chord * st.chord_m, 0.04)
         cap_width_m = max(0.35 * depth_m, 0.03)
 
         h_eff = max(depth_m * 0.90, 0.03)
-        req_cap_area = abs(st.moment_nm) / (h_eff * sigma_allow) if h_eff > 0 else 0.0
+        req_cap_area = abs(st.moment_nm) / (h_eff * sigma_allow)
         cap_t = max(req_cap_area / cap_width_m, min_cap_t)
         cap_area_m2 = cap_width_m * cap_t
 
-        req_web_t = abs(st.shear_n) / (depth_m * tau_allow) if depth_m > 0 else 0.0
-        web_t = max(req_web_t, min_web_t)
+        # Web: shear strength  t >= V / (d F_su);  no buckling  V/(d t) <= K E (t/d)^2  ->  t^3 >= V d / (K E)
+        t_shear = abs(st.shear_n) / (depth_m * tau_allow)
+        t_buckle = (abs(st.shear_n) * depth_m / (WEB_SHEAR_BUCKLING_K * e_mod)) ** (1.0 / 3.0)
+        web_t = max(t_shear, t_buckle, min_web_t)
+        if t_buckle >= max(t_shear, min_web_t) and st.shear_n > 0:
+            web_buckling_governs += 1
 
-        # Second moment of area I_xx for idealised I-beam
+        # Second moment of area of the idealised I-beam (Raymer Eq. 14.35: sigma = M z / I)
         h_web = max(depth_m - 2.0 * cap_t, 0.01)
-        i_xx = (web_t * (h_web**3)) / 12.0 + 2.0 * cap_area_m2 * ((0.5 * depth_m - 0.5 * cap_t) ** 2)
+        i_xx = (web_t * h_web**3) / 12.0 + 2.0 * cap_area_m2 * (0.5 * depth_m - 0.5 * cap_t) ** 2
 
-        bending_stress_pa = (abs(st.moment_nm) * (0.5 * depth_m)) / i_xx if i_xx > 0 else 0.0
+        bending_stress_pa = abs(st.moment_nm) * (0.5 * depth_m) / i_xx
         shear_stress_pa = abs(st.shear_n) / (depth_m * web_t)
 
-        curvatures.append(st.moment_nm / (e_mod * i_xx) if i_xx > 0 else 0.0)
+        curvatures.append(st.moment_nm / (e_mod * i_xx))
         sections.append(
             SparStationSection(
                 y_m=st.y_m,
@@ -164,17 +183,14 @@ def size_spar(
             )
         )
 
-    # Double integrate curvature from root (clamped: dw/dy=0, w=0 at y=0)
+    # Double-integrate curvature from the root (clamped: w = dw/dy = 0 at y = 0)
     slopes = [0.0] * len(sections)
     for i in range(1, len(sections)):
         dy = sections[i].y_m - sections[i - 1].y_m
         slopes[i] = slopes[i - 1] + 0.5 * (curvatures[i - 1] + curvatures[i]) * dy
-        sections[i].deflection_m = round(
-            sections[i - 1].deflection_m + 0.5 * (slopes[i - 1] + slopes[i]) * dy,
-            5,
-        )
+        sections[i].deflection_m = round(sections[i - 1].deflection_m + 0.5 * (slopes[i - 1] + slopes[i]) * dy, 5)
 
-    # Integrate mass along one semi-span, then double for both wings
+    # Integrate cap + web volume along one semi-span, then double for both wings
     semi_span_volume_m3 = 0.0
     for i in range(1, len(sections)):
         dy = sections[i].y_m - sections[i - 1].y_m
@@ -188,6 +204,7 @@ def size_spar(
     max_bending_pa = max(s.bending_stress_pa for s in sections)
     max_shear_pa = max(s.shear_stress_pa for s in sections)
     safety_margin = (sigma_allow / max_bending_pa - 1.0) if max_bending_pa > 0 else 1.0
+    tension_margin = (sigma_tu / max_bending_pa - 1.0) if max_bending_pa > 0 else 1.0
 
     root = sections[0]
     tip = sections[-1]
@@ -210,26 +227,47 @@ def size_spar(
         stations=sections,
     )
 
+    eq_bend = equation("beam_bending_stress")
+    eq_shear = equation("beam_shear_stress")
+    eq_buckle = equation("web_shear_buckling")
+    eq_caps = equation("ibeam_cap_sizing")
+    mat_prov = Provenance(
+        "table", str(mat.get("source", f"knowledge/tables/materials.yaml#{material_key}")), verified=bool(mat.get("verified", False))
+    )
+
+    def prov(row: dict, what: str) -> Provenance:
+        return Provenance("equation", f"{row['source']}: {what}", verified=bool(row.get("verified", False)))
+
     return ToolResult(
         value=result,
         sources=[
-            "Megson, Aircraft Structures for Engineering Students, Ch. 9 (I-Beam Sizing)",
-            "knowledge/equations.yaml#ibeam_cap_sizing",
+            eq_caps["source"],
+            eq_bend["source"],
+            eq_shear["source"],
+            eq_buckle["source"],
+            "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
             *mat_lookup.sources,
         ],
         assumptions=[
-            "Spar depth = 85% of local airfoil thickness",
-            f"Minimum gauge constraints: cap >= {min_cap_t*1e3:.1f} mm, web >= {min_web_t*1e3:.1f} mm",
+            "Spar depth = 85% of local aerofoil thickness; cap width = 35% of depth",
+            f"Caps sized at ultimate load to compression yield F_cy = {sigma_allow / 1e6:.0f} MPa (compression cap governs; crippling not modelled)",
+            f"Tension cap margin against F_tu = {sigma_tu / 1e6:.0f} MPa: {tension_margin:+.2f}",
+            f"Web: no shear failure (F_su = {tau_allow / 1e6:.0f} MPa) and no shear buckling, unstiffened panel, "
+            f"K = {WEB_SHEAR_BUCKLING_K} (classical long simply supported panel; Raymer gives K as a chart, Fig. 14.42)",
+            f"Minimum gauges: cap >= {min_cap_t * 1e3:.1f} mm, web >= {min_web_t * 1e3:.1f} mm (assumption)",
+            "Mass counts caps and web only: no stiffeners, ribs or fittings",
         ],
-        warnings=list(mat_lookup.warnings),
+        warnings=list(mat_lookup.warnings)
+        + ([f"Web shear buckling sets the web thickness at {web_buckling_governs} of {len(sections)} stations"]
+           if web_buckling_governs else []),
         provenance={
-            "mass_both_wings_kg": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
-            "max_bending_stress_pa": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
-            "allowable_yield_stress_pa": Provenance(
-                "table", str(mat.get("source", f"knowledge/tables/materials.yaml#{material_key}")),
-                verified=bool(mat.get("verified", False)),
-            ),
-            "safety_margin": Provenance("equation", "Megson, Ch. 9 (I-Beam Sizing)", verified=False),
-            "tip_deflection_m": Provenance("equation", "Euler-Bernoulli double integration of M/EI", verified=False),
+            "mass_both_wings_kg": prov(eq_caps, "cap + web volume x density, both wings"),
+            "root_cap_area_m2": prov(eq_caps, "A_cap = M / (h F_cy)"),
+            "root_web_thickness_m": prov(eq_buckle, f"max(shear strength, no-buckling with K = {WEB_SHEAR_BUCKLING_K}, min gauge)"),
+            "max_bending_stress_pa": prov(eq_bend, "sigma = M z / I"),
+            "max_shear_stress_pa": prov(eq_shear, "tau = V / (d t_web)"),
+            "allowable_yield_stress_pa": mat_prov,
+            "safety_margin": prov(eq_bend, "F_cy / sigma_max - 1"),
+            "tip_deflection_m": Provenance("equation", "Euler-Bernoulli: double integration of M/(EI) from a clamped root", verified=False),
         },
     )
