@@ -374,71 +374,115 @@ def parse_intake_description(description: str) -> ToolResult[MissionSpec]:
     return result
 
 
+def _describe_option(c: SpecRelaxationProposal) -> str:
+    """One clause describing a computed option, e.g. 'range 5,570 -> 4,670 km (2,719 kg)'."""
+    mtow = f"{c.estimated_mtow_kg:,.0f} kg" if c.estimated_mtow_kg else "inside the limit"
+    if c.field_name == "range_m":
+        return f"cut the range from {c.old_value / 1000:,.0f} km to {c.new_value / 1000:,.0f} km (closes at {mtow})"
+    if c.field_name == "passenger_count":
+        n = int(c.new_value)
+        return f"carry {n} passenger{'s' if n != 1 else ''} instead of {int(c.old_value)} (closes at {mtow})"
+    return f"change {c.field_name} from {c.old_value:g} to {c.new_value:g} {c.unit} (closes at {mtow})"
+
+
+def _option_cost(state: DesignState, c: SpecRelaxationProposal) -> float:
+    """How much of the mission an option gives up, as a fraction (used when Gemini can't choose)."""
+    if c.field_name == "range_m":
+        return 1.0 - c.new_value / c.old_value
+    if c.field_name == "passenger_count":
+        spec = state.spec
+        return (c.old_value - c.new_value) * spec.person_mass_kg / max(spec.payload_mass_kg, 1.0)
+    return 1.0
+
+
 def propose_infeasible_relaxation(
-    state: DesignState, candidate: SpecRelaxationProposal | None
+    state: DesignState, candidates: list[SpecRelaxationProposal] | SpecRelaxationProposal | None
 ) -> SpecRelaxationProposal | None:
-    """Explain the one relaxation that makes the spiral close.
+    """Choose and explain one of the relaxations Python has verified to close the spiral.
 
-    The numbers (new value, MTOW at that value) come from `candidate`, which the orchestrator
-    computed by re-running the spiral; this only writes the reasoning around them.
-
-    Gemini (prompts/infeasible.md) writes the explanation from a digest of those numbers, and it is
-    used only if every number in it is in the digest (one retry naming the rejected numbers).
-    Otherwise, or offline, a deterministic explanation is used.
+    `candidates` were computed by the orchestrator by re-running the spiral (e.g. the longest range
+    that closes, and the most passengers that close). Gemini (prompts/infeasible.md) reads the
+    user's description and picks the option that best keeps what they asked for, then explains it;
+    its text is used only if every number in it passes the number check. Offline, or if Gemini
+    fails, the option that gives up the smallest share of the mission is chosen.
     """
-    if candidate is None:
+    if isinstance(candidates, SpecRelaxationProposal):
+        candidates = [candidates]
+    options = [c for c in (candidates or []) if c is not None]
+    if not options:
         return None
-    old_km, new_km = candidate.old_value / 1000.0, candidate.new_value / 1000.0
-    mtow = f"{candidate.estimated_mtow_kg:,.0f} kg" if candidate.estimated_mtow_kg else "an MTOW inside the limit"
-    candidate.reasoning = (
-        f"{state.infeasible_reason} Keeping everything else in the spec, the longest range that closes is "
-        f"{new_km:,.0f} km (down from {old_km:,.0f} km), where the spiral converges at {mtow}. "
-        "Both numbers come from re-running the full spiral at the new range."
+
+    chosen = min(options, key=lambda c: _option_cost(state, c))
+    others = [c for c in options if c is not chosen]
+    chosen.reasoning = (
+        f"{state.infeasible_reason} Keeping everything else in the spec, the smallest change that closes is to "
+        f"{_describe_option(chosen)}."
+        + (f" Alternative: {'; or '.join(_describe_option(o) for o in others)}." if others else "")
+        + " Every number comes from re-running the full spiral."
     )
     if gemini_unavailable_reason() is None:
         try:
-            text = _gemini_relaxation_reasoning(state, candidate)
-            if text:
-                candidate.reasoning = text
-        except Exception:  # noqa: BLE001 - keep the deterministic explanation
+            pick = _gemini_choose_relaxation(state, options)
+            if pick is not None:
+                index, text = pick
+                options[index].reasoning = text
+                chosen = options[index]
+        except Exception:  # noqa: BLE001 - keep the deterministic choice and explanation
             pass
-    return candidate
+    return chosen
 
 
-def _relaxation_digest(state: DesignState, candidate: SpecRelaxationProposal) -> dict[str, Any]:
+def _relaxation_digest(state: DesignState, options: list[SpecRelaxationProposal]) -> dict[str, Any]:
     limit = _class_limit()
     digest: dict[str, Any] = {
+        "users_description": state.spec.raw_description or "",
         "why_it_failed": state.infeasible_reason or "",
         "mtow_per_lap_kg": [round(h.mtow_kg) for h in state.history],
         "spar_mass_per_lap_kg": [round(h.spar_mass_kg, 1) for h in state.history],
-        "mission_range_km": round(candidate.old_value / 1000.0),
-        "proposed_range_km": round(candidate.new_value / 1000.0),
-        "range_reduction_pct": round(100.0 * (1.0 - candidate.new_value / candidate.old_value), 1),
-        "mtow_after_change_kg": round(candidate.estimated_mtow_kg or 0.0),
     }
     if limit:
         digest["class_limit_kg"] = round(float(limit.get("max_kg", 0.0)))
     if state.latest_sizing is not None:
         digest["fuel_fraction_pct"] = round(100.0 * state.latest_sizing.fuel_fraction, 1)
+    verified = []
+    for i, c in enumerate(options):
+        item: dict[str, Any] = {"option": i, "field": c.field_name, "mtow_after_change_kg": round(c.estimated_mtow_kg or 0.0)}
+        if c.field_name == "range_m":
+            item.update(from_km=round(c.old_value / 1000.0), to_km=round(c.new_value / 1000.0),
+                        reduction_pct=round(100.0 * (1.0 - c.new_value / c.old_value), 1))
+        else:
+            item.update(passengers_before=int(c.old_value), passengers_after=int(c.new_value))
+        verified.append(item)
+    digest["verified_options"] = verified
     return digest
 
 
-def _gemini_relaxation_reasoning(state: DesignState, candidate: SpecRelaxationProposal) -> str:
-    digest = _relaxation_digest(state, candidate)
+def _gemini_choose_relaxation(state: DesignState, options: list[SpecRelaxationProposal]) -> tuple[int, str] | None:
+    digest = _relaxation_digest(state, options)
     allowed = _allowed_numbers(digest)
     system_prompt = (PROMPTS_DIR / "infeasible.md").read_text(encoding="utf-8")
-    schema = {"type": "object", "properties": {"reasoning": {"type": "string"}}, "required": ["reasoning"]}
+    schema = {
+        "type": "object",
+        "properties": {
+            "choice": {"type": "integer", "description": "The `option` number you recommend."},
+            "reasoning": {"type": "string"},
+        },
+        "required": ["choice", "reasoning"],
+    }
     base = "Digest (JSON):\n" + json.dumps(digest, indent=1)
     user_text = base
     for _attempt in range(2):
-        text = str(_generate_json(system_prompt, user_text, schema).get("reasoning") or "").strip()[:900]
+        data = _generate_json(system_prompt, user_text, schema)
+        choice = data.get("choice")
+        text = str(data.get("reasoning") or "").strip()[:1100]
         problems = _number_problems(text, allowed) if text else ["empty answer"]
+        if not isinstance(choice, int) or not 0 <= choice < len(options):
+            problems.append(f"choice {choice!r} is not one of the option numbers")
         if not problems:
-            return text
-        user_text = (base + "\n\nYour previous answer was rejected because these numbers are not in the digest: "
-                     + "; ".join(problems) + ". Rewrite it using only numbers from the digest.")
-    return ""
-
+            return choice, text
+        user_text = (base + "\n\nYour previous answer was rejected: " + "; ".join(problems)
+                     + ". Choose a valid option and use only numbers from the digest.")
+    return None
 
 
 # ---------------------------------------------------------------------------

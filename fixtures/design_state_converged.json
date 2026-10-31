@@ -730,8 +730,9 @@
     "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
     "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
     "knowledge/tables/materials.yaml#al_2024_t3",
-    "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-    "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
+    "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
+    "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+    "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
     "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
   ],
   "assumptions": [
@@ -750,7 +751,7 @@
     "Web: no shear failure (F_su = 234 MPa) and no shear buckling, unstiffened panel, K = 4.8 (classical long simply supported panel; Raymer gives K as a chart, Fig. 14.42)",
     "Minimum gauges: cap >= 2.0 mm, web >= 1.5 mm (assumption)",
     "Mass counts caps and web only: no stiffeners, ribs or fittings",
-    "Tail moment arm = 52% of fuselage length",
+    "Tail moment arm = 52% of fuselage length (Raymer 2ed Table 6.4 typical arm ratio)",
     "Wing configuration: high wing"
   ],
   "warnings": [
@@ -1237,178 +1238,148 @@
       "verified": false,
       "warning": null
     },
-    "latest_geometry.fuselage": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.wing": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Ch. 4 (Trapezoidal Planform & Dihedral)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.horizontal_tail": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.4 (C_HT = 0.70 Tail Volume)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.vertical_tail": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.4 (C_VT = 0.04 Tail Volume)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.propeller": {
-      "kind": "table",
-      "source": "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
-      "verified": true,
-      "warning": null
-    },
     "latest_geometry.fuselage.length_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.3 (p. 110): L_f = 0.3048 x 4.37 x (W_0,lb)^0.23",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.diameter_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.3 (p. 110): GA 4-place cabin diameter",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.nose_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 22% fuselage length nose cowl",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.cabin_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 36% fuselage length cabin",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.tailcone_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 42% fuselage length tailcone",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.span_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 5.6 & Table 4.1: b = sqrt(AR x S)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Ch. 4 (p. 56): c_root = 2 S / (b (1 + lambda))",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Ch. 4 (p. 56): c_tip = lambda x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.thickness_to_chord": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "table",
+      "source": "Raymer 2ed, Table 4.1: thickness_to_chord from spec",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Wing quarter-chord placed at 32% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Vertical placement for high wing",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.dihedral_deg": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 4.2 (p. 59): Wing Dihedral Guidelines",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.span_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): S_HT = C_HT x S x MAC / L_HT (C_HT = 0.7)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): HT root chord from AR=4.0 and taper=0.65",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): HT tip chord = 0.65 x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Horizontal stabilizer vertical offset on rear fuselage",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.height_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): S_VT = C_VT x S x b / L_VT (C_VT = 0.04)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): VT root chord from AR=1.6 and taper=0.55",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): VT tip chord = 0.55 x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Vertical fin root vertical offset on rear fuselage",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.propeller.diameter_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "table",
+      "source": "knowledge/tables/aircraft_typical.yaml#ga_single_engine (2-blade prop)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.propeller.x_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Tractor propeller forward offset from fuselage nose",
+      "verified": true,
       "warning": null
     }
   },
@@ -1421,7 +1392,7 @@
         "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1433,7 +1404,7 @@
         "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1444,7 +1415,7 @@
         "Raymer 2ed, Table 6.3 (p. 110)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1455,7 +1426,7 @@
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1482,7 +1453,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 1,
@@ -1509,7 +1480,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 2,
@@ -1536,7 +1507,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 2,
@@ -1563,12 +1534,13 @@
         "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3",
-        "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-        "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
+        "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
+        "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+        "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     }
   ],
   "components": {

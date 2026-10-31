@@ -1,5 +1,5 @@
 {
-  "solver": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)",
+  "solver": "Timoshenko beam FEA (NumPy direct stiffness)",
   "material_key": "al_2024_t3",
   "material_name": "Aluminium 2024 (clad), extrusions",
   "allowable_yield_stress_pa": 337800000.0,

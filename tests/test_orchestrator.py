@@ -57,6 +57,26 @@ class TestOrchestrator(unittest.TestCase):
         # ...and 10 km further does not.
         self.assertFalse(run_design_spiral(MissionSpec(range_m=proposal.new_value + 10_000.0)).converged)
 
+    def test_relaxation_options_are_real_and_include_keeping_the_range(self) -> None:
+        # London to New York: dropping to 1 passenger keeps the range and closes under the class limit.
+        from spiral.agent.orchestrator import relaxation_candidates
+
+        spec = MissionSpec(range_m=5_570_000.0)
+        options = {c.field_name: c for c in relaxation_candidates(spec)}
+        self.assertEqual(set(options), {"range_m", "passenger_count"})
+        limit_kg, _ = mtow_class_limit()
+        for c in options.values():
+            kwargs = {"range_m": c.new_value} if c.field_name == "range_m" else {"range_m": spec.range_m, "passenger_count": int(c.new_value)}
+            relaxed = run_design_spiral(MissionSpec(**kwargs), propose_relaxation=False)
+            self.assertTrue(relaxed.converged, c.field_name)
+            self.assertLessEqual(relaxed.latest_sizing.mtow_kg, limit_kg)
+            self.assertAlmostEqual(relaxed.latest_sizing.mtow_kg, c.estimated_mtow_kg, places=1)
+        self.assertEqual(options["passenger_count"].new_value, 1.0)
+        # Offline, the smallest change is proposed and the other is named as the alternative.
+        proposal = run_design_spiral(spec).proposed_relaxation
+        self.assertEqual(proposal.field_name, "range_m")
+        self.assertIn("Alternative: carry 1 passenger", proposal.reasoning)
+
     def test_sized_spar_never_has_a_negative_margin(self) -> None:
         # Thin, high-aspect-ratio wing: thick caps on a shallow spar used to give margin -0.10.
         for spec in (MissionSpec(), MissionSpec(range_m=1_200_000.0, aspect_ratio=13.5, spar_material="al_7075_t6")):

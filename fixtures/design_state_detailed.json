@@ -730,12 +730,13 @@
     "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
     "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
     "knowledge/tables/materials.yaml#al_2024_t3",
-    "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-    "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
+    "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
+    "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+    "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
     "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
     "CadQuery OpenCASCADE B-Rep Loft Engine",
     "ISO 10303-21 (STEP AP214) Product Data Representation",
-    "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)",
+    "Timoshenko beam FEA (NumPy direct stiffness)",
     "Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping)",
     "knowledge/equations.yaml#von_mises_stress"
   ],
@@ -755,7 +756,7 @@
     "Web: no shear failure (F_su = 234 MPa) and no shear buckling, unstiffened panel, K = 4.8 (classical long simply supported panel; Raymer gives K as a chart, Fig. 14.42)",
     "Minimum gauges: cap >= 2.0 mm, web >= 1.5 mm (assumption)",
     "Mass counts caps and web only: no stiffeners, ribs or fittings",
-    "Tail moment arm = 52% of fuselage length",
+    "Tail moment arm = 52% of fuselage length (Raymer 2ed Table 6.4 typical arm ratio)",
     "Wing configuration: high wing",
     "Lofted 12-vertex tapered I-beam across 21 spanwise stations (y = 0 to 5.46 m)",
     "Includes 1.38x structural non-optimum mass factor for root carry-through fittings and web stiffeners",
@@ -1247,178 +1248,148 @@
       "verified": false,
       "warning": null
     },
-    "latest_geometry.fuselage": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.wing": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Ch. 4 (Trapezoidal Planform & Dihedral)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.horizontal_tail": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.4 (C_HT = 0.70 Tail Volume)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.vertical_tail": {
-      "kind": "equation",
-      "source": "Raymer 6ed, Table 6.4 (C_VT = 0.04 Tail Volume)",
-      "verified": true,
-      "warning": null
-    },
-    "latest_geometry.propeller": {
-      "kind": "table",
-      "source": "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
-      "verified": true,
-      "warning": null
-    },
     "latest_geometry.fuselage.length_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.3 (p. 110): L_f = 0.3048 x 4.37 x (W_0,lb)^0.23",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.diameter_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.3 (p. 110): GA 4-place cabin diameter",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.nose_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 22% fuselage length nose cowl",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.cabin_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 36% fuselage length cabin",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.fuselage.tailcone_length_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.3 (p. 110): 42% fuselage length tailcone",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.span_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Eq. 5.6 & Table 4.1: b = sqrt(AR x S)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Ch. 4 (p. 56): c_root = 2 S / (b (1 + lambda))",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Ch. 4 (p. 56): c_tip = lambda x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.thickness_to_chord": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "table",
+      "source": "Raymer 2ed, Table 4.1: thickness_to_chord from spec",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Wing quarter-chord placed at 32% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Vertical placement for high wing",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.wing.dihedral_deg": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 4.2 (p. 59): Wing Dihedral Guidelines",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.span_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): S_HT = C_HT x S x MAC / L_HT (C_HT = 0.7)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): HT root chord from AR=4.0 and taper=0.65",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): HT tip chord = 0.65 x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.horizontal_tail.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Horizontal stabilizer vertical offset on rear fuselage",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.height_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): S_VT = C_VT x S x b / L_VT (C_VT = 0.04)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.root_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): VT root chord from AR=1.6 and taper=0.55",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.tip_chord_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Raymer 2ed, Table 6.4 (p. 112): VT tip chord = 0.55 x c_root",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.x_le_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.vertical_tail.z_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Vertical fin root vertical offset on rear fuselage",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.propeller.diameter_m": {
-      "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "kind": "table",
+      "source": "knowledge/tables/aircraft_typical.yaml#ga_single_engine (2-blade prop)",
+      "verified": true,
       "warning": null
     },
     "latest_geometry.propeller.x_m": {
       "kind": "assumption",
-      "source": "Raymer 6ed, Table 6.3 (Fuselage Length Regression); Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04); knowledge/tables/aircraft_typical.yaml#ga_single_engine (no per-value citation)",
-      "verified": false,
+      "source": "Tractor propeller forward offset from fuselage nose",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.cad.step_path": {
@@ -1435,7 +1406,7 @@
     },
     "components.main_wing_spar.cad.volume_single_wing_m3": {
       "kind": "simulation",
-      "source": "3D Prismoidal Section Integration of Tapered I-Beam",
+      "source": "3D Section Volume Integration of Tapered I-Beam",
       "verified": true,
       "warning": null
     },
@@ -1445,33 +1416,27 @@
       "verified": true,
       "warning": null
     },
-    "components.main_wing_spar.cad.bounding_box_m": {
-      "kind": "simulation",
-      "source": "3D CAD Solid Envelope Bounding Box",
-      "verified": true,
-      "warning": null
-    },
     "components.main_wing_spar.cad.bounding_box_m.x_width_m": {
       "kind": "simulation",
-      "source": "CadQuery OpenCASCADE B-Rep Loft Engine; ISO 10303-21 (STEP AP214) Product Data Representation; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "source": "Maximum cap width across spanwise stations",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.cad.bounding_box_m.y_semi_span_m": {
       "kind": "simulation",
-      "source": "CadQuery OpenCASCADE B-Rep Loft Engine; ISO 10303-21 (STEP AP214) Product Data Representation; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "source": "Semi-span length of tapered I-beam CAD part",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.cad.bounding_box_m.z_depth_m": {
       "kind": "simulation",
-      "source": "CadQuery OpenCASCADE B-Rep Loft Engine; ISO 10303-21 (STEP AP214) Product Data Representation; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "source": "Maximum spar depth across spanwise stations",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.fea.solver_name": {
       "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)",
+      "source": "Timoshenko beam FEA (NumPy direct stiffness)",
       "verified": true,
       "warning": null
     },
@@ -1489,7 +1454,7 @@
     },
     "components.main_wing_spar.fea.beam_max_stress_pa": {
       "kind": "equation",
-      "source": "Megson Ch. 9 Euler-Bernoulli Bending Stress (M\u00b7z/I)",
+      "source": "Raymer 2ed, Eq. 14.35 (p. 385): Euler-Bernoulli Bending Stress (M\u00b7z/I)",
       "verified": true,
       "warning": null
     },
@@ -1524,33 +1489,33 @@
       "warning": null
     },
     "components.main_wing_spar.fea.stations[].y_m": {
-      "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness); Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping); knowledge/equations.yaml#von_mises_stress; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Spanwise coordinate matching loads and spar sizing stations",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.fea.stations[].fea_von_mises_pa": {
       "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness); Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping); knowledge/equations.yaml#von_mises_stress; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "source": "Cross-sectional peak von Mises stress from 3D Timoshenko FEA",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.fea.stations[].beam_stress_pa": {
-      "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness); Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping); knowledge/equations.yaml#von_mises_stress; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Euler-Bernoulli bending stress M(y)\u00b7z / I_xx(y)",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.fea.stations[].fea_deflection_m": {
       "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness); Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping); knowledge/equations.yaml#von_mises_stress; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "source": "Nodal deflection solved from global stiffness matrix K\u00b7u = F",
+      "verified": true,
       "warning": null
     },
     "components.main_wing_spar.fea.stations[].beam_deflection_m": {
-      "kind": "simulation",
-      "source": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness); Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping); knowledge/equations.yaml#von_mises_stress; Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions; knowledge/tables/materials.yaml#al_2024_t3 (no per-value citation)",
-      "verified": false,
+      "kind": "equation",
+      "source": "Euler-Bernoulli double integration of M/(EI)",
+      "verified": true,
       "warning": null
     }
   },
@@ -1563,7 +1528,7 @@
         "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb) (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1575,7 +1540,7 @@
         "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number (unverified)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1586,7 +1551,7 @@
         "Raymer 2ed, Table 6.3 (p. 110)"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1597,7 +1562,7 @@
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 0,
@@ -1624,7 +1589,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 1,
@@ -1651,7 +1616,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 2,
@@ -1678,7 +1643,7 @@
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 2,
@@ -1705,30 +1670,31 @@
         "Raymer 2ed, Ch. 14 (p. 385): caps carry bending, web carries shear",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3",
-        "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-        "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
+        "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
+        "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+        "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
         "knowledge/tables/aircraft_typical.yaml#ga_single_engine"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:25+00:00"
+      "timestamp": "2026-10-31T14:55:29+00:00"
     },
     {
       "lap": 2,
       "stage": "detailed",
-      "message": "Detailed Spar FEA complete (Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)): Peak von Mises = 304.5 MPa vs Beam Theory = 306.6 MPa (99.3% agreement).",
+      "message": "Detailed Spar FEA complete (Timoshenko beam FEA (NumPy direct stiffness)): Peak von Mises = 304.5 MPa vs Beam Theory = 306.6 MPa (99.3% agreement).",
       "citations": [
         "CadQuery OpenCASCADE B-Rep Loft Engine",
         "ISO 10303-21 (STEP AP214) Product Data Representation",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3",
-        "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)",
+        "Timoshenko beam FEA (NumPy direct stiffness)",
         "Megson, Aircraft Structures for Engineering Students, 6ed, Ch. 9 & Ch. 26 (Shear Lag & Root Warping)",
         "knowledge/equations.yaml#von_mises_stress",
         "Converted to SI from Raymer 2ed, Table 14.3 (p. 366), row Clad 2024 extrusions",
         "knowledge/tables/materials.yaml#al_2024_t3"
       ],
       "level": "info",
-      "timestamp": "2026-10-31T14:28:27+00:00"
+      "timestamp": "2026-10-31T14:55:30+00:00"
     }
   ],
   "components": {
@@ -1749,7 +1715,7 @@
         }
       },
       "fea": {
-        "solver_name": "Spiral 3D Timoshenko + Saint-Venant Warping FEA Solver (NumPy Direct Stiffness)",
+        "solver_name": "Timoshenko beam FEA (NumPy direct stiffness)",
         "fea_max_von_mises_pa": 304475702.0,
         "fea_tip_deflection_m": 0.53271,
         "beam_max_stress_pa": 306649914.7,

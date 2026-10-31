@@ -157,6 +157,27 @@ def _layout_log(spec: MissionSpec) -> list[AgentLogEntry]:
     ]
 
 
+def nearest_feasible_passengers(spec: MissionSpec) -> SpecRelaxationProposal | None:
+    """Most passengers (fewer than now) at which the full spiral converges, everything else unchanged."""
+    for passengers in range(spec.passenger_count - 1, -1, -1):
+        state = run_design_spiral(replace(spec, passenger_count=passengers), propose_relaxation=False)
+        if state.converged and state.latest_sizing is not None:
+            return SpecRelaxationProposal(
+                field_name="passenger_count",
+                old_value=float(spec.passenger_count),
+                new_value=float(passengers),
+                unit="-",
+                reasoning="",
+                estimated_mtow_kg=state.latest_sizing.mtow_kg,
+            )
+    return None
+
+
+def relaxation_candidates(spec: MissionSpec) -> list[SpecRelaxationProposal]:
+    """Every single-field change Python has verified closes the spiral; the agent picks one."""
+    return [c for c in (nearest_feasible_range(spec), nearest_feasible_passengers(spec)) if c is not None]
+
+
 def nearest_feasible_range(spec: MissionSpec, step_m: float = 10_000.0) -> SpecRelaxationProposal | None:
     """Longest range (rounded down to `step_m`) at which the full spiral converges, all else unchanged.
 
@@ -224,7 +245,7 @@ def run_design_spiral(
             )
         )
         if propose_relaxation:
-            state.proposed_relaxation = propose_infeasible_relaxation(state, nearest_feasible_range(spec))
+            state.proposed_relaxation = propose_infeasible_relaxation(state, relaxation_candidates(spec))
             if state.proposed_relaxation is not None:
                 log(
                     AgentLogEntry(
