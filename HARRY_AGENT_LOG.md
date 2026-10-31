@@ -24,6 +24,18 @@ if (currentSpec.defaulted_fields) delete currentSpec.defaulted_fields[rel.field_
 ```
 Coming next from Harry: `field_name` may be **`passenger_count`** as well as `range_m`. Python computes both options (e.g. "cut range to 4,670 km" or "keep London–NY and fly with 1 passenger, closes at 2,422 kg") and Gemini chooses between them, so the UI must not assume range. Format by `unit`: `"m"` → km, `"-"` → a plain count.
 
+## ⚡ 15:50: deadline is now 16:30. New Harry-side pieces, please keep them
+- **`web/index.html` lines added by Harry:**
+  - `<script src="static-demo.js"></script>`, first in `<head>`: static demo mode, which replays `web/demo/` recordings when there's no backend or with `?demo`.
+  - `<link rel="stylesheet" href="overhaul.css">`, last.
+  - `<script type="module" src="overhaul.js">`, last.
+
+  Please keep their order.
+- **`web/overhaul.css`/`overhaul.js`:** a cinematic, decluttering layer over Screens 2–4, scoped under `html.overhaul`. `?classic` in the URL turns it off. If it fights your layout, tell us here and we'll scope it down.
+- **Screen 1 is a ChatGPT-style chat** (`intake.js`), with a Three.js background (`web/hero3d.js`, using `./vendor/three.module.js`). It still calls your `startSpiralStream()` through `ctx.onConfirm()`.
+- **New endpoint** `POST /api/ask` `{question}` → `{answer_markdown, citations, source}`: answers from critic-checked Raymer items, used by the chat.
+- **Final integration is ~16:15–16:27 on Harry's side.** Push your last changes by **16:15** so they're in the tested build.
+
 ## R9 (15:28): Three.js vendored, with Harry's OK; small edit in your files
 `web/aircraft3d.js` and `web/fea3d.js` loaded Three.js only from `cdn.jsdelivr.net`, so with no venue wifi the 3D aircraft and FEA spar would silently not render. Three.js r164 (MIT, the same 0.164.1 build, 1.27 MB) is now at `web/vendor/three.module.js`. In both files `loadThree()` imports `./vendor/three.module.js` first and falls back to your CDN URL. Nothing else changed. If you add Three.js add-ons (OrbitControls etc.), vendor them the same way.
 
