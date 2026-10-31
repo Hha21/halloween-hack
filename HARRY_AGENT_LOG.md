@@ -7,6 +7,8 @@
 
 Last updated: 2026-10-31 14:30 GMT. Submission: `main` at 16:00.
 
+**Status of requests:** R1–R4 open. R5 and R6 done in Tharm's `4e4f61a` (thanks); all 27 tests now pass in `.venv` too.
+
 ---
 
 ## 1. Git & branch status
@@ -21,8 +23,8 @@ Last updated: 2026-10-31 14:30 GMT. Submission: `main` at 16:00.
 | **R2** | `web/app.js:70` and `:182` | Preset `high_ar` and the material dropdown offer `spar_material: "cfrp_ud"`. It isn't in `knowledge/tables/materials.yaml`, so the run fails on lap 0: `Key 'cfrp_ud' not found`. The spar model is an isotropic metal I-beam; a composite spar would need a laminate model, so Harry isn't adding it. | Use `al_7075_t6` (works: AR 13.5 converges at 1,369 kg, spar 65.8 kg, margin +0.00) and drop `cfrp_ud` from the dropdown. |
 | **R3** | `web/app.js:23-56`, `:62` | `DEFAULT_SPEC` still has the old defaults (AR 7.5, taper 0.6) and old reason strings ("Raymer Table 4.1", "MIL-HDBK-5J"). The touring preset overrides `aspect_ratio: 7.5`, so after intake the form shows 7.5 beside the server's reason "Assumed 7.6...". | Take the spec from `POST /api/intake`, or `fixtures/intake_response.json`, and drop the `aspect_ratio` overrides. Current defaults: AR 7.6 (Raymer 2ed Table 4.1), taper 0.45 (p. 56). |
 | **R4** | `web/app.js:64-66` | The `diverging` preset (5,500 km, AR 8.5) works: infeasible, with a proposal of 4,580 km at 2,721 kg. The demo script and README use London to New York instead. | Suggest prompt "Four-seat tourer, London to New York non-stop, 5,570 km range, 45 min reserve, cruise 115 kt, stall under 55 kt." with no AR override. Intake never infers a range from city names, so the 5,570 km must be in the text. |
-| **R5** | `tests/test_tools.py:75` (and `:74`) | Reads the STL with `read_text(encoding="utf-8")`. With CadQuery installed (CadQuery 2.8 is in Harry's `.venv`), the STL is binary and the test fails with `UnicodeDecodeError`. It passes only where CadQuery is absent. | Read bytes, or check for an ASCII `solid` header or the binary 80-byte header + triangle count. |
-| **R6** | `spiral/tools/geometry.py:99-123`, `fea.py:356-366`, `cad.py` | Citations say "Raymer 6ed". The values are right: they match Raymer **2ed** Table 6.3 (p. 110, GA single a = 4.37, C = 0.23) and Table 6.4 (p. 112, C_HT 0.70, C_VT 0.04) exactly. Also, `verified=True` is set on geometry, CAD and FEA outputs. On Harry's side `verified` means "checked against the cited source" (critic-confirmed book item plus a number match), so the UI's ✓ means "checked against the book". | Read the coefficients from `lookup("aircraft_typical", "ga_single_engine").value["tail_volume_coefficients"]` and `["fuselage_length_regression"]`, and use each row's `source` and `verified` (both verified). Use `verified=False` for solver outputs, or define a separate meaning. |
+| ~~R5~~ done | `tests/test_tools.py:75` (and `:74`) | Reads the STL with `read_text(encoding="utf-8")`. With CadQuery installed (CadQuery 2.8 is in Harry's `.venv`), the STL is binary and the test fails with `UnicodeDecodeError`. It passes only where CadQuery is absent. | Read bytes, or check for an ASCII `solid` header or the binary 80-byte header + triangle count. |
+| ~~R6~~ done | `spiral/tools/geometry.py:99-123`, `fea.py:356-366`, `cad.py` | Citations say "Raymer 6ed". The values are right: they match Raymer **2ed** Table 6.3 (p. 110, GA single a = 4.37, C = 0.23) and Table 6.4 (p. 112, C_HT 0.70, C_VT 0.04) exactly. Also, `verified=True` is set on geometry, CAD and FEA outputs. On Harry's side `verified` means "checked against the cited source" (critic-confirmed book item plus a number match), so the UI's ✓ means "checked against the book". | Read the coefficients from `lookup("aircraft_typical", "ga_single_engine").value["tail_volume_coefficients"]` and `["fuselage_length_regression"]`, and use each row's `source` and `verified` (both verified). Use `verified=False` for solver outputs, or define a separate meaning. |
 
 ## 3. What Harry's side does now (on `main`)
 - **Intake** (`spiral/agent/gemini.py`, `gemini-3.5-flash`)
@@ -68,11 +70,11 @@ Last updated: 2026-10-31 14:30 GMT. Submission: `main` at 16:00.
 ```
 source .venv/bin/activate          # Python 3.12 venv; puts gmsh on the PATH (see R1)
 uvicorn server.app:app --port 8000
-python -m pytest -q                # 27 tests; R5 fails only where CadQuery is installed
+python -m pytest -q                # 27 tests, all pass
 python3 -m unittest discover -s tests   # system Python: all pass
 ```
 
 ## 7. REA verification (Harry, 14:30)
-- `python3 -m unittest discover -s tests`: 27 tests, OK. `.venv` pytest: 26 passed, 1 failed (R5).
+- `python3 -m unittest discover -s tests`: 27 tests, OK. `.venv` pytest after merging `4e4f61a`: 27 passed.
 - Live smoke test (`uvicorn` + live Gemini, all endpoints, both demo paths): passed. Artifacts: `spar.step` 129 kB, `spar.stl`, `spar_stress_mesh.json` 38.6 kB, all `200 OK`.
 - Frontend check: `web/api_client.js` calls all 6 endpoints and handles every SSE event type.
