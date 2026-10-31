@@ -58,7 +58,7 @@ All other components appear in the UI as "coming soon": main landing gear, horiz
 - **Spar loads:** Schrenk = average of elliptical and planform lift, scaled by limit load factor × 1.5; integrate from tip for shear and bending.
 - **Spar sizing:** cap area = M / (spar depth × allowable stress); web thickness from shear; minimum gauges; integrate mass over both wings.
 - **Feedback:** lap 0 assumes the spar is a fixed share of statistical empty weight; from lap 1 that share is replaced by the computed spar mass.
-- **Convergence:** stop when MTOW changes by < 0.5% between laps. Infeasible if weight closure breaks down, fuel fraction is implausible, or MTOW grows > 2% for 4 consecutive laps.
+- **Convergence:** stop when MTOW changes by < 0.5% between laps. Infeasible if weight closure breaks down, fuel fraction is implausible (> 0.42), MTOW grows > 2% for 4 consecutive laps, or the spiral converges above the single-engine piston class limit (2,722 kg / 6,000 lb), where the Table 3.1 statistics stop applying. The weight closure is solved by bisection, so it never fails on a bad starting guess.
 
 ## 4. User experience
 
@@ -234,7 +234,7 @@ The system is split along a clean two-stage pipeline: **Harry** converts natural
 @dataclass
 class ToolResult(Generic[T]):
     value: T
-    sources: list[str] = field(default_factory=list)      # e.g. ["Raymer 6ed Eq. 3.4 (p. 25)", "knowledge/tables/materials.yaml#al_2024_t3"]
+    sources: list[str] = field(default_factory=list)      # e.g. ["Raymer 2ed, Eq. 3.4 (p. 12)", "knowledge/tables/materials.yaml#al_2024_t3"]
     assumptions: list[str] = field(default_factory=list)  # e.g. ["Cruise at L/D_max = 11.0"]
     warnings: list[str] = field(default_factory=list)     # e.g. ["aspect_ratio=11.0 outside typical GA range [6.0, 9.0]"]
     provenance: dict[str, Provenance] = field(default_factory=dict)  # per field of `value`, e.g. "mtow_kg"
@@ -242,7 +242,7 @@ class ToolResult(Generic[T]):
 @dataclass
 class Provenance:                 # drives the per-number source badge in the UI
     kind: str                     # "equation" | "table" | "simulation" | "assumption" | "user_input" | "gemini_default"
-    source: str                   # e.g. "Raymer 6ed, Ch. 3, Eq. 3.4"
+    source: str                   # e.g. "Raymer 2ed, Eq. 3.4 (p. 12)"
     verified: bool = True         # False -> amber badge (citation not yet checked against the page)
     warning: str | None = None    # set -> amber badge (e.g. heuristic outside valid range)
 
@@ -266,8 +266,8 @@ class ToolError(Exception):
 | | `cruise_altitude_m` | `float` | `2_500.0` | Cruise altitude above sea level |
 | | `stall_speed_ms` | `float` | `28.0` | Maximum stall speed (~54 kt) |
 | | `reserve_s` | `float` | `2_700.0` | Loiter reserve endurance (45 min) |
-| **Wing / Aero** | `aspect_ratio` | `float` | `7.5` | Wing aspect ratio $b^2 / S$ |
-| | `taper_ratio` | `float` | `0.6` | Wing taper ratio $c_{\text{tip}} / c_{\text{root}}$ |
+| **Wing / Aero** | `aspect_ratio` | `float` | `7.6` | Wing aspect ratio $b^2 / S$ |
+| | `taper_ratio` | `float` | `0.45` | Wing taper ratio $c_{\text{tip}} / c_{\text{root}}$ |
 | | `thickness_to_chord` | `float` | `0.15` | Airfoil maximum $t/c$ ratio |
 | | `cl_max` | `float` | `1.6` | Maximum clean/landing lift coefficient |
 | | `ld_max` | `float` | `11.0` | Maximum lift-to-drag ratio in cruise |
@@ -469,7 +469,7 @@ Stream order: `/api/spiral/stream` sends `log`/`lap` pairs, then exactly one of 
 1. **Intake:** parse description → `MissionSpec`. State every default chosen in `defaulted_fields`. User confirms.
 2. **Layout:** retrieve heuristics, log cited choices.
 3. **Spiral:** `conceptual_sizing` → `spar_loads` → `size_spar` → `aircraft_geometry` → loop with `spar_mass_kg`, until converged ($|\Delta \text{MTOW}| < 0.5\%$) or infeasible.
-4. **If infeasible:** Gemini reads `infeasible_reason` and `history` and proposes **one** `SpecRelaxationProposal` with reasoning (e.g. "range 2,000 km → 1,400 km closes at 1,150 kg"). User accepts → re-run.
+4. **If infeasible:** Gemini reads `infeasible_reason` and `history` and proposes **one** `SpecRelaxationProposal` with reasoning (e.g. "range 5,570 km → 4,790 km closes at 2,715 kg"). Python computes the numbers by re-running the spiral (bisection on range); Gemini only writes the reasoning. User accepts → re-run.
 5. **Detailed:** on user click, `build_spar_cad` → `run_fea` → compare with beam theory.
 6. **Report:** narrative from `DesignState` only. Gemini may not introduce numbers that aren't in the state.
 
@@ -490,7 +490,7 @@ Stream order: `/api/spiral/stream` sends `log`/`lap` pairs, then exactly one of 
 
 1. **Problem (30 s):** the design spiral, weeks per lap.
 2. **Live (90 s):** type the touring-aircraft description → spec form appears with defaults explained → workspace: the aircraft morphs, MTOW converges on the plot, log fills with cited decisions → Detailed: click the wing spar → stress-coloured part, FEA vs beam theory.
-3. **Twist (30 s):** raise range to 2,500 km. The spiral diverges; the agent explains why and proposes the nearest feasible mission.
+3. **Twist (30 s):** "Make it fly London to New York non-stop" (5,570 km). MTOW settles at about 3.3 t, above the single-engine class limit; the agent explains why and proposes the nearest feasible mission (4,790 km at 2,715 kg). (2,500 km closes at about 1.66 t, so it is not a failure case.)
 4. **Close (30 s):** traceability (hover any number → its source), who it's for (small aircraft startups, student design teams, early trade studies), next steps (more components, higher fidelity, export to real CAD tools).
 
 ## 12. Risks and fallbacks

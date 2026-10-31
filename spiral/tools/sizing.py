@@ -5,111 +5,154 @@ Contract:
         spec: MissionSpec,
         spar_mass_kg: float | None = None,
     ) -> ToolResult[ConceptualSizingResult]
+
+Method (Raymer 2ed, Ch. 3 and 5): weight closure (Eq. 3.4) with the statistical empty-weight
+fraction (Table 3.1); fuel fraction from historical segment fractions (Table 3.2), Breguet cruise
+and loiter (Eqs. 3.6, 3.8, 3.10) and the 6% reserve/trapped allowance (Eq. 3.11); wing loading from
+stall speed (Eq. 5.6); power from the larger of Table 5.2 and the cruise requirement.
+
+Every constant comes from knowledge/tables/weight_fractions.yaml, so each number carries the
+citation (and verified flag) of the table row it came from.
 """
 
 from __future__ import annotations
 
 import math
+from typing import Any
 
 from spiral.contract import ConceptualSizingResult, MissionSpec, Provenance, ToolError, ToolResult
+from spiral.tools.lookup import lookup
+
+G = 9.80665  # m/s^2
+RHO_SL = 1.225  # kg/m^3, ISA sea level
+LB_PER_KG = 2.20462262
+W_PER_HP = 745.699872
+CBHP_TO_KG_PER_J = 0.45359237 / (W_PER_HP * 3600.0)  # (lb/hr)/hp -> kg/J
+LOITER_SPEED_RATIO = 0.75  # loiter speed / cruise speed (assumption)
+CRUISE_THROTTLE = 0.75  # cruise power / installed power (assumption)
+FUEL_FRACTION_LIMIT = 0.42  # beyond this the mission is not plausible for a GA single (assumption)
+
+
+def _prov(kind: str, row: dict[str, Any], what: str = "") -> Provenance:
+    source = row.get("source", "knowledge/tables/weight_fractions.yaml")
+    return Provenance(kind, f"{source}: {what}" if what else source, verified=bool(row.get("verified", False)))
+
+
+def _range_warnings(spec: MissionSpec) -> list[str]:
+    """Amber flags: spec values outside the historical range the heuristics were fitted on."""
+    try:
+        typical = lookup("aircraft_typical", "ga_single_engine").value
+    except ToolError:
+        return []
+    warnings = []
+    for name, row in typical.items():
+        if not isinstance(row, dict) or "min_valid" not in row or not hasattr(spec, name):
+            continue
+        value = getattr(spec, name)
+        if not row["min_valid"] <= value <= row["max_valid"]:
+            warnings.append(
+                f"{name}={value:g} is outside the typical GA single-engine range "
+                f"[{row['min_valid']:g}, {row['max_valid']:g}] ({row.get('source', 'aircraft_typical.yaml')})"
+            )
+    return warnings
 
 
 def conceptual_sizing(
     spec: MissionSpec,
     spar_mass_kg: float | None = None,
 ) -> ToolResult[ConceptualSizingResult]:
-    """Placeholder/stub for conceptual sizing (Raymer Ch. 3 & Ch. 5).
+    rows = lookup("weight_fractions", "ga_single_engine").value
+    ew = rows["empty_weight_regression"]
+    seg = rows["segment_weight_fractions"]
+    trapped = rows["trapped_reserve_allowance"]
+    sfc = rows["propeller_sfc"]
+    loiter_ld = rows["loiter_ld_factor"]
+    hp_w = rows["hp_to_weight"]
+    spar_share = rows["statistical_spar_share_of_empty"]
 
-    TODO (Harry): Replace or refine with verified Raymer weight closure, ISA atmosphere,
-    and table lookups from `knowledge/tables/weight_fractions.yaml`.
-    """
-    warnings: list[str] = []
-    if not (6.0 <= spec.aspect_ratio <= 10.0):
-        warnings.append(
-            f"aspect_ratio={spec.aspect_ratio} outside typical GA range [6.0, 10.0] (Raymer Table 4.1)"
-        )
-    if not (0.4 <= spec.taper_ratio <= 1.0):
-        warnings.append(
-            f"taper_ratio={spec.taper_ratio} outside typical GA range [0.4, 1.0] (Raymer Ch. 4.3)"
-        )
+    warnings = _range_warnings(spec)
+    warnings += [f"Table entry not yet verified against the book: {r['source']}" for r in
+                 (ew, seg, trapped, sfc, loiter_ld, hp_w) if not r.get("verified")]
 
-    # Breguet cruise + loiter fuel fraction placeholder
-    g = 9.80665
-    w_warmup = 0.970
-    w_climb = 0.985
-    w_cruise = math.exp(
-        -(spec.range_m * spec.bsfc_kg_per_j * g) / (spec.prop_efficiency * spec.ld_max)
-    )
+    # --- Fuel fraction (Raymer Eqs. 3.6, 3.8, 3.10, 3.11) -------------------------------------
+    # Propeller form in SI: thrust SFC C = bsfc * g * V / eta_p, so the cruise exponent
+    # R*C/(V*L/D) becomes R*bsfc*g/(eta_p*L/D). Prop aircraft cruise at L/D max and loiter at
+    # 0.866 L/D max; loiter SFC and eta_p scale from the cruise values by Table 3.4.
+    w_warmup, w_climb, w_landing = seg["warmup_takeoff"], seg["climb"], seg["landing"]
+    w_cruise = math.exp(-(spec.range_m * spec.bsfc_kg_per_j * G) / (spec.prop_efficiency * spec.ld_max))
+
+    loiter_bsfc = spec.bsfc_kg_per_j * sfc["loiter_cbhp"] / sfc["cruise_cbhp"]
+    loiter_eta = spec.prop_efficiency * sfc["loiter_eta_p"] / sfc["cruise_eta_p"]
+    loiter_speed = LOITER_SPEED_RATIO * spec.cruise_speed_ms
     w_loiter = math.exp(
-        -(spec.reserve_s * (0.75 * spec.cruise_speed_ms) * spec.bsfc_kg_per_j * g)
-        / (spec.prop_efficiency * spec.ld_max)
+        -(spec.reserve_s * loiter_speed * loiter_bsfc * G) / (loiter_eta * loiter_ld["value"] * spec.ld_max)
     )
-    w_landing = 0.995
 
     mission_fraction = w_warmup * w_climb * w_cruise * w_loiter * w_landing
-    fuel_fraction = 1.06 * (1.0 - mission_fraction)
+    fuel_fraction = trapped["multiplier"] * (1.0 - mission_fraction)
 
-    if fuel_fraction >= 0.42:
+    if fuel_fraction >= FUEL_FRACTION_LIMIT:
         raise ToolError(
-            f"Fuel fraction {fuel_fraction:.3f} exceeds plausible GA limit (0.42): reduce range_m or increase ld_max.",
+            f"Fuel fraction {fuel_fraction:.3f} exceeds plausible GA limit ({FUEL_FRACTION_LIMIT}): "
+            "reduce range_m or increase ld_max.",
             tool_name="conceptual_sizing",
             recoverable=True,
             suggested_field="range_m",
         )
 
-    # Iterative MTOW closure placeholder
+    # --- Weight closure (Raymer Eq. 3.4, Table 3.1) -------------------------------------------
+    # Solve W0 (1 - Wf/W0) - We(W0) - W_payload = 0 by bisection. With C < 0 the left side rises
+    # monotonically in W0, so there is one root if any; no starting guess can make it fail falsely.
     payload_kg = spec.payload_mass_kg
-    mtow_kg = 1100.0
-    stat_spar_share = 0.085  # statistical spar share of empty weight on Lap 0
 
-    for _ in range(40):
-        w0_lb = max(mtow_kg * 2.20462, 100.0)
-        stat_empty_fraction = 2.36 * (w0_lb**-0.18)
-        stat_empty_kg = stat_empty_fraction * mtow_kg
-        stat_spar_kg = stat_spar_share * stat_empty_kg
-
+    def empty_and_spar(w0_kg: float) -> tuple[float, float, float]:
+        stat_empty_kg = ew["A"] * (w0_kg * LB_PER_KG) ** ew["C"] * w0_kg
+        stat_spar = spar_share["fraction"] * stat_empty_kg
         if spar_mass_kg is None:
-            empty_kg = stat_empty_kg
-            spar_used_kg = stat_spar_kg
-        else:
-            empty_kg = (stat_empty_kg - stat_spar_kg) + spar_mass_kg
-            spar_used_kg = spar_mass_kg
+            return stat_empty_kg, stat_spar, stat_spar
+        return stat_empty_kg - stat_spar + spar_mass_kg, stat_spar, spar_mass_kg
 
-        empty_fraction = empty_kg / mtow_kg
-        denom = 1.0 - fuel_fraction - empty_fraction
-        if denom <= 0.05:
-            raise ToolError(
-                f"Weight closure failed (empty_fraction={empty_fraction:.3f} + fuel_fraction={fuel_fraction:.3f} >= 0.95).",
-                tool_name="conceptual_sizing",
-                recoverable=True,
-                suggested_field="range_m",
-            )
-        next_mtow_kg = payload_kg / denom
-        if abs(next_mtow_kg - mtow_kg) / mtow_kg < 1e-5:
-            mtow_kg = next_mtow_kg
-            break
-        mtow_kg = 0.6 * next_mtow_kg + 0.4 * mtow_kg
+    def residual(w0_kg: float) -> float:
+        return w0_kg * (1.0 - fuel_fraction) - empty_and_spar(w0_kg)[0] - payload_kg
 
-    empty_mass_kg = empty_fraction * mtow_kg
+    lo_kg, hi_kg = payload_kg, 100.0 * payload_kg
+    if residual(hi_kg) <= 0.0:
+        raise ToolError(
+            f"Weight closure failed: no take-off mass below {hi_kg:,.0f} kg carries the payload "
+            f"(fuel_fraction={fuel_fraction:.3f}).",
+            tool_name="conceptual_sizing",
+            recoverable=True,
+            suggested_field="range_m",
+        )
+    for _ in range(100):
+        mid_kg = 0.5 * (lo_kg + hi_kg)
+        lo_kg, hi_kg = (mid_kg, hi_kg) if residual(mid_kg) < 0.0 else (lo_kg, mid_kg)
+    mtow_kg = 0.5 * (lo_kg + hi_kg)
+    empty_mass_kg, stat_spar_kg, spar_used_kg = empty_and_spar(mtow_kg)
+    empty_fraction = empty_mass_kg / mtow_kg
     fuel_mass_kg = fuel_fraction * mtow_kg
 
-    # Wing sizing from stall speed at sea-level density
-    rho_sl = 1.225
-    wing_loading_pa = 0.5 * rho_sl * (spec.stall_speed_ms**2) * spec.cl_max
-    wing_area_m2 = (mtow_kg * g) / wing_loading_pa
+    # --- Wing (Raymer Eq. 5.6, sea-level stall) ------------------------------------------------
+    wing_loading_pa = 0.5 * RHO_SL * spec.stall_speed_ms**2 * spec.cl_max
+    wing_area_m2 = mtow_kg * G / wing_loading_pa
     span_m = math.sqrt(spec.aspect_ratio * wing_area_m2)
-    root_chord_m = (2.0 * wing_area_m2) / (span_m * (1.0 + spec.taper_ratio))
+    root_chord_m = 2.0 * wing_area_m2 / (span_m * (1.0 + spec.taper_ratio))
     tip_chord_m = spec.taper_ratio * root_chord_m
-    mac_m = (
-        (2.0 / 3.0)
-        * root_chord_m
-        * ((1.0 + spec.taper_ratio + spec.taper_ratio**2) / (1.0 + spec.taper_ratio))
-    )
+    lam = spec.taper_ratio
+    mac_m = (2.0 / 3.0) * root_chord_m * (1.0 + lam + lam**2) / (1.0 + lam)
 
-    # Cruise and installed power
-    cruise_drag_n = (mtow_kg * g) / spec.ld_max
-    cruise_power_w = (cruise_drag_n * spec.cruise_speed_ms) / spec.prop_efficiency
-    installed_power_w = cruise_power_w / 0.75
+    # --- Power: larger of the statistical value (Table 5.2) and the cruise requirement --------
+    # Cruise T/W = 1/(L/D) (Raymer Eq. 5.2) -> shaft power D*V/eta_p, flown at CRUISE_THROTTLE.
+    cruise_power_w = (mtow_kg * G / spec.ld_max) * spec.cruise_speed_ms / spec.prop_efficiency
+    power_for_cruise_w = cruise_power_w / CRUISE_THROTTLE
+    power_statistical_w = hp_w["hp_per_lb"] * mtow_kg * LB_PER_KG * W_PER_HP
+    installed_power_w = max(power_for_cruise_w, power_statistical_w)
+    if power_for_cruise_w >= power_statistical_w:
+        power_prov = Provenance(
+            "assumption", f"Cruise power at {CRUISE_THROTTLE:.0%} throttle exceeds the Table 5.2 statistical value", verified=False
+        )
+    else:
+        power_prov = _prov("table", hp_w, f"{hp_w['hp_per_lb']} hp/lb x MTOW")
 
     result = ConceptualSizingResult(
         mtow_kg=round(mtow_kg, 2),
@@ -145,28 +188,42 @@ def conceptual_sizing(
         },
     )
 
+    eq_closure = {"source": "Raymer 2ed, Eq. 3.4 (p. 12)", "verified": ew.get("verified")}
+    eq_breguet = {"source": "Raymer 2ed, Eqs. 3.6 & 3.10 (pp. 17-18)", "verified": sfc.get("verified")}
+    eq_loiter = {"source": "Raymer 2ed, Eq. 3.8 (p. 17)", "verified": loiter_ld.get("verified")}
+    eq_stall = {"source": "Raymer 2ed, Eq. 5.6 (p. 85)", "verified": False}
+    sources = sorted({r["source"] for r in (ew, seg, trapped, sfc, loiter_ld, hp_w, eq_closure, eq_breguet, eq_loiter, eq_stall)})
+
     return ToolResult(
         value=result,
-        sources=[
-            "Raymer 6ed, Ch. 3, Eq. 3.4 & Table 3.1 (Weight Closure)",
-            "Raymer 6ed, Ch. 3, Eq. 3.7–3.8 (Breguet Range & Loiter)",
-            "Raymer 6ed, Ch. 5, Eq. 5.6 (Stall Wing Loading)",
-            "knowledge/tables/weight_fractions.yaml#ga_single_engine",
-        ],
+        sources=sources,
         assumptions=[
-            f"Cruise at L/D_max = {spec.ld_max}",
-            "6% trapped and reserve fuel allowance (Raymer Table 3.2)",
-            "Installed power sized for 75% continuous cruise throttle setting",
+            f"Cruise at L/D max = {spec.ld_max:g}; loiter at {loiter_ld['value']} L/D max ({loiter_ld['source']})",
+            f"Loiter speed = {LOITER_SPEED_RATIO:g} x cruise speed",
+            f"Spar = {spar_share['fraction']:.1%} of statistical empty weight on lap 0 ({spar_share['source']})",
+            f"Cruise flown at {CRUISE_THROTTLE:.0%} of installed power",
+            "Stall wing loading at ISA sea-level density (1.225 kg/m^3)",
         ],
         warnings=warnings,
-        # TODO (Harry): set verified=True once each citation is checked against the page.
         provenance={
-            "mtow_kg": Provenance("equation", "Raymer 6ed, Ch. 3, Eq. 3.4 (Weight Closure)", verified=False),
-            "empty_fraction": Provenance("table", "knowledge/tables/weight_fractions.yaml#ga_single_engine", verified=False),
-            "fuel_fraction": Provenance("equation", "Raymer 6ed, Ch. 3, Eq. 3.7–3.8 (Breguet Range & Loiter)", verified=False),
-            "wing_loading_pa": Provenance("equation", "Raymer 6ed, Ch. 5, Eq. 5.6 (Stall Wing Loading)", verified=False),
-            "wing_area_m2": Provenance("equation", "Raymer 6ed, Ch. 5, Eq. 5.6 (Stall Wing Loading)", verified=False),
-            "cruise_power_w": Provenance("assumption", f"Cruise at L/D_max = {spec.ld_max}", verified=False),
-            "installed_power_w": Provenance("assumption", "75% continuous cruise throttle setting", verified=False),
+            "mtow_kg": _prov("equation", eq_closure, "weight closure"),
+            "empty_mass_kg": _prov("table", ew, "We/W0 = A W0^C"),
+            "empty_fraction": _prov("table", ew, "We/W0 = A W0^C"),
+            "fuel_mass_kg": _prov("equation", trapped, "Wf/W0 = 1.06 (1 - Wx/W0)"),
+            "fuel_fraction": _prov("equation", trapped, "Wf/W0 = 1.06 (1 - Wx/W0)"),
+            "statistical_spar_mass_kg": _prov("assumption", spar_share),
+            "segment_fractions.warmup_takeoff": _prov("table", seg),
+            "segment_fractions.climb": _prov("table", seg),
+            "segment_fractions.landing": _prov("table", seg),
+            "segment_fractions.cruise": _prov("equation", eq_breguet, "Breguet range, propeller"),
+            "segment_fractions.loiter": _prov("equation", eq_loiter, "loiter endurance at 0.866 L/D max"),
+            "wing_loading_pa": _prov("equation", eq_stall, "W/S = 1/2 rho Vs^2 CLmax"),
+            "wing_area_m2": _prov("equation", eq_stall, "S = W0 g / (W/S)"),
+            "span_m": Provenance("equation", "b = sqrt(A S) (definition of aspect ratio)"),
+            "root_chord_m": Provenance("equation", "c_root = 2S / (b (1 + taper)) (trapezoidal wing)"),
+            "tip_chord_m": Provenance("equation", "c_tip = taper x c_root (trapezoidal wing)"),
+            "mac_m": Provenance("equation", "MAC = 2/3 c_root (1 + l + l^2)/(1 + l) (trapezoidal wing)"),
+            "cruise_power_w": Provenance("equation", "P = (W0 g / (L/D)) V / eta_p, cruise T/W = 1/(L/D) (Raymer 2ed, Eq. 5.2)", verified=False),
+            "installed_power_w": power_prov,
         },
     )

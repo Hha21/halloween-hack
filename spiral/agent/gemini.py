@@ -153,8 +153,8 @@ DEFAULT_REASONS: dict[str, str] = {
     "cruise_altitude_m": "Assumed 2,500 m (~8,200 ft) cruise altitude",
     "stall_speed_ms": "Assumed 28 m/s (~54 kt), inside the 61 kt CS-23 single-engine stall limit",
     "reserve_s": "Assumed 45 min loiter reserve",
-    "aspect_ratio": "Assumed 7.5, typical GA single-engine",
-    "taper_ratio": "Assumed 0.6, tapered GA wing",
+    "aspect_ratio": "Assumed 7.6, typical GA single-engine",
+    "taper_ratio": "Assumed 0.45, near-elliptical lift for an unswept wing",
     "thickness_to_chord": "Assumed 0.15 root aerofoil thickness",
     "cl_max": "Assumed 1.6 with simple flaps deployed",
     "ld_max": "Assumed 11, typical fixed-gear GA",
@@ -374,37 +374,27 @@ def parse_intake_description(description: str) -> ToolResult[MissionSpec]:
     return result
 
 
-def propose_infeasible_relaxation(state: DesignState) -> SpecRelaxationProposal:
-    """Propose a single actionable parameter relaxation when the design spiral fails to close.
+def propose_infeasible_relaxation(
+    state: DesignState, candidate: SpecRelaxationProposal | None
+) -> SpecRelaxationProposal | None:
+    """Explain the one relaxation that makes the spiral close.
 
-    TODO (Harry): Connect to Gemini with `prompts/infeasible.md`.
+    The numbers (new value, MTOW at that value) come from `candidate`, which the orchestrator
+    computed by re-running the spiral; this only writes the reasoning around them.
+
+    TODO (Harry): have Gemini write `reasoning` (prompts/infeasible.md) from `state.infeasible_reason`,
+    `state.history` and the candidate, with the numbers passed in rather than generated.
     """
-    spec = state.spec
-    if spec.range_m > 1_400_000.0:
-        new_range_m = 1_400_000.0
-        return SpecRelaxationProposal(
-            field_name="range_m",
-            old_value=spec.range_m,
-            new_value=new_range_m,
-            unit="m",
-            reasoning=(
-                f"Reducing range from {spec.range_m / 1000:.0f} km to {new_range_m / 1000:.0f} km "
-                "brings the Breguet cruise fuel fraction back inside the single-engine GA closure envelope."
-            ),
-            estimated_mtow_kg=1185.0,
-        )
-
-    new_ld = round(spec.ld_max + 2.0, 1)
-    return SpecRelaxationProposal(
-        field_name="ld_max",
-        old_value=spec.ld_max,
-        new_value=new_ld,
-        unit="-",
-        reasoning=(
-            f"Increasing L/D_max from {spec.ld_max} to {new_ld} reduces cruise fuel burn enough for weight closure."
-        ),
-        estimated_mtow_kg=1120.0,
+    if candidate is None:
+        return None
+    old_km, new_km = candidate.old_value / 1000.0, candidate.new_value / 1000.0
+    mtow = f"{candidate.estimated_mtow_kg:,.0f} kg" if candidate.estimated_mtow_kg else "an MTOW inside the limit"
+    candidate.reasoning = (
+        f"{state.infeasible_reason} Keeping everything else in the spec, the longest range that closes is "
+        f"{new_km:,.0f} km (down from {old_km:,.0f} km), where the spiral converges at {mtow}. "
+        "Both numbers come from re-running the full spiral at the new range."
     )
+    return candidate
 
 
 def generate_report_markdown(state: DesignState) -> str:

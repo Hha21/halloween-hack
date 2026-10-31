@@ -1,21 +1,47 @@
-# Weight Fractions & Statistical Regressions (Owner: Harry)
+# Weight fractions, fuel consumption and statistical regressions used by spiral/tools/sizing.py (Owner: Harry).
+# Values and page numbers checked against Raymer, Aircraft Design: A Conceptual Approach, 2nd ed. (AIAA, 1992),
+# via scripts/extract_knowledge.py (Gemini extraction + independent Gemini critic).
+# `verified: true` only once the critic confirmed that exact item against the scanned page.
 
 ga_single_engine:
   empty_weight_regression:
-    A_imperial: 2.36
+    A: 2.36
     C: -0.18
-    note: "Raymer Eq 3.4 Table 3.1 uses W0 in lb: We/W0 = 2.36 * (W0_lb)^(-0.18)"
-    source: "Raymer 6ed, Table 3.1 (p. 26)"
-    verified: true
+    w0_units: lb
+    note: "We/W0 = A * W0^C with W0 in lb (row: General aviation - single engine)"
+    source: "Raymer 2ed, Table 3.1 (p. 13)"
+    verified: false
   segment_weight_fractions:
     warmup_takeoff: 0.970
     climb: 0.985
     landing: 0.995
-    trapped_reserve_multiplier: 1.06
-    source: "Raymer 6ed, Table 3.2 (p. 28)"
-    verified: true
+    source: "Raymer 2ed, Table 3.2 (p. 16)"
+    verified: false
+  trapped_reserve_allowance:
+    multiplier: 1.06
+    note: "Wf/W0 = 1.06 * (1 - Wx/W0): 6% for reserve and trapped fuel"
+    source: "Raymer 2ed, Eq. 3.11 (p. 23)"
+    verified: false
+  propeller_sfc:
+    # Piston-prop, fixed pitch. Cbhp in (lb/hr)/hp.
+    cruise_cbhp: 0.4
+    cruise_eta_p: 0.8
+    loiter_cbhp: 0.5
+    loiter_eta_p: 0.7
+    source: "Raymer 2ed, Table 3.4 (p. 19)"
+    verified: false
+  loiter_ld_factor:
+    value: 0.866
+    note: "Propeller aircraft loiter most efficiently at 86.6% of L/D max; they cruise at L/D max"
+    source: "Raymer 2ed, Ch. 3 (p. 22)"
+    verified: false
+  hp_to_weight:
+    hp_per_lb: 0.07
+    note: "Statistical installed power check (row: General aviation - single engine)"
+    source: "Raymer 2ed, Table 5.2 (p. 79)"
+    verified: false
   statistical_spar_share_of_empty:
     fraction: 0.085
-    note: "Assumed main wing spar share of empty weight on Lap 0 before preliminary beam sizing"
-    source: "Raymer 6ed, Ch. 15 statistical wing group breakdown"
+    note: "Lap-0 guess for the main spar's share of empty weight, replaced by the sized spar from lap 1"
+    source: "Assumption (Spiral): not from a textbook table"
     verified: false

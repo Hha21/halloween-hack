@@ -28,7 +28,7 @@ from spiral.contract import IntakeResponse, MissionSpec, ReportResponse, format_
 
 FIXTURES = ROOT / "fixtures"
 EXAMPLE = "Four-seat touring aircraft, 1,000 km range with 45 min reserve, cruise 115 kt, stall under 55 kt."
-INFEASIBLE_RANGE_M = 5_500_000.0
+INFEASIBLE_RANGE_M = 5_570_000.0  # London to New York non-stop (demo twist)
 
 
 def _write_json(name: str, payload: object) -> None:

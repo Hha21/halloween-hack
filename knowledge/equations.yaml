@@ -1,52 +1,90 @@
-# Curated Equation Registry (Owner: Harry)
-# Every deterministic tool in spiral/tools/ cites an entry from this registry.
+# Curated equation registry (Owner: Harry).
+# Every deterministic tool in spiral/tools/ cites an entry from this registry. Page numbers are for
+# Raymer, Aircraft Design: A Conceptual Approach, 2nd ed. (AIAA, 1992). `verified` is set by
+# `python scripts/extract_knowledge.py check --write` only when the critic confirmed the printed equation.
+# The LaTeX here is the form the code uses (SI); the book prints imperial forms.
 
 equations:
   weight_closure:
-    name: "Iterative Takeoff Gross Weight Closure"
+    name: "Take-off gross weight sizing equation"
     latex: "W_0 = \\frac{W_{\\text{crew}} + W_{\\text{payload}}}{1 - (W_f / W_0) - (W_e / W_0)}"
-    source: "Raymer 6ed, Ch. 3, Eq. 3.4 (p. 25)"
+    source: "Raymer 2ed, Eq. 3.4 (p. 12)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: true
+    verified: false
 
   empty_weight_fraction_ga:
-    name: "Statistical Empty Weight Fraction (GA Single-Engine)"
-    latex: "\\frac{W_e}{W_0} = A \\cdot W_0^C \\quad (A = 2.36, C = -0.18)"
-    source: "Raymer 6ed, Ch. 3, Table 3.1 (p. 26)"
+    name: "Statistical empty-weight fraction (GA single engine)"
+    latex: "\\frac{W_e}{W_0} = A \\cdot W_0^C \\quad (A = 2.36, C = -0.18, W_0 \\text{ in lb})"
+    source: "Raymer 2ed, Table 3.1 (p. 13)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: true
+    verified: false
 
   breguet_range_prop:
-    name: "Breguet Cruise Fuel Fraction (Propeller)"
-    latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{R \\cdot c_{\\text{bhp}} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
-    source: "Raymer 6ed, Ch. 3, Eq. 3.7 (p. 29)"
+    name: "Breguet cruise weight fraction (propeller, SI form)"
+    latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{R \\cdot \\text{bsfc} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
+    source: "Raymer 2ed, Eq. 3.6 (p. 17)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: true
+    verified: false
+
+  prop_equivalent_sfc:
+    name: "Propeller equivalent thrust SFC"
+    latex: "C = C_{\\text{bhp}} \\frac{V}{550 \\eta_p}"
+    source: "Raymer 2ed, Eq. 3.10 (p. 18)"
+    tool: "spiral.tools.sizing.conceptual_sizing"
+    verified: false
 
   loiter_endurance_prop:
-    name: "Propeller Loiter Endurance Fuel Fraction"
-    latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{E \\cdot V \\cdot c_{\\text{bhp}} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
-    source: "Raymer 6ed, Ch. 3, Eq. 3.8 (p. 30)"
+    name: "Loiter weight fraction (propeller, SI form)"
+    latex: "\\frac{W_i}{W_{i-1}} = \\exp\\left(-\\frac{E \\cdot V \\cdot \\text{bsfc} \\cdot g}{\\eta_p \\cdot (L/D)}\\right)"
+    source: "Raymer 2ed, Eq. 3.8 (p. 17)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: true
+    verified: false
+
+  fuel_fraction_allowance:
+    name: "Total fuel fraction with 6% reserve and trapped fuel"
+    latex: "\\frac{W_f}{W_0} = 1.06 \\left(1 - \\frac{W_x}{W_0}\\right)"
+    source: "Raymer 2ed, Eq. 3.11 (p. 23)"
+    tool: "spiral.tools.sizing.conceptual_sizing"
+    verified: false
 
   stall_wing_loading:
-    name: "Stall Speed Wing Loading Limit"
+    name: "Stall-speed wing loading"
     latex: "\\frac{W}{S} = \\frac{1}{2} \\rho V_{\\text{stall}}^2 C_{L,\\max}"
-    source: "Raymer 6ed, Ch. 5, Eq. 5.6 (p. 95)"
+    source: "Raymer 2ed, Eq. 5.6 (p. 85)"
     tool: "spiral.tools.sizing.conceptual_sizing"
-    verified: true
+    verified: false
+
+  cruise_thrust_matching:
+    name: "Cruise thrust-to-weight equals 1/(L/D)"
+    latex: "\\left(\\frac{T}{W}\\right)_{\\text{cruise}} = \\frac{1}{(L/D)_{\\text{cruise}}}"
+    source: "Raymer 2ed, Eq. 5.2 (p. 81)"
+    tool: "spiral.tools.sizing.conceptual_sizing"
+    verified: false
 
   schrenk_lift_distribution:
-    name: "Schrenk Spanwise Lift Approximation"
+    name: "Schrenk spanwise lift approximation"
     latex: "L'(y) = \\frac{1}{2} \\left( L'_{\\text{elliptical}}(y) + L'_{\\text{planform}}(y) \\right)"
-    source: "Schrenk (1940) NACA TM 948; Raymer 6ed Ch. 14"
+    source: "Schrenk (1940), NACA TM 948 (not in our book set)"
     tool: "spiral.tools.spar.spar_loads"
-    verified: true
+    verified: false
+
+  beam_bending_stress:
+    name: "Beam bending stress"
+    latex: "\\sigma_x = \\frac{M z}{I_y}"
+    source: "Raymer 2ed, Eq. 14.35 (p. 383)"
+    tool: "spiral.tools.spar.size_spar"
+    verified: false
+
+  beam_shear_stress:
+    name: "Beam shear stress"
+    latex: "\\tau = \\frac{V}{b I_y} \\int_{z_1}^{h/2} z \\, dA"
+    source: "Raymer 2ed, Eq. 14.36 (p. 384)"
+    tool: "spiral.tools.spar.size_spar"
+    verified: false
 
   ibeam_cap_sizing:
-    name: "I-Beam Spar Cap Area and Web Shear Sizing"
+    name: "I-beam spar cap area and web shear sizing (idealised: caps carry bending, web carries shear)"
     latex: "A_{\\text{cap}}(y) = \\frac{M(y)}{h(y) \\cdot \\sigma_{\\text{allow}}}, \\quad t_{\\text{web}}(y) = \\frac{V(y)}{h(y) \\cdot \\tau_{\\text{allow}}}"
-    source: "Megson, Aircraft Structures for Engineering Students, Ch. 9"
+    source: "Derived from Raymer 2ed, Eqs. 14.35-14.36 (pp. 383-384) for an idealised two-cap beam"
     tool: "spiral.tools.spar.size_spar"
-    verified: true
+    verified: false

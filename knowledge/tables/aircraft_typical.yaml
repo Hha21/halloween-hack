@@ -2,32 +2,41 @@
 # Used to flag out-of-range warnings when user specs exceed historical heuristics.
 
 ga_single_engine:
+  mtow_class_limit:
+    max_kg: 2722.0
+    note: "Single reciprocating-engine class boundary (6,000 lb). Above it the Table 3.1 statistics no longer describe the aircraft."
+    source: "FAA AC 23.1309-1E, Class I (single reciprocating engine, under 6,000 lb)"
+    verified: false
   aspect_ratio:
-    typical: 7.5
+    typical: 7.6
     min_valid: 6.0
     max_valid: 10.0
-    source: "Raymer 6ed, Table 4.1 (p. 64)"
-    verified: true
+    source: "Raymer 2ed, Table 4.1 (p. 51)"
+    verified: false
   taper_ratio:
-    typical: 0.6
-    min_valid: 0.4
+    # Raymer p. 55: unswept wings typically 0.4-0.5; p. 56: 0.45 gives a near-elliptical lift distribution.
+    # Valid range kept wide: rectangular (1.0) wings are common on GA aircraft.
+    typical: 0.45
+    min_valid: 0.2
     max_valid: 1.0
-    source: "Raymer 6ed, Ch. 4.3"
-    verified: true
+    source: "Raymer 2ed, Ch. 4 (p. 56)"
+    verified: false
   thickness_to_chord:
+    # Read from a trend chart (t/c vs design Mach), so the number can't be checked automatically.
     typical: 0.15
     min_valid: 0.10
     max_valid: 0.18
-    source: "Raymer 6ed, Ch. 4.2"
-    verified: true
+    source: "Raymer 2ed, Fig. 4.14 (p. 47): value read from chart trend, not a printed number"
+    verified: false
   ld_max:
+    # Fig. 3.6 gives L/D max vs wetted aspect ratio; 11 is our reading for a fixed-gear single, not a printed number.
     typical: 11.0
     min_valid: 8.0
     max_valid: 14.0
-    source: "Raymer 6ed, Ch. 3.4"
-    verified: true
+    source: "Raymer 2ed, Fig. 3.6 (p. 22): value estimated from chart, not a printed number"
+    verified: false
   tail_volume_coefficients:
     c_ht: 0.70
     c_vt: 0.04
-    source: "Raymer 6ed, Table 6.4 (p. 160)"
-    verified: true
+    source: "Raymer 2ed, Table 6.4 (p. 112)"
+    verified: false

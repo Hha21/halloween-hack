@@ -7,7 +7,8 @@ the SSE payload dataclasses from `spiral.contract`.
 
 from __future__ import annotations
 
-from dataclasses import fields
+import math
+from dataclasses import fields, replace
 from pathlib import Path
 from typing import Callable
 
@@ -25,6 +26,7 @@ from spiral.contract import (
     LogEvent,
     MissionSpec,
     Provenance,
+    SpecRelaxationProposal,
     ToolError,
     ToolResult,
 )
@@ -36,6 +38,7 @@ from spiral.tools import (
     size_spar,
     spar_loads,
 )
+from spiral.tools.lookup import lookup
 
 EventSink = Callable[[str, object], None]
 
@@ -72,13 +75,56 @@ def _artifact_url(path: str) -> str:
     return f"{ARTIFACTS_URL_PREFIX}/{Path(path).name}"
 
 
+def mtow_class_limit() -> tuple[float, str]:
+    """(max MTOW in kg, citation) for the aircraft class the statistics describe."""
+    row = lookup("aircraft_typical", "ga_single_engine").value["mtow_class_limit"]
+    return float(row["max_kg"]), str(row["source"])
+
+
+def nearest_feasible_range(spec: MissionSpec, step_m: float = 10_000.0) -> SpecRelaxationProposal | None:
+    """Longest range (rounded down to `step_m`) at which the full spiral converges, all else unchanged.
+
+    MTOW only grows with range, so bisection applies. Every number in the proposal comes from a
+    real spiral run; the reasoning text is left for the agent to write.
+    """
+
+    def closes(range_m: float) -> DesignState | None:
+        state = run_design_spiral(replace(spec, range_m=range_m), propose_relaxation=False)
+        return state if state.converged else None
+
+    lo, hi = 50_000.0, spec.range_m
+    if hi <= lo or closes(lo) is None:
+        return None
+    while hi - lo > step_m / 2:
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if closes(mid) else (lo, mid)
+    new_range = math.floor(lo / step_m) * step_m
+    best = closes(new_range)
+    if best is None or best.latest_sizing is None:
+        return None
+    return SpecRelaxationProposal(
+        field_name="range_m",
+        old_value=spec.range_m,
+        new_value=new_range,
+        unit="m",
+        reasoning="",
+        estimated_mtow_kg=best.latest_sizing.mtow_kg,
+    )
+
+
 def run_design_spiral(
     spec: MissionSpec,
     max_laps: int = 12,
     convergence_tol_pct: float = 0.5,
     on_event: EventSink | None = None,
+    propose_relaxation: bool = True,
 ) -> DesignState:
-    """Run the conceptual + preliminary wing spar sizing loop until MTOW converges."""
+    """Run the conceptual + preliminary wing spar sizing loop until MTOW converges.
+
+    Infeasible if a tool fails (e.g. implausible fuel fraction), the spiral diverges, or it
+    converges above the single-engine class MTOW limit. Then, if `propose_relaxation`, the
+    longest range that does close is computed by re-running the spiral.
+    """
     state = DesignState(spec=spec)
     state.provenance.update(_spec_provenance(spec))
 
@@ -92,7 +138,8 @@ def run_design_spiral(
 
     def finish_infeasible(lap: int, reason: str) -> DesignState:
         state.infeasible_reason = reason
-        state.proposed_relaxation = propose_infeasible_relaxation(state)
+        if propose_relaxation:
+            state.proposed_relaxation = propose_infeasible_relaxation(state, nearest_feasible_range(spec))
         log(
             AgentLogEntry(
                 lap=lap,
@@ -187,6 +234,13 @@ def run_design_spiral(
 
         # Check convergence after at least 1 feedback lap (lap >= 1)
         if lap >= 1 and abs(mtow_change_pct) < convergence_tol_pct:
+            limit_kg, limit_source = mtow_class_limit()
+            if sizing.mtow_kg > limit_kg:
+                return finish_infeasible(
+                    lap,
+                    f"The spiral closes at MTOW {sizing.mtow_kg:,.0f} kg, above the {limit_kg:,.0f} kg limit for a "
+                    f"single-engine piston aircraft ({limit_source}). The statistical methods don't apply that far out.",
+                )
             state.converged = True
             log(
                 AgentLogEntry(

@@ -112,7 +112,7 @@ class Provenance(_Serialisable):
     """Where one displayed number comes from. Drives the source badge in the UI."""
 
     kind: str  # "equation" | "table" | "simulation" | "assumption" | "user_input" | "gemini_default"
-    source: str  # e.g. "Raymer 6ed Eq. 3.4 (p. 25)", "knowledge/tables/materials.yaml#al_2024_t3"
+    source: str  # e.g. "Raymer 2ed, Eq. 3.4 (p. 12)", "knowledge/tables/materials.yaml#al_2024_t3"
     verified: bool = True  # False -> amber badge: citation not yet checked against the page
     warning: str | None = None  # set -> amber badge: e.g. heuristic used outside its valid range
 
@@ -156,8 +156,8 @@ class MissionSpec(_Serialisable):
     reserve_s: float = 2_700.0  # 45 min loiter reserve
 
     # Wing & Aerodynamics
-    aspect_ratio: float = 7.5
-    taper_ratio: float = 0.6
+    aspect_ratio: float = 7.6  # Raymer 2ed Table 4.1, GA single engine
+    taper_ratio: float = 0.45  # Raymer 2ed p. 56: near-elliptical lift, unswept wing
     thickness_to_chord: float = 0.15
     cl_max: float = 1.6
     ld_max: float = 11.0
