@@ -211,7 +211,9 @@ class TestSecondaryComponents(unittest.TestCase):
         self.assertAlmostEqual(tail.loads.root_shear_n, tail.ultimate_tail_load_n / 2.0, delta=0.01 * tail.ultimate_tail_load_n)
         self.assertEqual(tail.loads.stations[-1].shear_n, 0.0)
         self.assertGreaterEqual(tail.spar.safety_margin, 0.0)
-        self.assertTrue(any("Table 4.3" in w for w in res.warnings) or 0.3 <= geom.horizontal_tail["tip_chord_m"] / geom.horizontal_tail["root_chord_m"] <= 0.6)
+        # Geometry picks the Table 4.3 midpoints (A 4.0, taper 0.45), so the planform check stays quiet
+        self.assertFalse(any("Table 4.3" in w for w in res.warnings))
+        self.assertAlmostEqual(geom.horizontal_tail["tip_chord_m"] / geom.horizontal_tail["root_chord_m"], 0.45, places=2)
 
     def test_landing_gear_hand_worked_case(self) -> None:
         sizing = replace(self.state.latest_sizing, mtow_kg=1000.0)

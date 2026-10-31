@@ -90,6 +90,13 @@ def aircraft_geometry(
     tail_src = str(tail_vol.get("source", "Raymer 2ed, Table 6.4 (p. 112)"))
     tail_ver = bool(tail_vol.get("verified", True))
 
+    # Raymer Table 4.3 (row "Others") horizontal tail planform ranges; use the midpoint of each
+    plan = lookup("component_loads", "ga_single_engine").value.get("tail_planform_ranges", {})
+    ht_ar = 0.5 * (float(plan.get("aspect_ratio_min", 3.0)) + float(plan.get("aspect_ratio_max", 5.0)))
+    ht_taper = 0.5 * (float(plan.get("taper_ratio_min", 0.3)) + float(plan.get("taper_ratio_max", 0.6)))
+    plan_src = str(plan.get("source", "Raymer 2ed, Table 4.3 (p. 76)"))
+    plan_ver = bool(plan.get("verified", False))
+
     # Raymer Table 6.3 general aviation fuselage length regression (in SI)
     w0_lb = max(sizing.mtow_kg * 2.20462, 500.0)
     fuselage_length_m = 0.3048 * (a_fuse * (w0_lb**c_fuse))
@@ -104,16 +111,17 @@ def aircraft_geometry(
     tail_arm_m = 0.52 * fuselage_length_m
 
     ht_area_m2 = (c_ht * sizing.wing_area_m2 * sizing.mac_m) / max(tail_arm_m, 1.0)
-    ht_ar = 4.0
     ht_span_m = math.sqrt(ht_ar * ht_area_m2)
-    ht_root_chord_m = (2.0 * ht_area_m2) / (ht_span_m * 1.65)
-    ht_tip_chord_m = 0.65 * ht_root_chord_m
+    ht_root_chord_m = (2.0 * ht_area_m2) / (ht_span_m * (1.0 + ht_taper))
+    ht_tip_chord_m = ht_taper * ht_root_chord_m
 
+    # Vertical tail inside Raymer Table 4.3 row "Others" (A 1.3-2.0, taper 0.3-0.6); not in the YAML row
     vt_area_m2 = (c_vt * sizing.wing_area_m2 * sizing.span_m) / max(tail_arm_m, 1.0)
     vt_ar = 1.6
+    vt_taper = 0.55
     vt_height_m = math.sqrt(vt_ar * vt_area_m2)
-    vt_root_chord_m = (2.0 * vt_area_m2) / (vt_height_m * 1.55)
-    vt_tip_chord_m = 0.55 * vt_root_chord_m
+    vt_root_chord_m = (2.0 * vt_area_m2) / (vt_height_m * (1.0 + vt_taper))
+    vt_tip_chord_m = vt_taper * vt_root_chord_m
 
     geom = AircraftGeometry(
         fuselage={
@@ -158,8 +166,10 @@ def aircraft_geometry(
         sources=[
             "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
             "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+            "Raymer 2ed, Table 4.3 (p. 76): Tail Aspect Ratio and Taper Ratio (row Others)",
             "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
             "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
+            "knowledge/tables/component_loads.yaml#ga_single_engine.tail_planform_ranges",
         ],
         assumptions=[
             "Tail moment arm = 52% of fuselage length (Raymer 2ed Table 6.4 typical arm ratio)",
@@ -232,18 +242,24 @@ def aircraft_geometry(
             # Horizontal tail
             "horizontal_tail.span_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: S_HT = C_HT x S x MAC / L_HT (C_HT = {c_ht})",
-                verified=tail_ver,
+                source=(
+                    f"{tail_src}: S_HT = C_HT x S x MAC / L_HT (C_HT = {c_ht}); b_HT = sqrt(A x S_HT), "
+                    f"A = {ht_ar:g} midpoint of {plan_src} row Others"
+                ),
+                verified=tail_ver and plan_ver,
             ),
             "horizontal_tail.root_chord_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: HT root chord from AR=4.0 and taper=0.65",
-                verified=tail_ver,
+                source=(
+                    f"{plan_src}, row Others: c_root = 2 S_HT / (b_HT (1 + taper)), "
+                    f"A = {ht_ar:g} and taper = {ht_taper:g} (range midpoints)"
+                ),
+                verified=tail_ver and plan_ver,
             ),
             "horizontal_tail.tip_chord_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: HT tip chord = 0.65 x c_root",
-                verified=tail_ver,
+                source=f"{plan_src}, row Others: c_tip = {ht_taper:g} x c_root (taper range midpoint)",
+                verified=tail_ver and plan_ver,
             ),
             "horizontal_tail.x_le_m": Provenance(
                 kind="assumption",
@@ -258,18 +274,24 @@ def aircraft_geometry(
             # Vertical tail
             "vertical_tail.height_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: S_VT = C_VT x S x b / L_VT (C_VT = {c_vt})",
-                verified=tail_ver,
+                source=(
+                    f"{tail_src}: S_VT = C_VT x S x b / L_VT (C_VT = {c_vt}); h_VT = sqrt(A x S_VT), "
+                    f"A = {vt_ar:g} within 1.3-2.0, Raymer 2ed, Table 4.3 (p. 76) row Others"
+                ),
+                verified=False,
             ),
             "vertical_tail.root_chord_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: VT root chord from AR=1.6 and taper=0.55",
-                verified=tail_ver,
+                source=(
+                    "Raymer 2ed, Table 4.3 (p. 76), row Others: c_root = 2 S_VT / (h_VT (1 + taper)), "
+                    f"A = {vt_ar:g} within 1.3-2.0, taper = {vt_taper:g} within 0.3-0.6"
+                ),
+                verified=False,
             ),
             "vertical_tail.tip_chord_m": Provenance(
                 kind="equation",
-                source=f"{tail_src}: VT tip chord = 0.55 x c_root",
-                verified=tail_ver,
+                source=f"Raymer 2ed, Table 4.3 (p. 76), row Others: c_tip = {vt_taper:g} x c_root, within 0.3-0.6",
+                verified=False,
             ),
             "vertical_tail.x_le_m": Provenance(
                 kind="assumption",

@@ -222,5 +222,9 @@ def horizontal_tail_spar(
 
 
 def geometry_prov(what: str) -> Provenance:
-    """Tail planform numbers come from spiral.tools.geometry (C_HT sizing, Raymer 2ed Table 6.4)."""
-    return Provenance("equation", f"Aircraft geometry (spiral.tools.geometry, Raymer 2ed Table 6.4 tail volume): {what}", verified=False)
+    """Tail planform numbers come from spiral.tools.geometry (C_HT sizing Table 6.4, AR and taper Table 4.3)."""
+    return Provenance(
+        "equation",
+        f"Aircraft geometry (spiral.tools.geometry, Raymer 2ed Table 6.4 tail volume, Table 4.3 AR and taper): {what}",
+        verified=False,
+    )
