@@ -219,6 +219,7 @@ def run_fea(
     cad: SparCadResult,
     material_key: str = "al_2024_t3",
     out_dir: str = "artifacts",
+    file_stem: str = "spar",
 ) -> ToolResult[FeaResult]:
     """Run static finite-element stress & deflection verification on the tapered I-beam wing spar."""
     if not spar.stations or len(spar.stations) < 2:
@@ -230,7 +231,7 @@ def run_fea(
 
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    stress_mesh_file = out_path / "spar_stress_mesh.json"
+    stress_mesh_file = out_path / f"{file_stem}_stress_mesh.json"
 
     mat_lookup = lookup("materials", material_key)
     mat = mat_lookup.value
@@ -325,7 +326,7 @@ def run_fea(
         stress_agreement_pct=round(stress_agreement_pct, 2),
         deflection_agreement_pct=round(defl_agreement_pct, 2),
         safety_margin_fea=round(safety_margin_fea, 3),
-        stress_mesh_path=f"{out_dir}/spar_stress_mesh.json",
+        stress_mesh_path=f"{out_dir}/{file_stem}_stress_mesh.json",
         stations=stations,
     )
 
@@ -389,7 +390,7 @@ def run_fea(
             ),
             "stress_mesh_path": Provenance(
                 kind="simulation",
-                source="3D Cross-Sectional von Mises Field (spar_stress_mesh.json)",
+                source=f"3D Cross-Sectional von Mises Field ({file_stem}_stress_mesh.json)",
                 verified=True,
             ),
             "stations[].y_m": Provenance(

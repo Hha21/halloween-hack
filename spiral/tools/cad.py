@@ -233,7 +233,7 @@ def _write_step_ap214_brep(
             "ISO-10303-21;",
             "HEADER;",
             "FILE_DESCRIPTION(('Spiral Main Wing Tapered I-Beam Spar B-Rep Model'),'2;1');",
-            f"FILE_NAME('spar.step','{timestamp}',('Spiral Autonomous Design Agent'),('Imperial College London'),'Spiral CAD Engine','CadQuery/STEP-AP214','');",
+            f"FILE_NAME('{step_file.name}','{timestamp}',('Spiral Autonomous Design Agent'),('Imperial College London'),'Spiral CAD Engine','CadQuery/STEP-AP214','');",
             "FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));",
             "ENDSEC;",
             "DATA;",
@@ -249,6 +249,7 @@ def _write_step_ap214_brep(
 def build_spar_cad(
     spar: SparSizingResult,
     out_dir: str = "artifacts",
+    file_stem: str = "spar",
 ) -> ToolResult[SparCadResult]:
     """Generate 3D tapered I-beam CAD geometry (STEP AP214 + watertight ASCII STL) for the sized main wing spar."""
     if not spar.stations or len(spar.stations) < 2:
@@ -261,8 +262,8 @@ def build_spar_cad(
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
-    step_file = out_path / "spar.step"
-    stl_file = out_path / "spar.stl"
+    step_file = out_path / f"{file_stem}.step"
+    stl_file = out_path / f"{file_stem}.stl"
 
     used_cadquery = False
     try:
@@ -307,8 +308,8 @@ def build_spar_cad(
     max_depth_m = max(s.depth_m for s in spar.stations)
 
     result = SparCadResult(
-        step_path=f"{out_dir}/spar.step",
-        stl_path=f"{out_dir}/spar.stl",
+        step_path=f"{out_dir}/{file_stem}.step",
+        stl_path=f"{out_dir}/{file_stem}.stl",
         volume_single_wing_m3=round(effective_single_wing_vol_m3, 6),
         cad_mass_both_wings_kg=round(cad_mass_both_wings_kg, 2),
         bounding_box_m={
