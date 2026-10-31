@@ -178,6 +178,7 @@ class MissionSpec(_Serialisable):
     name: str = "GA-4 Touring"
     raw_description: str = ""
     defaulted_fields: dict[str, str] = field(default_factory=dict)  # field_name -> reason
+    stated_fields: dict[str, str] = field(default_factory=dict)  # field_name -> the user's exact words (intake)
 
     @property
     def n_ult(self) -> float:

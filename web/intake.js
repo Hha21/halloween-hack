@@ -30,15 +30,15 @@ function origin(field) {
   const spec = ctx.getSpec();
   const changed = parsedSpec && JSON.stringify(parsedSpec[field]) !== JSON.stringify(spec?.[field]);
   if (edited.has(field) || changed) {
-    return { cls: "prov-user", label: "[edited]", title: "Changed after parsing (form, preset, slider or an accepted relaxation)" };
+    return { cls: "prov-user", label: "edited", title: "Changed after parsing (form, preset, slider or an accepted relaxation)" };
   }
   const reason = spec?.defaulted_fields?.[field];
   if (reason && reason.startsWith("Inferred")) {
-    return { cls: "prov-inferred", label: "[Gemini inferred]", title: reason };
+    return { cls: "prov-inferred", label: "Gemini inferred", title: reason };
   }
-  if (reason) return { cls: "prov-cited", label: "[cited default]", title: reason };
+  if (reason) return { cls: "prov-cited", label: "cited default", title: reason };
   const by = lastIntake?.sources?.[0] || "the description";
-  return { cls: "prov-from-text", label: "[from your text]", title: `Stated in the description (${by})` };
+  return { cls: "prov-from-text", label: "from your text", title: `Stated in the description (${by})` };
 }
 
 function badge(field) {
@@ -50,6 +50,8 @@ function renderSummary() {
   const el = document.getElementById("intake-summary");
   if (!el) return;
   const spec = ctx.getSpec();
+  const screen = document.getElementById("screen-intake");
+  if (screen) screen.dataset.intakeState = lastError ? "error" : lastIntake ? "parsed" : "idle";
   if (lastError) {
     el.innerHTML = `<div class="intake-summary-line warn">⚠ Intake failed: ${esc(lastError)}. Showing the local spec; check every field.</div>`;
     return;
@@ -63,14 +65,14 @@ function renderSummary() {
   fields.forEach((f) => (counts[origin(f).cls] = (counts[origin(f).cls] || 0) + 1));
   const parser = lastIntake.sources?.[0]?.replace(/^Project description, parsed by /, "") || "parser";
   const parts = [
-    `<b>${esc(spec.name || "Project")}</b> · parsed by ${esc(parser)}`,
+    `<span class="intake-summary-title"><b>${esc(spec.name || "Project")}</b> <span class="muted">parsed by ${esc(parser)}</span></span>`,
     `<span class="prov-badge prov-from-text">${counts["prov-from-text"]} from your text</span>`,
     `<span class="prov-badge prov-inferred">${counts["prov-inferred"]} Gemini inferred</span>`,
     `<span class="prov-badge prov-cited">${counts["prov-cited"]} cited defaults</span>`,
   ];
   if (counts["prov-user"]) parts.push(`<span class="prov-badge prov-user">${counts["prov-user"]} edited</span>`);
   const warnings = (lastIntake.warnings || []).map((w) => `<div class="intake-summary-line warn">⚠ ${esc(w)}</div>`).join("");
-  el.innerHTML = `<div class="intake-summary-line">${parts.join(" ")}</div>${warnings}
+  el.innerHTML = `<div class="intake-summary-line intake-summary-legend">${parts.join(" ")}</div>${warnings}
     <div class="intake-summary-line muted">Hover a badge for its source. Gemini only reads your text; every number is converted, checked or defaulted by Python with a citation.</div>`;
 }
 
@@ -125,16 +127,16 @@ export function renderIntakeCards() {
   container.innerHTML = cards
     .map(
       (c) => `
-      <div class="panel">
+      <div class="panel intake-card">
         <h3>${esc(c.title)}</h3>
         ${c.fields
           .map((f) => {
             const b = badge(fieldOf(f.key));
             if (f.type === "select") {
               const opts = f.options.map((o) => `<option value="${o}" ${o === f.val ? "selected" : ""}>${o}</option>`).join("");
-              return `<div class="field-row"><span>${esc(f.label)} ${b}</span><select data-spec-key="${f.key}">${opts}</select></div>`;
+              return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<select data-spec-key="${f.key}">${opts}</select></div>`;
             }
-            return `<div class="field-row"><span>${esc(f.label)} ${b}</span><input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" /></div>`;
+            return `<div class="field-row"><span class="field-label">${esc(f.label)}</span>${b}<input type="number" step="${f.step}" value="${f.val}" data-spec-key="${f.key}" /></div>`;
           })
           .join("")}
       </div>`
@@ -196,6 +198,16 @@ async function parse(description, overrides = null) {
   }
 }
 
+/** Favicon: the Spiral mark on a dark tile, inline so it works offline (index.html has no icon link). */
+function installFavicon() {
+  if (document.querySelector('link[rel="icon"]')) return;
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.type = "image/svg+xml";
+  link.href = "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' rx='56' fill='#0c121b'/><path d='M38 146A90 90 0 0 1 218 146A56 56 0 0 1 106 146' fill='none' stroke='#e7edf4' stroke-width='30' stroke-linecap='round'/><circle cx='162' cy='146' r='17' fill='#38bdf8'/></svg>");
+  document.head.appendChild(link);
+}
+
 /**
  * Wire Screen 1. `options`:
  *   getSpec(), setSpec(spec)   shared MissionSpec state (owned by app.js)
@@ -206,6 +218,7 @@ async function parse(description, overrides = null) {
  */
 export function initIntake(options) {
   ctx = options;
+  installFavicon();
   document.querySelectorAll("[data-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const p = ctx.presets?.[btn.dataset.preset];

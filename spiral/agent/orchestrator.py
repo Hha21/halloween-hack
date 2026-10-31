@@ -90,16 +90,23 @@ def _fill_provenance(state: DesignState, result: ToolResult, prefix: str) -> Non
 
 
 def _spec_provenance(spec: MissionSpec) -> dict[str, Provenance]:
-    skip = {"name", "raw_description", "defaulted_fields"}
+    skip = {"name", "raw_description", "defaulted_fields", "stated_fields"}
     prov: dict[str, Provenance] = {}
     for f in fields(spec):
         if f.name in skip:
             continue
         reason = spec.defaulted_fields.get(f.name)
-        if reason is not None:
-            prov[f"spec.{f.name}"] = Provenance(kind="gemini_default", source=reason)
+        quote = spec.stated_fields.get(f.name)
+        if reason is not None and reason.startswith("Inferred"):
+            # Gemini inferred it from the words (crew, passengers, load factor only)
+            prov[f"spec.{f.name}"] = Provenance(kind="gemini_default", source=reason, verified=False)
+        elif reason is not None:
+            # Python's default with its citation: not Gemini's number
+            prov[f"spec.{f.name}"] = Provenance(kind="assumption", source=f"Default: {reason}", verified=False)
+        elif quote:
+            prov[f"spec.{f.name}"] = Provenance(kind="user_input", source=f'Your description: "{quote}"')
         else:
-            prov[f"spec.{f.name}"] = Provenance(kind="user_input", source="Project description (confirmed by user)")
+            prov[f"spec.{f.name}"] = Provenance(kind="user_input", source="Set by the user (form or description)")
     return prov
 
 

@@ -1,38 +1,85 @@
 @import url("theme.css"); /* design overrides for all screens, loaded after styles.css */
 
-/* Screen 1: intake provenance badges and summary strip (Owner: Harry). Restyle freely from styles.css. */
+/* Screen 1: intake layout, summary strip and field rows (Owner: Harry).
+ * Provenance stamp colours/glyphs live in theme.css so every screen shares one vocabulary. */
 
+/* The mission text is the hero of this screen */
+.intake-hero { padding: 1.2rem 1.3rem 1.25rem; }
+.intake-hero h2 { margin-bottom: 0.25rem; }
+.intake-hero .muted { max-width: 70ch; }
+.intake-header { margin-bottom: 1rem; gap: 1rem 2rem; }
+#prompt-input {
+  font-size: 1.08rem;
+  line-height: 1.55;
+  min-height: 96px;
+  padding: 0.85rem 1rem;
+  resize: vertical;
+  border-radius: 8px;
+}
+.intake-actions { margin-top: 0.9rem; gap: 0.6rem; flex-wrap: wrap; }
+.intake-actions .btn { padding: 0.65rem 1.15rem; font-size: 0.9rem; }
+
+/* One primary action at a time: Parse until a parse succeeds, then Confirm */
+#screen-intake:not([data-intake-state="parsed"]) #btn-parse {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: var(--accent-ink);
+}
+#screen-intake:not([data-intake-state="parsed"]) #btn-run-spiral {
+  background: transparent;
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+#screen-intake[data-intake-state="parsed"] #btn-run-spiral { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18); }
+
+/* Summary strip: name + parser, then the stamp counts double as the legend */
 .intake-summary {
-  margin: 12px 0;
+  margin: 14px 0 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 0.7rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
 }
+.intake-summary:empty { display: none; }
+.intake-summary-line { font-size: 0.86rem; line-height: 1.5; color: var(--text-2); }
+.intake-summary-line.muted { color: var(--muted); margin: 0; font-size: 0.8rem; }
+.intake-summary-line.warn { color: #fbd38a; }
+.intake-summary-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.intake-summary-legend .prov-badge { font-size: 0.74rem; padding: 0.12rem 0.5rem 0.12rem 0.4rem; }
+.intake-summary-title { margin-right: 0.5rem; color: var(--text); }
+.intake-summary-title .muted { margin: 0 0 0 0.25rem; font-size: 0.8rem; }
 
-.intake-summary-line {
-  font-size: 0.9rem;
-  line-height: 1.5;
+/* Spec cards: label over its stamp on the left, value on the right */
+.spec-cards-grid { gap: var(--gap); margin-top: var(--gap); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.intake-card { padding: 0.95rem 1rem 0.55rem; }
+.intake-card h3 { padding-bottom: 0.55rem; margin-bottom: 0.1rem; border-bottom: 1px solid var(--border); }
+.intake-card .field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  grid-template-areas: "label input" "badge input";
+  column-gap: 10px;
+  row-gap: 3px;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(34, 48, 66, 0.7);
 }
-
-.intake-summary-line.warn {
-  color: #fcd34d;
+.intake-card .field-row:last-child { border-bottom: none; }
+.intake-card .field-label { grid-area: label; color: var(--text); font-size: 0.85rem; line-height: 1.3; }
+.intake-card .field-row .prov-badge { grid-area: badge; justify-self: start; margin-left: 0; cursor: help; }
+.intake-card .field-row input,
+.intake-card .field-row select {
+  grid-area: input;
+  width: 100%;
+  font-size: 0.92rem;
+  padding: 0.38rem 0.5rem;
+  border-radius: 5px;
+  text-align: right;
 }
+.intake-card .field-row select { text-align: left; }
 
-.intake-summary-line.muted {
-  opacity: 0.7;
-}
-
-.prov-badge.prov-from-text {
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.5);
-}
-
-.prov-badge.prov-inferred {
-  color: #c4b5fd;
-  border-color: rgba(196, 181, 253, 0.5);
-}
-
-.prov-badge.prov-cited {
-  color: #93c5fd;
-  border-color: rgba(147, 197, 253, 0.5);
+@media (max-width: 1180px) {
+  .spec-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

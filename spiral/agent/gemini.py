@@ -294,6 +294,9 @@ def spec_from_extraction(extraction: dict[str, Any], description: str, source: s
         defaulted.pop(field_name, None)
         if basis != "stated":
             defaulted[field_name] = f"Inferred by {source}: {evidence}" if evidence else f"Inferred by {source}"
+            spec.stated_fields.pop(field_name, None)
+        else:
+            spec.stated_fields[field_name] = evidence
 
     for f in dc_fields(MissionSpec):
         if f.name in reasons and f.name not in set_fields:

@@ -279,7 +279,8 @@ class ToolError(Exception):
 | **Layout** | `wing_position` | `str` | `"high"` | `"high"`, `"mid"`, or `"low"` |
 | **Meta** | `name` | `str` | `"GA-4 Touring"` | Project title |
 | | `raw_description` | `str` | `""` | Original plain-English prompt |
-| | `defaulted_fields` | `dict[str, str]` | `{}` | Map of `field_name -> reason` for defaults chosen by Gemini |
+| | `defaulted_fields` | `dict[str, str]` | `{}` | Map of `field_name -> reason` for every field not stated: Python's cited defaults, plus values Gemini inferred (reason starts "Inferred by") |
+| | `stated_fields` | `dict[str, str]` | `{}` | Map of `field_name -> the user's exact words` for values stated in the description (checked against the text by Python) |
 
 ### 8.4 Python Tool Signatures & Return Schemas (`spiral/tools/`)
 
