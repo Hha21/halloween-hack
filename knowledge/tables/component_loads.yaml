@@ -24,7 +24,7 @@ ga_single_engine:
     verified: false
   tail_thickness_ratio:
     note: "Tail thickness ratio is usually similar to the wing thickness ratio"
-    source: "Raymer 2ed, Sec. 4.6 (p. 76)"
+    source: "Raymer 2ed, Sec. 4.5 (p. 76)"
     verified: false
   tail_planform_ranges:
     # Table 4.3, row "Others", horizontal tail
@@ -67,5 +67,5 @@ ga_single_engine:
     # Nose wheel carries 8-15% of the weight (most-aft to most-forward c.g.); the mains carry the rest.
     nose_share_most_aft_cg: 0.08
     main_struts: 2
-    source: "Raymer 2ed, Sec. 11.2 (p. 233); two main oleos (p. 244)"
+    source: "Raymer 2ed, Secs. 11.2-11.3 (p. 233); two main oleos (p. 244)"
     verified: false

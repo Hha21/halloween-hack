@@ -362,6 +362,10 @@ textarea {
 .step-pill.running { border-color: var(--amber); color: var(--amber); }
 .step-pill.done { border-color: var(--emerald); color: var(--emerald); background: rgba(16, 185, 129, 0.1); }
 .detailed-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.detailed-comp-tabs { display: flex; flex-direction: column; gap: 0.4rem; }
+.detailed-comp-tabs .comp-item.selected-comp { border-color: var(--emerald); background: rgba(16, 185, 129, 0.1); }
+.comp-reason { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+.analysis-note { font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0; }
 .detailed-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 0.95rem; margin-top: 0.85rem; }
 .fea-charts-col { display: flex; flex-direction: column; gap: 0.85rem; }
 .stress-colorbar { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.95rem; background: #080d18; border-top: 1px solid var(--border); }

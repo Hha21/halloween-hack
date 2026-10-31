@@ -69,6 +69,8 @@ Changes in Harry-owned files (separate commit, additive and backward compatible;
 4. `knowledge/tables/component_loads.yaml` + `knowledge/equations.yaml` rows. All new rows `verified: false`: they were read off the page image by Tharm's agent, not critic-checked. Run `extract_knowledge.py check` on them if you want the verified stamp.
 5. `fixtures/` regenerated.
 
+**Status (T1 implemented on branch `claude/practical-hodgkin-c75653`, not yet on `main`):** tail and gear run from the Screen 2 component tree and from a new component list on Screen 3; engine mount and frames show their reason in the list. 32 tests pass (4 new in `tests/test_tools.py`, including a check that each new tool cites every numeric field itself and a hand-worked gear case). Known gaps: the geometry's tail taper (0.65) is outside Raymer Table 4.3 (0.3-0.6), so the tail run carries that warning; the report markdown does not yet mention tail or gear.
+
 ---
 
 ## 3. Git & Ownership Boundaries (`DESIGN_SPEC.md` §6–7)

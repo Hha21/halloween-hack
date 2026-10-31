@@ -186,6 +186,8 @@ The endpoints are in `server/app.py`, and the payload types are the dataclasses 
 | `POST /api/spiral/stream` | `{spec}` | SSE stream: `log` and `lap` events, then exactly one of `converged`, `infeasible` or `error` |
 | `POST /api/components/spar` | `{state}` | `DesignState` with `components.main_wing_spar` filled |
 | `POST /api/components/spar/stream` | `{state}` | SSE stream: `component_step` events and a `log`, then `component_done` or `error` |
+| `POST /api/components/{id}` | `{state}` | `DesignState` with `components.<id>` filled; `id` = `main_wing_spar`, `horizontal_tail` or `main_landing_gear` |
+| `POST /api/components/{id}/stream` | `{state}` | Same stream as the spar; steps `loads`/`sizing`/`cad`/`fea`. Coming-soon components return `error` with the reason |
 | `POST /api/report` | `{state}` | `{report_markdown, state}` |
 | `GET /artifacts/{filename}` | | STEP, STL and stress-mesh files |
 

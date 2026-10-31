@@ -15,10 +15,12 @@ const LAYOUTS = {
     { key: "charts", title: "Engineering charts", sel: "#screen-workspace .charts-card", col: "bottom", off: true },
   ],
   "screen-detailed": [
-    { key: "pipeline", title: "CAD & FEA pipeline", sel: "#screen-detailed .detailed-header", col: "left" },
-    { key: "kpis", title: "FEA vs beam theory", sel: "#detailed-kpis", col: "left", grow: true },
+    { key: "components", title: "Components", sel: "#detailed-comp-tabs", col: "left" },
+    { key: "pipeline", title: "Analysis pipeline", sel: "#screen-detailed .detailed-header", col: "left" },
+    { key: "kpis", title: "Key results", sel: "#detailed-kpis", col: "left", grow: true },
     { key: "view", title: "View", sel: "#screen-detailed .viewport-toolbar", col: "right" },
     { key: "charts", title: "Spanwise charts & stations", sel: "#screen-detailed .fea-charts-col", col: "right", grow: true },
+    { key: "analysis", title: "Sizing results", sel: "#detailed-analysis", col: "right", grow: true },
   ],
 };
 

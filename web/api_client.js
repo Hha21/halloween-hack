@@ -218,43 +218,51 @@ export async function streamSpiral(spec, handlers = {}, signal) {
 }
 
 /**
- * POST /api/components/spar
- * Runs synchronous build_spar_cad + run_fea on the converged spar and returns updated DesignState.
+ * POST /api/components/{componentId}
+ * Runs one component's detailed analysis synchronously and returns the updated DesignState.
+ * componentId: "main_wing_spar" (alias "spar"), "horizontal_tail", "main_landing_gear".
  *
  * @param {object} state - DesignState
+ * @param {string} componentId
  * @returns {Promise<object>} Updated DesignState
  */
-export async function runSparDetailed(state) {
-  const res = await fetch(`${API_BASE}/api/components/spar`, {
+export async function runComponentDetailed(state, componentId) {
+  const res = await fetch(`${API_BASE}/api/components/${encodeURIComponent(componentId)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ state }),
   });
   if (!res.ok) {
-    throw new Error(await readErrorMessage(res, "Detailed spar failed"));
+    throw new Error(await readErrorMessage(res, `Detailed ${componentId} failed`));
   }
   return res.json();
 }
 
+/** POST /api/components/spar: the main wing spar's CAD + FEA. */
+export async function runSparDetailed(state) {
+  return runComponentDetailed(state, "spar");
+}
+
 /**
- * POST /api/components/spar/stream
- * Streams `component_step`, `log`, `component_done`, and `error` events during CAD + FEA execution.
+ * POST /api/components/{componentId}/stream
+ * Streams `component_step`, `log`, `component_done`, and `error` events during the component's analysis.
  *
  * @param {object} state - DesignState
+ * @param {string} componentId
  * @param {object} [handlers]
  * @param {function(string, object): void} [handlers.onEvent]
- * @param {function(object): void} [handlers.onStep] - receives { component_id, step, status }
+ * @param {function(object): void} [handlers.onStep] - receives { component_id, step, status }; step is "loads" | "sizing" | "cad" | "fea"
  * @param {function(object): void} [handlers.onLog] - receives data.entry (AgentLogEntry)
  * @param {function(object): void} [handlers.onDone] - receives { component_id, component, state }
  * @param {function(object): void} [handlers.onError] - receives { message, tool_error }
  * @param {AbortSignal} [signal]
  * @returns {Promise<object|null>} Updated DesignState if received
  */
-export async function streamSparDetailed(state, handlers = {}, signal) {
+export async function streamComponentDetailed(state, componentId, handlers = {}, signal) {
   let finalState = null;
 
   await streamSsePost(
-    "/api/components/spar/stream",
+    `/api/components/${encodeURIComponent(componentId)}/stream`,
     { state },
     (eventType, data) => {
       handlers.onEvent?.(eventType, data);
@@ -280,6 +288,11 @@ export async function streamSparDetailed(state, handlers = {}, signal) {
   );
 
   return finalState;
+}
+
+/** POST /api/components/spar/stream: the main wing spar's CAD + FEA stream. */
+export async function streamSparDetailed(state, handlers = {}, signal) {
+  return streamComponentDetailed(state, "spar", handlers, signal);
 }
 
 /**

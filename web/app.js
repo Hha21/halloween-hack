@@ -7,9 +7,10 @@ import {
   generateReport,
   parseIntake,
   resolveArtifactUrl,
+  runComponentDetailed,
   runSparDetailed,
   runSpiralSync,
-  streamSparDetailed,
+  streamComponentDetailed,
   streamSpiral,
 } from "./api_client.js";
 import {
@@ -84,6 +85,7 @@ let currentState = null;
 let selectedLap = null;
 let aircraftScene = null;
 let sparFeaScene = null;
+let selectedComponent = "main_wing_spar";
 
 function esc(s) {
   return String(s ?? "")
@@ -272,30 +274,12 @@ function renderWorkspace() {
   renderLoadsChart(document.getElementById("chart-loads"), loads);
   renderMassBreakdownChart(document.getElementById("chart-mass"), sizing, spar);
 
-  // Component Tree (§4.3)
-  const treeEl = document.getElementById("component-tree");
-  if (treeEl && currentState.components) {
-    treeEl.innerHTML = Object.values(currentState.components)
-      .map((c) => {
-        if (c.available) {
-          return `<div class="comp-item active-comp" id="comp-main-spar">
-            <span><strong>${esc(c.name)}</strong></span>
-            <span class="prov-badge prov-simulation">${esc(c.status)} →</span>
-          </div>`;
-        }
-        return `<div class="comp-item disabled-comp">
-          <span>${esc(c.name)}</span>
-          <span class="prov-badge prov-none">Coming Soon</span>
-        </div>`;
-      })
-      .join("");
-    document.getElementById("comp-main-spar")?.addEventListener("click", () => {
-      switchScreen("detailed");
-      startDetailedSparStream();
-    });
-  }
-
-  renderFidelityLadder();
+  // Component Tree (§4.3): every available component opens on Screen 3
+  renderComponentList(document.getElementById("component-tree"), (id) => {
+    selectedComponent = id;
+    switchScreen("detailed");
+    startDetailedComponentStream(id);
+  });
 
   // Agent Log & Warnings
   const badge = document.getElementById("lap-badge");
@@ -421,41 +405,202 @@ async function startSpiralStream() {
   }
 }
 
-/* ---------------- SCREEN 3: DETAILED SPAR CAD & FEA ---------------- */
-async function renderDetailedView() {
-  if (!currentState) return;
-  const comp = currentState.components?.main_wing_spar || {};
-  const cad = comp.cad;
-  const fea = comp.fea;
-  const spar = currentState.latest_spar || {};
+/* ---------------- SCREEN 3: DETAILED COMPONENT DESIGN ---------------- */
+// Component kinds: "spar" components run loads -> CAD -> FEA; "sizing" components have a cited sizing result only.
+const COMPONENT_VIEWS = {
+  main_wing_spar: { kind: "spar", steps: ["cad", "fea"], span: "Wing", resultKey: null },
+  horizontal_tail: { kind: "spar", steps: ["loads", "cad", "fea"], span: "Tail", resultKey: "horizontal_tail" },
+  main_landing_gear: { kind: "sizing", steps: ["loads"], resultKey: "landing_gear" },
+};
 
-  // Update download links using ComponentStatus.artifact_urls (§8.5)
-  const urls = comp.artifact_urls || {};
-  const dlStep = document.getElementById("dl-step");
-  const dlStl = document.getElementById("dl-stl");
-  const dlMesh = document.getElementById("dl-mesh");
-  if (dlStep && urls.step) dlStep.href = resolveArtifactUrl(urls.step);
-  if (dlStl && urls.stl) dlStl.href = resolveArtifactUrl(urls.stl);
-  if (dlMesh && urls.stress_mesh) dlMesh.href = resolveArtifactUrl(urls.stress_mesh);
+function renderComponentList(el, onSelect) {
+  if (!el || !currentState?.components) return;
+  el.innerHTML = Object.values(currentState.components)
+    .map((c) => {
+      if (c.available && COMPONENT_VIEWS[c.component_id]) {
+        const sel = c.component_id === selectedComponent && el.id === "detailed-comp-tabs" ? " selected-comp" : "";
+        return `<div class="comp-item active-comp${sel}" data-comp="${esc(c.component_id)}">
+            <span><strong>${esc(c.name)}</strong></span>
+            <span class="prov-badge prov-simulation">${esc(c.status)} →</span>
+          </div>`;
+      }
+      return `<div class="comp-item disabled-comp" title="${esc(c.unavailable_reason || "")}">
+          <span>${esc(c.name)}${c.unavailable_reason ? `<span class="comp-reason">${esc(c.unavailable_reason)}</span>` : ""}</span>
+          <span class="prov-badge prov-none">Coming Soon</span>
+        </div>`;
+    })
+    .join("");
+  el.querySelectorAll("[data-comp]").forEach((item) => {
+    item.addEventListener("click", () => onSelect(item.dataset.comp));
+  });
+}
 
-  const kpiEl = document.getElementById("detailed-kpis");
-  if (kpiEl) {
-    kpiEl.innerHTML = [
-      { label: "FEA Peak von Mises", val: fea ? `${(fea.fea_max_von_mises_pa / 1e6).toFixed(1)} MPa` : "—", prov: "components.main_wing_spar.fea.fea_max_von_mises_pa" },
-      { label: "Beam Theory Stress", val: fea ? `${(fea.beam_max_stress_pa / 1e6).toFixed(1)} MPa` : "—", prov: "components.main_wing_spar.fea.beam_max_stress_pa" },
-      { label: "Stress Agreement", val: fea ? `${fea.stress_agreement_pct.toFixed(1)}%` : "—", prov: "components.main_wing_spar.fea.stress_agreement_pct" },
-      { label: "FEA Tip Deflection", val: fea ? `${(fea.fea_tip_deflection_m * 1000).toFixed(1)} mm` : "—", prov: "components.main_wing_spar.fea.fea_tip_deflection_m" },
-      { label: "Deflection Agreement", val: fea ? `${fea.deflection_agreement_pct.toFixed(1)}%` : "—", prov: "components.main_wing_spar.fea.deflection_agreement_pct" },
-      { label: "CAD Spar Mass (2x)", val: cad ? `${cad.cad_mass_both_wings_kg.toFixed(2)} kg` : "—", prov: "components.main_wing_spar.cad.cad_mass_both_wings_kg" },
-    ]
-      .map(
-        (k) => `
+function setFloatingPanel(el, visible) {
+  if (!el) return;
+  el.classList.remove("hidden");
+  (el.closest(".ws-panel") || el).classList.toggle("off", !visible);
+  if (!el.closest(".ws-panel")) el.classList.toggle("hidden", !visible);
+}
+
+function kpiCards(items) {
+  return items
+    .map(
+      (k) => `
         <div class="kpi-card">
           <div class="kpi-label"><span>${esc(k.label)}</span>${provBadge(k.prov)}</div>
           <div class="kpi-val">${esc(k.val)}</div>
         </div>`
-      )
-      .join("");
+    )
+    .join("");
+}
+
+function fmt(v, scale, digits, unit) {
+  return typeof v === "number" ? `${(v * scale).toFixed(digits)} ${unit}`.trim() : "—";
+}
+
+function renderDetailedPipeline(id) {
+  const view = COMPONENT_VIEWS[id];
+  const labels = {
+    main_wing_spar: { cad: "1. Parametric Tapered I-Beam CAD (STEP/STL)", fea: "2. 3D Timoshenko + Warping FEA Solver" },
+    horizontal_tail: {
+      loads: "0. Tail Load Case (Raymer Eqs. 14.12-14.13, pp. 345-347)",
+      cad: "1. Tail Spar I-Beam CAD (STEP/STL)",
+      fea: "2. 3D Timoshenko FEA Solver",
+    },
+    main_landing_gear: { loads: "1. Oleo Strut Sizing (Raymer Ch. 11)" },
+  }[id];
+  const isSpar = view.kind === "spar";
+  const pills = { loads: "step-loads", cad: "step-cad", fea: "step-fea" };
+  for (const [step, pillId] of Object.entries(pills)) {
+    const el = document.getElementById(pillId);
+    if (!el) continue;
+    el.classList.toggle("hidden", !view.steps.includes(step));
+    if (labels[step]) el.textContent = labels[step];
+  }
+  document.getElementById("step-verify")?.classList.toggle("hidden", !isSpar);
+  const btn = document.getElementById("btn-run-fea");
+  if (btn) btn.textContent = isSpar ? "▶ Stream Loads, CAD + 3D FEA" : "▶ Run Sizing";
+  ["dl-step", "dl-stl", "dl-mesh"].forEach((dl) => document.getElementById(dl)?.classList.toggle("hidden", !isSpar));
+  const vpTitle = document.getElementById("vp-title-fea");
+  if (vpTitle) vpTitle.textContent = `3D ${view.span || ""} Spar I-Beam von Mises Stress & Deflection`;
+  const hDefl = document.getElementById("h-fea-deflection");
+  if (hDefl) hDefl.textContent = `Spanwise ${view.span || ""} Deflection: 3D FEA vs. Double Integration`;
+}
+
+async function renderDetailedView() {
+  if (!currentState) return;
+  const id = COMPONENT_VIEWS[selectedComponent] ? selectedComponent : "main_wing_spar";
+  const view = COMPONENT_VIEWS[id];
+  const comp = currentState.components?.[id] || {};
+  const base = `components.${id}`;
+
+  renderComponentList(document.getElementById("detailed-comp-tabs"), (cid) => {
+    selectedComponent = cid;
+    renderDetailedView();
+    const c = currentState.components?.[cid];
+    if (c && c.status !== "completed") startDetailedComponentStream(cid);
+  });
+  renderDetailedPipeline(id);
+
+  const isSpar = view.kind === "spar";
+  ["#screen-detailed .viewport-toolbar", "#screen-detailed .fea-charts-col"].forEach((sel) =>
+    setFloatingPanel(document.querySelector(sel), isSpar)
+  );
+  document.getElementById("viewport-spar-fea")?.classList.toggle("hidden", !isSpar);
+  document.querySelector("#screen-detailed .stress-colorbar")?.classList.toggle("hidden", !isSpar);
+  const analysisEl = document.getElementById("detailed-analysis");
+  const kpiEl = document.getElementById("detailed-kpis");
+
+  if (!isSpar) {
+    const gear = comp[view.resultKey];
+    const p = `${base}.${view.resultKey}`;
+    if (kpiEl) {
+      kpiEl.innerHTML = kpiCards([
+        { label: "Stroke (incl. margin)", val: fmt(gear?.stroke_m, 1000, 0, "mm"), prov: `${p}.stroke_m` },
+        { label: "Oleo Length", val: fmt(gear?.oleo_length_m, 1000, 0, "mm"), prov: `${p}.oleo_length_m` },
+        { label: "Oleo Diameter", val: fmt(gear?.oleo_diameter_m, 1000, 1, "mm"), prov: `${p}.oleo_diameter_m` },
+        { label: "Landing Load / Strut", val: fmt(gear?.landing_load_per_strut_n, 1e-3, 2, "kN"), prov: `${p}.landing_load_per_strut_n` },
+        { label: "Static Load / Strut", val: fmt(gear?.static_load_per_strut_n, 1e-3, 2, "kN"), prov: `${p}.static_load_per_strut_n` },
+        { label: "Gear Load Factor", val: gear ? `${gear.gear_load_factor}` : "—", prov: `${p}.gear_load_factor` },
+      ]);
+    }
+    const rows = [
+      ["Landing mass", fmt(gear?.landing_mass_kg, 1, 0, "kg"), "landing_mass_kg"],
+      ["Sink speed", fmt(gear?.sink_speed_ms, 1, 2, "m/s"), "sink_speed_ms"],
+      ["Shock-absorber efficiency η", gear ? `${gear.shock_efficiency}` : "—", "shock_efficiency"],
+      ["Main-gear load share", fmt(gear?.main_gear_load_share, 100, 0, "%"), "main_gear_load_share"],
+      ["Main struts", gear ? `${gear.main_strut_count}` : "—", "main_strut_count"],
+      ["Vertical kinetic energy", fmt(gear?.vertical_kinetic_energy_j, 1e-3, 2, "kJ"), "vertical_kinetic_energy_j"],
+      ["Stroke, Eq. 11.12", fmt(gear?.stroke_required_m, 1000, 0, "mm"), "stroke_required_m"],
+      ["Oleo internal pressure", fmt(gear?.oleo_internal_pressure_pa, 1e-6, 1, "MPa"), "oleo_internal_pressure_pa"],
+    ];
+    if (analysisEl) {
+      setFloatingPanel(analysisEl, true);
+      analysisEl.innerHTML = gear
+        ? `<table class="eng-table"><thead><tr><th>Quantity</th><th>Value</th><th>Source</th></tr></thead><tbody>
+            ${rows.map(([l, v, k]) => `<tr><td>${esc(l)}</td><td>${esc(v)}</td><td>${provBadge(`${p}.${k}`)} <span class="muted">${esc(currentState.provenance?.[`${p}.${k}`]?.source || "")}</span></td></tr>`).join("")}
+          </tbody></table>
+          <p class="analysis-note">Sizing only: no CAD or FEA for the strut. Spin-up, braking and side loads are not analysed.</p>`
+        : "<p class='muted'>Run the sizing to see the oleo strut.</p>";
+    }
+    return;
+  }
+
+  const tail = view.resultKey ? comp[view.resultKey] : null;
+  const cad = comp.cad;
+  const fea = comp.fea;
+  const spar = (view.resultKey ? tail?.spar : currentState.latest_spar) || {};
+  const sparProv = view.resultKey ? `${base}.${view.resultKey}.spar` : "latest_spar";
+
+  // Download links from ComponentStatus.artifact_urls (§8.5)
+  const urls = comp.artifact_urls || {};
+  const dl = { "dl-step": urls.step, "dl-stl": urls.stl, "dl-mesh": urls.stress_mesh };
+  for (const [elId, url] of Object.entries(dl)) {
+    const el = document.getElementById(elId);
+    if (el) {
+      el.classList.toggle("hidden", !url);
+      if (url) el.href = resolveArtifactUrl(url);
+    }
+  }
+
+  const tailCards = tail
+    ? [
+        { label: "Manoeuvre Speed V_p", val: fmt(tail.maneuver_speed_ms, 1, 1, "m/s"), prov: `${base}.horizontal_tail.maneuver_speed_ms` },
+        { label: "Tail C_n (down)", val: tail.normal_force_coefficient.toFixed(2), prov: `${base}.horizontal_tail.normal_force_coefficient` },
+        { label: "Ultimate Tail Load", val: fmt(tail.ultimate_tail_load_n, 1e-3, 2, "kN"), prov: `${base}.horizontal_tail.ultimate_tail_load_n` },
+        { label: "Sized Spar Margin", val: tail.spar.safety_margin.toFixed(2), prov: `${sparProv}.safety_margin` },
+      ]
+    : [];
+  if (kpiEl) {
+    kpiEl.innerHTML = kpiCards([
+      ...tailCards,
+      { label: "FEA Peak von Mises", val: fea ? `${(fea.fea_max_von_mises_pa / 1e6).toFixed(1)} MPa` : "—", prov: `${base}.fea.fea_max_von_mises_pa` },
+      { label: "Beam Theory Stress", val: fea ? `${(fea.beam_max_stress_pa / 1e6).toFixed(1)} MPa` : "—", prov: `${base}.fea.beam_max_stress_pa` },
+      { label: "Stress Agreement", val: fea ? `${fea.stress_agreement_pct.toFixed(1)}%` : "—", prov: `${base}.fea.stress_agreement_pct` },
+      { label: "FEA Tip Deflection", val: fea ? `${(fea.fea_tip_deflection_m * 1000).toFixed(1)} mm` : "—", prov: `${base}.fea.fea_tip_deflection_m` },
+      { label: "Deflection Agreement", val: fea ? `${fea.deflection_agreement_pct.toFixed(1)}%` : "—", prov: `${base}.fea.deflection_agreement_pct` },
+      { label: "CAD Spar Mass (2x)", val: cad ? `${cad.cad_mass_both_wings_kg.toFixed(2)} kg` : "—", prov: `${base}.cad.cad_mass_both_wings_kg` },
+    ]);
+  }
+  if (analysisEl) {
+    setFloatingPanel(analysisEl, Boolean(tail));
+    if (tail) {
+      const p = `${base}.horizontal_tail`;
+      const rows = [
+        ["Stall speed V_s", fmt(tail.stall_speed_ms, 1, 1, "m/s"), "stall_speed_ms"],
+        ["Level speed V_L", fmt(tail.level_speed_ms, 1, 1, "m/s"), "level_speed_ms"],
+        ["K_p", tail.kp.toFixed(3), "kp"],
+        ["Dynamic pressure q", fmt(tail.dynamic_pressure_pa, 1, 0, "Pa"), "dynamic_pressure_pa"],
+        ["Tail area S_HT", fmt(tail.tail_area_m2, 1, 2, "m²"), "tail_area_m2"],
+        ["Tail t/c", tail.thickness_to_chord.toFixed(2), "thickness_to_chord"],
+        ["Limit tail load", fmt(tail.limit_tail_load_n, 1e-3, 2, "kN"), "limit_tail_load_n"],
+        ["Root moment (ultimate)", fmt(tail.loads.root_moment_nm, 1, 0, "N·m"), "loads.root_moment_nm"],
+        ["Spar mass (both halves)", fmt(tail.spar.mass_both_wings_kg, 1, 2, "kg"), "spar.mass_both_wings_kg"],
+      ];
+      analysisEl.innerHTML = `<table class="eng-table"><thead><tr><th>Load case</th><th>Value</th><th>Source</th></tr></thead><tbody>
+          ${rows.map(([l, v, k]) => `<tr><td>${esc(l)}</td><td>${esc(v)}</td><td>${provBadge(`${p}.${k}`)} <span class="muted">${esc(currentState.provenance?.[`${p}.${k}`]?.source || "")}</span></td></tr>`).join("")}
+        </tbody></table>`;
+    }
   }
 
   let stressMesh = null;
@@ -504,18 +649,26 @@ async function renderDetailedView() {
   }
 }
 
-async function startDetailedSparStream() {
+async function startDetailedComponentStream(componentId = selectedComponent) {
   if (!currentState) return;
-  setStatus("Streaming Spar CAD + 3D FEA...", true);
-  const sCad = document.getElementById("step-cad");
-  const sFea = document.getElementById("step-fea");
-  const sVer = document.getElementById("step-verify");
-  [sCad, sFea, sVer].forEach((el) => el?.classList.remove("running", "done"));
+  selectedComponent = componentId;
+  const name = currentState.components?.[componentId]?.name || componentId;
+  setStatus(`Streaming ${name}...`, true);
+  const pills = { loads: "step-loads", sizing: "step-loads", cad: "step-cad", fea: "step-fea" };
+  const allPills = ["step-loads", "step-cad", "step-fea", "step-verify"].map((id) => document.getElementById(id));
+  allPills.forEach((el) => el?.classList.remove("running", "done"));
+  renderDetailedPipeline(COMPONENT_VIEWS[componentId] ? componentId : "main_wing_spar");
+
+  const finish = (label) => {
+    allPills.forEach((el) => el?.classList.add("done"));
+    setStatus(label, false);
+    renderDetailedView();
+  };
 
   try {
-    await streamSparDetailed(currentState, {
+    await streamComponentDetailed(currentState, componentId, {
       onStep: (ev) => {
-        const el = ev.step === "cad" ? sCad : sFea;
+        const el = document.getElementById(pills[ev.step]);
         if (el) {
           el.classList.toggle("running", ev.status === "running");
           el.classList.toggle("done", ev.status === "done");
@@ -527,20 +680,21 @@ async function startDetailedSparStream() {
       },
       onDone: (ev) => {
         currentState = ev.state;
-        sCad?.classList.add("done");
-        sFea?.classList.add("done");
-        sVer?.classList.add("done");
-        setStatus("Detailed CAD & FEA Verified", false);
-        renderDetailedView();
+        finish(`${name}: complete`);
+      },
+      onError: (ev) => {
+        setStatus(`${name}: ${ev?.message || "failed"}`, false);
       },
     });
   } catch (err) {
     console.warn("Detailed stream fallback to sync:", err);
-    currentState = await runSparDetailed(currentState);
-    [sCad, sFea, sVer].forEach((el) => el?.classList.add("done"));
-    setStatus("Detailed CAD & FEA Complete", false);
-    renderDetailedView();
+    currentState = await runComponentDetailed(currentState, componentId);
+    finish(`${name}: complete`);
   }
+}
+
+function startDetailedSparStream() {
+  return startDetailedComponentStream("main_wing_spar");
 }
 
 /* ---------------- SCREEN 4: REPORT & PROVENANCE LEDGER ---------------- */
@@ -649,10 +803,11 @@ document.querySelectorAll(".chart-tab").forEach((tab) => {
 });
 
 document.getElementById("btn-goto-detailed")?.addEventListener("click", () => {
+  selectedComponent = "main_wing_spar";
   switchScreen("detailed");
   startDetailedSparStream();
 });
-document.getElementById("btn-run-fea")?.addEventListener("click", () => startDetailedSparStream());
+document.getElementById("btn-run-fea")?.addEventListener("click", () => startDetailedComponentStream(selectedComponent));
 
 document.querySelectorAll(".vp-btn-fea").forEach((b) => {
   b.addEventListener("click", () => sparFeaScene?.setViewPreset(b.dataset.cam));

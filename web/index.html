@@ -22,7 +22,7 @@
     <nav class="screen-tabs" aria-label="Design Screens">
       <button data-screen="intake" class="active"><span class="step-num">1</span> Mission input</button>
       <button data-screen="workspace"><span class="step-num">2</span> Conceptual &amp; preliminary</button>
-      <button data-screen="detailed"><span class="step-num">3</span> Detailed: spar CAD &amp; FEA</button>
+      <button data-screen="detailed"><span class="step-num">3</span> Detailed: components, CAD &amp; FEA</button>
       <button data-screen="report"><span class="step-num">4</span> Traceability report</button>
     </nav>
   </header>
@@ -155,8 +155,10 @@
 
     <!-- SCREEN 3: DETAILED SPAR CAD & FEA -->
     <section id="screen-detailed" class="screen">
+      <div id="detailed-comp-tabs" class="detailed-comp-tabs"></div>
       <div class="detailed-header panel">
         <div class="step-pipeline">
+          <div id="step-loads" class="step-pill hidden">0. Raymer Load Case</div>
           <div id="step-cad" class="step-pill">1. Parametric Tapered I-Beam CAD (STEP/STL)</div>
           <div id="step-fea" class="step-pill">2. 3D Timoshenko + Warping FEA Solver</div>
           <div id="step-verify" class="step-pill">3. Euler-Bernoulli Verification</div>
@@ -171,10 +173,12 @@
 
       <div id="detailed-kpis" class="kpi-strip"></div>
 
-      <div class="detailed-grid">
+      <div id="detailed-analysis" class="panel hidden"></div>
+
+      <div id="detailed-grid" class="detailed-grid">
         <div class="viewport-card panel">
           <div class="viewport-toolbar">
-            <span class="vp-title">3D Cantilever I-Beam von Mises Stress &amp; Deflection</span>
+            <span id="vp-title-fea" class="vp-title">3D Cantilever I-Beam von Mises Stress &amp; Deflection</span>
             <div class="vp-controls">
               <button class="vp-btn-fea" data-cam="iso">Iso</button>
               <button class="vp-btn-fea" data-cam="root">Root Clamp</button>
@@ -200,7 +204,7 @@
             <div id="chart-fea-stress"></div>
           </div>
           <div class="panel">
-            <h3>Spanwise Wing Deflection: 3D FEA vs. Double Integration</h3>
+            <h3 id="h-fea-deflection">Spanwise Wing Deflection: 3D FEA vs. Double Integration</h3>
             <div id="chart-fea-deflection"></div>
           </div>
           <div class="panel">
