@@ -15,7 +15,7 @@ The default model is `gemini-3.5-flash` (set with `GEMINI_MODEL`). Intake, the i
 | Stage | What Gemini does | What Python does |
 |---|---|---|
 | Intake (`spiral/agent/gemini.py`) | Reports each requirement with the value and unit as written and the user's exact words. It may only *infer* crew, passengers and limit load factor. | Converts units and applies range checks. A quote that isn't in the description is treated as inferred, so the value is dropped unless it is one of the three inferable fields. Python fills every unstated field with a cited default and records the reason in `defaulted_fields`. |
-| Infeasibility | Writes the explanation around numbers Python computed. | Computes the relaxation and checks every number in the text against a digest of the run. A rejected answer gets one retry; after that a deterministic explanation is used. |
+| Infeasibility (design lead) | **Decides** which of the verified options to propose, from the user's own description, and explains it. A named route ("London to New York non-stop") keeps the range and gives up seats; a stated purpose of carrying people ("family tourer") keeps the seats and gives up range. | Computes every single-field change that closes the spiral by re-running it: the longest range (bisection) and the most passengers. It checks every number in Gemini's text against a digest of the run; a rejected answer gets one retry, then a deterministic choice (the smallest change) and explanation. |
 | Report narrative | Writes the summary and discussion paragraphs. | Writes every table and figure. A validator rejects any number that isn't in the design state. A rejected answer gets one retry; after that the report keeps the computed sections only. |
 | Knowledge extraction (`scripts/extract_knowledge.py`) | `gemini-3.5-flash` reads the scanned pages themselves, as two-page PDF chunks rather than OCR text. An independent critic, `gemini-3.1-pro-preview`, checks every extracted item against the same pages. | Merges the extraction and the critique, and sets `verified` flags on the curated YAML rows (see [Traceability](#traceability)). |
 
@@ -45,11 +45,14 @@ All methods come from Raymer, *Aircraft Design: A Conceptual Approach*, 2nd ed. 
 - the weight closure has no root;
 - 12 laps pass without convergence.
 
-When the design is infeasible, Python computes the relaxation: a bisection on range that re-runs the full spiral at each probe and returns the longest range (to 10 km) that closes, with the MTOW there. Gemini only explains it.
+When the design is infeasible, Python computes every single-field change that makes it close, each verified by re-running the full spiral: the longest range (bisection, to 10 km) and the largest passenger count. Gemini chooses between these options by the user's stated intent and explains the trade-off, naming the other option. It never supplies the numbers.
 
 ## Traceability
 
-- Every number in `DesignState.provenance` has a kind (equation, table, simulation, assumption, user input or Gemini default), a source, and a `verified` flag. In the UI, hovering a number shows its source. An unverified source or an out-of-range heuristic shows an amber badge.
+- Every one of the ~100 numeric fields in `DesignState` has an entry in `DesignState.provenance`: a kind (equation, table, simulation, assumption, user input or Gemini-inferred), a source, and a `verified` flag. Hovering a number in the UI shows its source.
+- On intake, stated values keep the user's exact words (`MissionSpec.stated_fields`, e.g. `"cruise 115 kt"`), which Screen 1 shows under each field. Unstated values are Python's cited defaults ("Default: Assumed 7.6, ... (Raymer 2ed, Table 4.1 (p. 51))"), never Gemini's. Only crew, passengers and load factor can be marked "Gemini inferred".
+- The agent log names who did each step: intake agent (Gemini), layout (Python, cited tables), sizing & structures (Python), convergence check (Python), design lead (Gemini), detailed design (CAD + FEA).
+- The report ends with **Textbook items behind the numbers**: each Raymer citation the run used, the equation or table row as extracted from the scanned page, and the critic model's verdict. It is built from the local knowledge base, and left out of committed fixtures so no book content enters the repo.
 - `scripts/extract_knowledge.py check --write` sets `verified: true` on a YAML row in `knowledge/` only when the critic confirmed that exact book item (same table, equation or figure number) and every number in the row appears in it. Otherwise it sets `false`.
 - Two kinds of value stay unverified on purpose: values read from charts (L/D max = 11 from Fig. 3.6, t/c = 0.15 from Fig. 4.14), and our own derivations (for example the two-cap sizing formula and the lap-0 spar share).
 
@@ -127,13 +130,17 @@ SSE event types (`SSE_EVENTS`):
 
    The spec form appears, with each default and its reason. The spiral converges in 3 laps (1,319 → 1,262 → 1,257 kg MTOW). The result is a 15.7 m² wing with a 10.9 m span and 194 hp installed, and the spar weighs 35.5 kg at a margin of +0.10. A real Cessna 172S is close: 1,157 kg (2,550 lb), 16.2 m², 11.0 m span, 180 hp.
 
-2. **Twist.** Type:
+2. **Twist.** Click the London → New York preset, or type:
 
-   > London to New York non-stop, 5,570 km range.
+   > Four-seat tourer, London to New York non-stop, 5,570 km range, 45 min reserve, cruise 115 kt, stall under 55 kt.
 
-   State the range as a number: intake won't infer a range from city names. MTOW climbs lap by lap, 3,379 → 3,455 → 3,477 → 3,484 kg, because the spar gets heavier (154 → 161 kg) and feeds back. The spiral closes above the 2,722 kg class limit, so the design is infeasible. The agent explains why and proposes 4,660 km, where the spiral closes at 2,720 kg.
+   State the range as a number: intake won't infer a range from city names. Gemini warns that 5,570 km is far outside a GA single's envelope. MTOW climbs lap by lap, 3,377 → 3,443 → 3,462 → 3,467 kg, because the spar gets heavier (152 → 158 kg) and feeds back. The spiral closes above the 2,722 kg class limit, so the design is infeasible.
 
-3. **Traceability.** Hover any number to see its source, then open the report.
+   Python finds two changes that close: cut the range to 4,670 km (2,719 kg), or keep the range and carry 1 passenger instead of 3 (2,422 kg). Gemini, as design lead, reads "London to New York non-stop" as the requirement. It **keeps the route and proposes flying with 1 passenger**, naming the range cut as the alternative. Click accept: the spiral re-runs and converges.
+
+   For contrast, "Family four-seat tourer for weekend trips with the kids, 5,570 km range" gets the opposite call: keep the seats, cut the range to 4,670 km.
+
+3. **Traceability.** On Screen 1, every field shows where it came from: your exact words, "Gemini inferred", or a cited default. Hover any number for its source, then open the report and scroll to *Textbook items behind the numbers*.
 
 ## Known limitations
 
@@ -143,7 +150,8 @@ SSE event types (`SSE_EVENTS`):
 - The wing is modelled as a cantilever.
 - The web is unstiffened (conservative). Cap crippling is not modelled.
 - Spar mass counts the caps and web only, with no ribs, stiffeners or fittings.
-- Detailed design (Tharm): CAD lofts the sized I-section with CadQuery when it is installed, otherwise it writes the STEP and a watertight STL directly. FEA uses Timoshenko beam elements on the tapered spar (NumPy direct stiffness; CalculiX + gmsh only when both binaries are on the PATH). Because it is a beam model, its close agreement with beam theory (about 99% on stress and deflection for the demo spar) is a consistency check, not an independent 3D stress analysis.
+- Relaxations considered: range and passenger count only (one field at a time).
+- Detailed design (Tharm): CAD lofts the sized I-section with CadQuery when it is installed, otherwise it writes the STEP and a watertight STL directly. FEA uses Timoshenko beam elements on the tapered spar (NumPy direct stiffness). Because it is a beam model, its close agreement with beam theory (about 99% on stress and deflection for the demo spar) is a consistency check, not an independent 3D stress analysis.
 
 ## Work Split
 
@@ -151,3 +159,5 @@ SSE event types (`SSE_EVENTS`):
 |---|---|---|
 | **Folders & Files** | `spiral/agent/`, `server/`, `scripts/`, `knowledge/`, `spiral/tools/lookup.py`, `spiral/tools/sizing.py`, `spiral/tools/spar.py`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/cad.py`, `spiral/tools/fea.py`, `spiral/tools/geometry.py`, `artifacts/`, `tests/test_tools.py` |
 | **Shared** | `spiral/contract.py` (frozen dataclasses + HTTP/SSE schemas), `fixtures/` (example payloads) | `spiral/contract.py`, `fixtures/` |
+
+At 14:40 Tharm handed Screen 1 (intake & spec confirmation) to Harry: `web/intake.js`, `web/intake.css` and the theme overrides in `web/theme.css` are Harry's. Cross-agent coordination is in [`HARRY_AGENT_LOG.md`](HARRY_AGENT_LOG.md) and [`THARM_AGENT_LOG.md`](THARM_AGENT_LOG.md).

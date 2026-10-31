@@ -868,10 +868,10 @@ def _textbook_section(state: DesignState, limit: int = 16) -> list[str]:
             what = f"`{item.get('latex', '')}`"
         elif item.get("kind") == "tables":
             match = next((r for r in item.get("rows", []) if "single" in " ".join(r).lower()), None)
-            what = f"{item.get('title', '')}" + (f": `{' | '.join(match)}`" if match else "")
+            what = f"{item.get('title', '')}" + (f": `{' · '.join(c for c in match if c)}`" if match else "")
         else:
             what = str(item.get("paraphrase") or item.get("description") or item.get("name") or "")
-        what = what.replace("|", "\\|").replace("\n", " ")
+        what = what.replace("|", "¦").replace("\n", " ")  # no pipes inside cells: renderers split on them
         rows.append(f"| {citation(item)} | {what} | {_CRITIC_LABEL.get(item.get('status', ''), item.get('status', ''))} |")
         if len(rows) >= limit:
             break

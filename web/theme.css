@@ -218,8 +218,14 @@ input[type="range"] { accent-color: var(--cyan); }
 .prov-simulation { color: #7ee2b8; background: rgba(34, 197, 139, 0.12); border-color: rgba(34, 197, 139, 0.5); }
 .prov-simulation::before { content: "\25C7"; }
 /* verified: pre-wired for app.js (add class "prov-verified" when p.verified) */
-.prov-badge.prov-verified { color: #04170f; background: #34d399; border-color: #34d399; }
-.prov-badge.prov-verified::before { content: "\2713"; }
+.prov-badge.prov-verified {
+  color: #03140d;
+  background: #34d399;
+  border-color: #34d399;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.18);
+}
+.prov-badge.prov-verified::before { content: "\2713"; font-weight: 800; }
+.prov-badge.prov-verified::after { content: "verified"; font-weight: 700; }
 
 /* flagged */
 /* defaults & assumptions: Screen 1 "cited default" == Screens 2-4 kind "assumption" (same value, same stamp) */
@@ -366,11 +372,44 @@ input[type="range"] { accent-color: var(--cyan); }
 .cite-chip::before { content: "\00A7\00A0"; opacity: 0.8; }
 .warnings-box { color: #fbd38a; line-height: 1.45; }
 
-/* Infeasible banner */
-.infeasible-banner { background: rgba(242, 84, 109, 0.09); border-color: rgba(242, 84, 109, 0.7); border-radius: var(--r-lg); }
-.infeasible-body strong { color: #ff9fb0; }
-.infeasible-body p { color: var(--text-2); }
-.infeasible-body p.mono { color: var(--text); }
+/* Infeasible banner: problem (rose) -> Gemini's proposal (violet card) -> accept (primary action) */
+.infeasible-banner {
+  background: rgba(242, 84, 109, 0.07);
+  border: 1px solid rgba(242, 84, 109, 0.6);
+  border-left-width: 4px;
+  border-radius: var(--r-lg);
+  padding: 0.95rem 1.1rem;
+  gap: 1.25rem;
+  align-items: center;
+}
+.infeasible-body { min-width: 0; flex: 1; }
+.infeasible-body strong { color: #ff9fb0; font-size: 1rem; }
+.infeasible-body p { color: var(--text-2); max-width: 95ch; }
+#infeasible-proposal {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.8rem 0.6rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  border-left: 3px solid #a78bfa;
+  border-radius: var(--r-md);
+  font-variant-numeric: tabular-nums;
+}
+#infeasible-proposal::before { content: "\2726\00A0"; color: #c4b5fd; font-weight: 700; }
+#infeasible-proposal:empty { display: none; }
+#btn-accept-relaxation {
+  flex: none;
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: var(--accent-ink);
+  padding: 0.75rem 1.2rem;
+  font-size: 0.92rem;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+#btn-accept-relaxation:hover { filter: brightness(1.1); }
 
 /* ---------- Screen 3: spar CAD & FEA ---------- */
 .detailed-header { margin-bottom: 0; }
@@ -447,6 +486,57 @@ table.eng-table td:first-child, table.eng-table th:first-child { text-align: lef
 .prov-row .muted { margin: 0; }
 #sources-ledger { color: var(--text-2); line-height: 1.5; }
 #sources-ledger strong { color: var(--text); font-size: 0.8rem; }
+.sources-ledger-list { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; }
+.ledger-heading { display: block; margin: 0.7rem 0 0.15rem; font-weight: 600; color: var(--text); }
+.ledger-heading:first-child { margin-top: 0; }
+.source-item {
+  position: relative;
+  padding: 0.3rem 0.55rem 0.3rem 1.55rem;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  line-height: 1.45;
+}
+.source-item::before { position: absolute; left: 0.55rem; top: 0.3rem; font-weight: 700; }
+.source-cited::before { content: "\0192"; font-style: italic; color: #9fdcfb; }
+.source-assumption::before { content: "\00A7"; color: #fbd38a; }
+.source-warning { color: #fbd38a; border-color: rgba(245, 165, 36, 0.35); }
+.source-warning::before { content: "!"; color: var(--amber); }
+.warning-heading { color: #fbd38a !important; }
+
+/* Report tables (built from markdown by intake.js) and code: LaTeX in mono, verdicts as stamps */
+.report-body .md-table-wrap {
+  margin: 0.7rem 0 0.4rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.report-body table, .report-body .md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+.report-body th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  background: var(--panel-alt);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-hi);
+  white-space: nowrap;
+}
+.report-body td { padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); vertical-align: top; color: var(--text-2); }
+.report-body tbody tr:first-child td { border-top: none; }
+.report-body tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.018); }
+.report-body td:first-child { color: var(--text); white-space: nowrap; }
+.report-body td code { display: inline-block; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.report-body td.verdict-ok, .report-body td.verdict-bad { white-space: nowrap; font-weight: 600; }
+.report-body td.verdict-ok { color: #6ee7b7; }
+.report-body td.verdict-bad { color: #ff9fb0; }
+.report-body code { overflow-wrap: anywhere; }
 
 /* ---------- Brand mark: a spiral closing on one converged design point ---------- */
 .brand-logo {

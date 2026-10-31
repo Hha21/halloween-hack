@@ -217,6 +217,41 @@ function installFavicon() {
 }
 
 /**
+ * Screen 4 readability: app.js's mdToHtml has no table syntax, so the report's markdown tables
+ * ("Textbook items behind the numbers") arrive as pipe text. Turn them into real tables.
+ * Idempotent: once converted there are no pipe rows left, so the observer does nothing.
+ */
+function mdTableHtml(block) {
+  const cells = (line) => line.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+  const lines = block.split("\n").filter((l) => l.trim() && !/^\|[\s:|-]+\|$/.test(l.trim()));
+  if (lines.length < 2) return block;
+  const [head, ...body] = lines;
+  const td = (c) => {
+    const cls = /^✓/.test(c) ? ' class="verdict-ok"' : /^(✗|✘|×)/.test(c) ? ' class="verdict-bad"' : "";
+    return `<td${cls}>${c}</td>`;
+  };
+  return `<div class="md-table-wrap"><table class="md-table"><thead><tr>${cells(head)
+    .map((c) => `<th>${c}</th>`)
+    .join("")}</tr></thead><tbody>${body.map((r) => `<tr>${cells(r).map(td).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function enhanceReportTables() {
+  const el = document.getElementById("report-markdown");
+  if (!el || el.dataset.tablesWired) return;
+  el.dataset.tablesWired = "1";
+  const ROWS = /\|(?:[^\n|]*\|)+(?:\n\|(?:[^\n|]*\|)+)+/g;
+  const convert = () => {
+    const html = el.innerHTML;
+    ROWS.lastIndex = 0;
+    if (!ROWS.test(html)) return;
+    const out = html.replace(ROWS, (block) => mdTableHtml(block));
+    if (out !== html) el.innerHTML = out;
+  };
+  new MutationObserver(convert).observe(el, { childList: true });
+  convert();
+}
+
+/**
  * Wire Screen 1. `options`:
  *   getSpec(), setSpec(spec)   shared MissionSpec state (owned by app.js)
  *   defaultSpec, presets       DEFAULT_SPEC and PRESETS from app.js
@@ -227,6 +262,7 @@ function installFavicon() {
 export function initIntake(options) {
   ctx = options;
   installFavicon();
+  enhanceReportTables();
   document.querySelectorAll("[data-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const p = ctx.presets?.[btn.dataset.preset];
