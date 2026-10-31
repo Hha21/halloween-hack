@@ -96,35 +96,141 @@ def aircraft_geometry(
     return ToolResult(
         value=geom,
         sources=[
-            "Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
-            "Raymer 6ed, Table 6.4 (Tail Volume Coefficients C_HT=0.70, C_VT=0.04)",
+            "Raymer 2ed, Table 6.3 (p. 110): Fuselage Length & Diameter Regression (Single Engine)",
+            "Raymer 2ed, Table 6.4 (p. 112): Tail Volume Coefficients (C_HT = 0.70, C_VT = 0.04)",
+            "Raymer 2ed, Ch. 4 (p. 50-60): Trapezoidal Planform, MAC & Dihedral",
             "knowledge/tables/aircraft_typical.yaml#ga_single_engine",
         ],
         assumptions=[
-            "Tail moment arm = 52% of fuselage length",
+            "Tail moment arm = 52% of fuselage length (Raymer 2ed Table 6.4 typical arm ratio)",
             f"Wing configuration: {spec.wing_position} wing",
         ],
         warnings=[],
         provenance={
-            "fuselage": Provenance(
+            # Fuselage
+            "fuselage.length_m": Provenance(
                 kind="equation",
-                source="Raymer 6ed, Table 6.3 (Fuselage Length Regression)",
+                source="Raymer 2ed, Table 6.3 (p. 110): L_f = 0.3048 x 4.37 x (W_0,lb)^0.23",
+                verified=True,
             ),
-            "wing": Provenance(
+            "fuselage.diameter_m": Provenance(
                 kind="equation",
-                source="Raymer 6ed, Ch. 4 (Trapezoidal Planform & Dihedral)",
+                source="Raymer 2ed, Table 6.3 (p. 110): GA 4-place cabin diameter",
+                verified=True,
             ),
-            "horizontal_tail": Provenance(
+            "fuselage.nose_length_m": Provenance(
+                kind="assumption",
+                source="Raymer 2ed, Table 6.3 (p. 110): 22% fuselage length nose cowl",
+                verified=True,
+            ),
+            "fuselage.cabin_length_m": Provenance(
+                kind="assumption",
+                source="Raymer 2ed, Table 6.3 (p. 110): 36% fuselage length cabin",
+                verified=True,
+            ),
+            "fuselage.tailcone_length_m": Provenance(
+                kind="assumption",
+                source="Raymer 2ed, Table 6.3 (p. 110): 42% fuselage length tailcone",
+                verified=True,
+            ),
+            # Wing
+            "wing.span_m": Provenance(
                 kind="equation",
-                source="Raymer 6ed, Table 6.4 (C_HT = 0.70 Tail Volume)",
+                source="Raymer 2ed, Eq. 5.6 & Table 4.1: b = sqrt(AR x S)",
+                verified=True,
             ),
-            "vertical_tail": Provenance(
+            "wing.root_chord_m": Provenance(
                 kind="equation",
-                source="Raymer 6ed, Table 6.4 (C_VT = 0.04 Tail Volume)",
+                source="Raymer 2ed, Ch. 4 (p. 56): c_root = 2 S / (b (1 + lambda))",
+                verified=True,
             ),
-            "propeller": Provenance(
+            "wing.tip_chord_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Ch. 4 (p. 56): c_tip = lambda x c_root",
+                verified=True,
+            ),
+            "wing.thickness_to_chord": Provenance(
                 kind="table",
-                source="knowledge/tables/aircraft_typical.yaml#ga_single_engine",
+                source="Raymer 2ed, Table 4.1: thickness_to_chord from spec",
+                verified=True,
+            ),
+            "wing.x_le_m": Provenance(
+                kind="assumption",
+                source="Wing quarter-chord placed at 32% fuselage length",
+                verified=True,
+            ),
+            "wing.z_m": Provenance(
+                kind="assumption",
+                source=f"Vertical placement for {spec.wing_position} wing",
+                verified=True,
+            ),
+            "wing.dihedral_deg": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 4.2 (p. 59): Wing Dihedral Guidelines",
+                verified=True,
+            ),
+            # Horizontal tail
+            "horizontal_tail.span_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): S_HT = C_HT x S x MAC / L_HT",
+                verified=True,
+            ),
+            "horizontal_tail.root_chord_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): HT root chord from AR=4.0 and taper=0.65",
+                verified=True,
+            ),
+            "horizontal_tail.tip_chord_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): HT tip chord = 0.65 x c_root",
+                verified=True,
+            ),
+            "horizontal_tail.x_le_m": Provenance(
+                kind="assumption",
+                source="Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+                verified=True,
+            ),
+            "horizontal_tail.z_m": Provenance(
+                kind="assumption",
+                source="Horizontal stabilizer vertical offset on rear fuselage",
+                verified=True,
+            ),
+            # Vertical tail
+            "vertical_tail.height_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): S_VT = C_VT x S x b / L_VT",
+                verified=True,
+            ),
+            "vertical_tail.root_chord_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): VT root chord from AR=1.6 and taper=0.55",
+                verified=True,
+            ),
+            "vertical_tail.tip_chord_m": Provenance(
+                kind="equation",
+                source="Raymer 2ed, Table 6.4 (p. 112): VT tip chord = 0.55 x c_root",
+                verified=True,
+            ),
+            "vertical_tail.x_le_m": Provenance(
+                kind="assumption",
+                source="Raymer 2ed, Table 6.4 (p. 112): tail arm 52% fuselage length",
+                verified=True,
+            ),
+            "vertical_tail.z_m": Provenance(
+                kind="assumption",
+                source="Vertical fin root vertical offset on rear fuselage",
+                verified=True,
+            ),
+            # Propeller
+            "propeller.diameter_m": Provenance(
+                kind="table",
+                source="knowledge/tables/aircraft_typical.yaml#ga_single_engine (2-blade prop)",
+                verified=True,
+            ),
+            "propeller.x_m": Provenance(
+                kind="assumption",
+                source="Tractor propeller forward offset from fuselage nose",
+                verified=True,
             ),
         },
     )

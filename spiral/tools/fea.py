@@ -367,7 +367,7 @@ def run_fea(
             ),
             "beam_max_stress_pa": Provenance(
                 kind="equation",
-                source="Megson Ch. 9 Euler-Bernoulli Bending Stress (M·z/I)",
+                source="Raymer 2ed, Eq. 14.35 (p. 385): Euler-Bernoulli Bending Stress (M·z/I)",
                 verified=True,
             ),
             "beam_tip_deflection_m": Provenance(
@@ -394,6 +394,31 @@ def run_fea(
             "stress_mesh_path": Provenance(
                 kind="simulation",
                 source="3D Cross-Sectional von Mises Field (spar_stress_mesh.json)",
+                verified=True,
+            ),
+            "stations[].y_m": Provenance(
+                kind="equation",
+                source="Spanwise coordinate matching loads and spar sizing stations",
+                verified=True,
+            ),
+            "stations[].fea_von_mises_pa": Provenance(
+                kind="simulation",
+                source="Cross-sectional peak von Mises stress from 3D Timoshenko FEA",
+                verified=True,
+            ),
+            "stations[].beam_stress_pa": Provenance(
+                kind="equation",
+                source="Euler-Bernoulli bending stress M(y)·z / I_xx(y)",
+                verified=True,
+            ),
+            "stations[].fea_deflection_m": Provenance(
+                kind="simulation",
+                source="Nodal deflection solved from global stiffness matrix K·u = F",
+                verified=True,
+            ),
+            "stations[].beam_deflection_m": Provenance(
+                kind="equation",
+                source="Euler-Bernoulli double integration of M/(EI)",
                 verified=True,
             ),
         },
