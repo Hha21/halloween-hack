@@ -1,2 +1,599 @@
 /* Cinematic overhaul for Screens 2-4 (Owner: Harry; overhaul agent). Loaded LAST, after workspace.css.
- * Every rule is scoped under html.overhaul, so ?classic in the URL turns it all off. */
+ * Every rule is scoped under html.overhaul, so ?classic in the URL turns it all off.
+ * Never puts transform/filter on .ws-floating sections (that would re-anchor Tharm's position:fixed panels);
+ * entrance motion uses the independent `translate`/`scale` properties on the panels themselves. */
+html.overhaul {
+  --ov-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ov-edge: rgba(148, 197, 255, 0.14);
+  --ov-ice: #e0f2fe;
+  --ov-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  --ov-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+/* ---------------- Glass (Tharm's floating cards, dock, bottom pills) ---------------- */
+html.overhaul .ws-panel,
+html.overhaul .ws-dock,
+html.overhaul .ws-floating .lap-scrubber-bar,
+html.overhaul .ws-floating .stress-colorbar {
+  background: linear-gradient(160deg, rgba(22, 32, 54, 0.62), rgba(7, 11, 20, 0.55));
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--ov-edge);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+html.overhaul .ws-panel { border-radius: 14px; position: relative; }
+html.overhaul .ws-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.85) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: ov-edge 7s linear infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
+@keyframes ov-edge { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+html.overhaul .ws-head {
+  color: rgba(186, 230, 253, 0.8);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  padding: 0.7rem 0.95rem;
+  border-bottom-color: rgba(148, 197, 255, 0.08);
+  transition: color 0.2s, background 0.2s;
+}
+html.overhaul .ws-head:hover { color: #fff; background: rgba(56, 189, 248, 0.06); }
+html.overhaul .ws-panel.collapsed .ws-head { border-bottom-color: transparent; }
+
+html.overhaul .ws-chip { transition: background 0.2s, color 0.2s, box-shadow 0.2s; letter-spacing: 0.02em; }
+html.overhaul .ws-chip.on {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.4), 0 0 18px rgba(56, 189, 248, 0.25);
+}
+
+/* ---------------- Glowing KPIs ---------------- */
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-card {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.08), rgba(8, 13, 25, 0.5));
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+}
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.6rem;
+  color: rgba(186, 230, 253, 0.6);
+}
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-val {
+  font-family: var(--ov-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--ov-ice);
+  text-shadow: 0 0 18px rgba(56, 189, 248, 0.55), 0 0 2px rgba(186, 230, 253, 0.5);
+}
+/* Hero KPI: MTOW on Screen 2, stress agreement on Screen 3 */
+html.overhaul #workspace-kpis .kpi-card:nth-child(1),
+html.overhaul #detailed-kpis .kpi-card:nth-child(3) { grid-column: 1 / -1; order: -1; }
+html.overhaul #workspace-kpis .kpi-card:nth-child(1) .kpi-val,
+html.overhaul #detailed-kpis .kpi-card:nth-child(3) .kpi-val {
+  font-size: 2.15rem;
+  line-height: 1.1;
+  text-shadow: 0 0 28px rgba(56, 189, 248, 0.7), 0 0 3px rgba(224, 242, 254, 0.7);
+}
+/* Declutter: secondary KPIs live behind "Show all metrics" (overhaul.js toggles .ov-all) */
+html.overhaul #workspace-kpis:not(.ov-all) .kpi-card:is(:nth-child(2), :nth-child(3), :nth-child(6)),
+html.overhaul #detailed-kpis:not(.ov-all) .kpi-card:is(:nth-child(2), :nth-child(4), :nth-child(5)) { display: none; }
+
+/* Status strip (lap + spiral state), inserted by overhaul.js above the Screen 2 KPIs */
+html.overhaul .ov-status { display: flex; gap: 0.4rem; margin-bottom: 0.55rem; }
+html.overhaul .ov-status > span {
+  font: 600 0.66rem/1 var(--ov-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.38rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.1);
+  font-variant-numeric: tabular-nums;
+}
+html.overhaul .ov-status .ov-state[data-state="closed"] { color: #6ee7b7; border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.12); box-shadow: 0 0 14px rgba(16, 185, 129, 0.25); }
+html.overhaul .ov-status .ov-state[data-state="running"] { color: #fde68a; border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.12); animation: ov-blink 1.2s ease-in-out infinite; }
+html.overhaul .ov-status .ov-state[data-state="failed"] { color: #fecdd3; border-color: rgba(244, 63, 94, 0.6); background: rgba(244, 63, 94, 0.16); box-shadow: 0 0 16px rgba(244, 63, 94, 0.35); }
+@keyframes ov-blink { 50% { opacity: 0.55; } }
+
+/* "Show more" fold buttons inserted by overhaul.js */
+html.overhaul .ov-more {
+  display: block;
+  width: 100%;
+  margin: 0.55rem 0 0.2rem;
+  padding: 0.42rem 0.6rem;
+  background: transparent;
+  border: 1px dashed rgba(125, 211, 252, 0.25);
+  border-radius: 8px;
+  color: rgba(186, 230, 253, 0.75);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.64rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+html.overhaul .ov-more:hover { background: rgba(56, 189, 248, 0.08); color: #fff; border-color: rgba(125, 211, 252, 0.5); }
+
+/* ---------------- Screen 2 declutter: hero aircraft, secondary content folded ---------------- */
+html.overhaul #screen-workspace .sidebar:not(.ov-open) > :is(h3:not(:first-of-type), .slider-group, .component-tree) { display: none; }
+html.overhaul #screen-workspace .right-col:not(.ov-open) > :is(#agent-log-list, #warnings-box) { display: none; }
+html.overhaul .ws-panel.grow:has(.sidebar:not(.ov-open)),
+html.overhaul .ws-panel.grow:has(.right-col:not(.ov-open)),
+html.overhaul .ws-panel.grow:has(#detailed-kpis:not(.ov-all)) { flex: 0 1 auto; }
+html.overhaul #btn-goto-detailed,
+html.overhaul #btn-run-fea {
+  background: linear-gradient(110deg, #0ea5e9, #38bdf8 45%, #7dd3fc 50%, #38bdf8 55%, #0284c7);
+  background-size: 250% 100%;
+  color: #04121f;
+  border: 0;
+  font-weight: 700;
+  box-shadow: 0 8px 26px rgba(56, 189, 248, 0.35);
+  animation: ov-sheen 3.5s linear infinite;
+}
+
+/* ---------------- Screen entrances (overhaul.js adds .ov-enter when a screen gains .active) ---------------- */
+@keyframes ov-fade { from { opacity: 0; } }
+@keyframes ov-rise { from { opacity: 0; translate: 0 18px; scale: 0.97; } }
+@keyframes ov-drop { from { opacity: 0; translate: 0 -12px; } }
+@keyframes ov-settle { from { opacity: 0; scale: 1.08; } }
+html.overhaul #screen-report.ov-enter { animation: ov-rise 0.75s var(--ov-ease) both; }
+/* No scale on anything that contains a 3D container: aircraft3d/fea3d size from getBoundingClientRect(). */
+html.overhaul :is(#screen-workspace, #screen-detailed).ov-enter:not(.ws-floating) { animation: ov-lift 0.75s var(--ov-ease) both; }
+@keyframes ov-lift { from { opacity: 0; translate: 0 18px; } }
+html.overhaul .ws-floating.ov-enter { animation: ov-fade 0.45s ease both; }
+html.overhaul .ws-floating.ov-enter .viewport-canvas > canvas { animation: ov-settle 1.3s var(--ov-ease) both; }
+html.overhaul .ws-floating.ov-enter .ws-col > .ws-panel { animation: ov-rise 0.65s var(--ov-ease) 0.12s both; }
+html.overhaul .ws-floating.ov-enter .ws-col > .ws-panel:nth-child(2) { animation-delay: 0.22s; }
+html.overhaul .ws-floating.ov-enter .ws-col > .ws-panel:nth-child(3) { animation-delay: 0.32s; }
+html.overhaul .ws-floating.ov-enter .ws-dock { animation: ov-drop 0.6s var(--ov-ease) 0.1s both; }
+html.overhaul .ws-floating.ov-enter :is(.lap-scrubber-bar, .stress-colorbar) { animation: ov-fade 0.8s ease 0.4s both; }
+
+/* ---------------- Infeasible banner: make it dramatic ---------------- */
+html.overhaul .infeasible-banner:not(.hidden) {
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(244, 63, 94, 0.38), transparent 55%),
+    linear-gradient(135deg, rgba(76, 10, 32, 0.94), rgba(28, 5, 14, 0.92));
+  border: 1px solid rgba(251, 113, 133, 0.6);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  gap: 1rem;
+  box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.25), 0 0 40px rgba(244, 63, 94, 0.35), 0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: ov-alarm-in 0.7s var(--ov-ease) both, ov-alarm 2.4s ease-in-out 0.7s infinite;
+}
+@keyframes ov-alarm-in { from { opacity: 0; translate: 0 -18px; scale: 0.95; } }
+@keyframes ov-alarm {
+  50% { box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.55), 0 0 72px rgba(244, 63, 94, 0.6), 0 24px 60px rgba(0, 0, 0, 0.6); }
+}
+html.overhaul #infeasible-title {
+  display: block;
+  font-size: 1.12rem;
+  letter-spacing: 0.02em;
+  color: #ffe4e6;
+  text-shadow: 0 0 18px rgba(244, 63, 94, 0.8);
+}
+html.overhaul #infeasible-reason { color: #fecdd3; }
+html.overhaul #infeasible-proposal:not(:empty) {
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px dashed rgba(253, 230, 138, 0.45);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fde68a;
+  font-variant-numeric: tabular-nums;
+}
+html.overhaul #btn-accept-relaxation {
+  background: linear-gradient(110deg, #be123c, #f43f5e 42%, #fda4af 50%, #f43f5e 58%, #be123c);
+  background-size: 250% 100%;
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 8px 30px rgba(244, 63, 94, 0.55);
+  animation: ov-sheen 2.8s linear infinite, ov-cta 1.8s ease-in-out infinite;
+  transition: filter 0.2s, translate 0.2s;
+}
+html.overhaul #btn-accept-relaxation:hover { filter: brightness(1.12); translate: 0 -1px; }
+@keyframes ov-sheen { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+@keyframes ov-cta { 50% { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 10px 46px rgba(244, 63, 94, 0.9); } }
+
+/* ---------------- Screen 4: design dossier ---------------- */
+html.overhaul #screen-report .report-toolbar {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(148, 197, 255, 0.12);
+  border-radius: 0;
+}
+html.overhaul #screen-report .report-toolbar h2 {
+  font-family: var(--ov-serif);
+  font-weight: 500;
+  font-size: 1.85rem;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+html.overhaul #report-markdown {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.75), rgba(8, 12, 22, 0.75));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 197, 255, 0.12);
+  border-radius: 16px;
+  padding: 2.4rem clamp(1.4rem, 4vw, 3.4rem);
+  font-family: var(--ov-serif);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: #dbe4f0;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+html.overhaul #report-markdown::before {
+  content: "DESIGN DOSSIER \00B7  SPIRAL";
+  display: block;
+  margin-bottom: 1.4rem;
+  font: 600 0.66rem/1 var(--ov-mono);
+  letter-spacing: 0.32em;
+  color: rgba(56, 189, 248, 0.75);
+}
+html.overhaul #report-markdown :is(h1, h2, h3, h4) { font-family: var(--ov-serif); font-weight: 500; color: #f8fafc; letter-spacing: -0.01em; line-height: 1.25; }
+html.overhaul #report-markdown h1 { font-size: 2.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(148, 197, 255, 0.18); }
+html.overhaul #report-markdown h2 { font-size: 1.45rem; margin-top: 2.2rem; color: #bae6fd; }
+html.overhaul #report-markdown h2::before { content: "\00A7  "; color: rgba(56, 189, 248, 0.6); }
+html.overhaul #report-markdown h3 { font-size: 1.12rem; margin-top: 1.6rem; }
+html.overhaul #report-markdown strong { color: #f1f5f9; }
+html.overhaul #report-markdown code { font-family: var(--ov-mono); font-size: 0.84em; background: rgba(56, 189, 248, 0.08); padding: 0.1em 0.35em; border-radius: 4px; }
+html.overhaul #report-markdown table { width: 100%; border-collapse: collapse; font: 0.82rem/1.4 var(--ov-mono); font-variant-numeric: tabular-nums; margin: 1rem 0; }
+html.overhaul #report-markdown :is(th, td) { padding: 0.45rem 0.6rem; border-bottom: 1px solid rgba(148, 197, 255, 0.1); text-align: left; }
+html.overhaul #report-markdown th { color: rgba(186, 230, 253, 0.75); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.7rem; }
+
+/* Ledger panels fold (overhaul.js adds .ov-fold / .ov-closed; click the heading) */
+html.overhaul .ledger-col > .panel {
+  background: rgba(13, 20, 36, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 197, 255, 0.12);
+  border-radius: 14px;
+}
+html.overhaul .ov-fold > h3 {
+  cursor: pointer;
+  user-select: none;
+  display: block;
+  position: relative;
+  padding-right: 1.4rem;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(186, 230, 253, 0.85);
+}
+html.overhaul .ov-fold > h3::after { content: "\25BE"; position: absolute; right: 0; top: 50%; translate: 0 -50%; color: var(--muted, #94a3b8); transition: transform 0.2s; }
+html.overhaul .ov-fold.ov-closed > h3::after { transform: rotate(-90deg); }
+html.overhaul .ov-fold.ov-closed > :not(h3) { display: none; }
+html.overhaul .ov-fold:not(.ov-closed) > h3 { margin-bottom: 0.7rem; }
+
+/* ---------------- Reduced motion: no animation on Screens 2-4 ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report),
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report) *,
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report) *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* =====================================================================================
+ * Bold pass: mission-control HUD, screen curtains, diverge -> accept -> converged moment
+ * ===================================================================================== */
+
+/* Light sweep across the window on screen entry (node inserted by overhaul.js) */
+html.overhaul .ov-curtain { display: none; position: fixed; inset: 0; pointer-events: none; z-index: 40; opacity: 0; }
+html.overhaul .ov-enter > .ov-curtain {
+  display: block;
+  background:
+    linear-gradient(100deg, transparent 0%, transparent 40%, rgba(56, 189, 248, 0.14) 47%, rgba(186, 230, 253, 0.42) 50%, rgba(56, 189, 248, 0.14) 53%, transparent 60%, transparent 100%),
+    radial-gradient(ellipse at 50% 50%, rgba(2, 6, 14, 0) 30%, rgba(2, 6, 14, 0.75) 100%);
+  background-size: 250% 100%, 100% 100%;
+  animation: ov-wipe 1.15s var(--ov-ease) both;
+}
+@keyframes ov-wipe {
+  0% { opacity: 1; background-position: 100% 0, 0 0; }
+  75% { opacity: 1; }
+  100% { opacity: 0; background-position: 0% 0, 0 0; }
+}
+
+/* Vignette over the full-bleed viewport; tints red while the spiral is diverging */
+html.overhaul .ws-floating .viewport-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(2, 6, 14, 0.6) 100%);
+}
+html.overhaul .ws-floating.ov-alarm .viewport-card::after {
+  background: radial-gradient(ellipse at 50% 48%, transparent 40%, rgba(136, 12, 42, 0.5) 100%);
+  animation: ov-redpulse 2.4s ease-in-out infinite;
+}
+@keyframes ov-redpulse { 50% { opacity: 0.5; } }
+
+/* HUD frame around the clear centre between Tharm's side columns */
+html.overhaul .ov-hud { display: none; }
+html.overhaul .ws-floating .ov-hud {
+  --ov-hud-c: rgba(125, 211, 252, 0.6);
+  display: block;
+  position: absolute;
+  top: calc(var(--ws-top, 68px) + 58px);
+  bottom: calc(var(--ws-gap, 14px) + 118px);
+  left: calc(var(--ws-left, 300px) + 2 * var(--ws-gap, 14px));
+  right: calc(var(--ws-right, 340px) + 2 * var(--ws-gap, 14px));
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+html.overhaul .ws-floating.ov-alarm .ov-hud { --ov-hud-c: rgba(251, 113, 133, 0.9); }
+html.overhaul .ws-floating.ov-running .ov-hud { --ov-hud-c: rgba(252, 211, 77, 0.75); }
+html.overhaul .ws-floating.ov-converged .ov-hud { --ov-hud-c: rgba(52, 211, 153, 0.95); }
+html.overhaul .ov-br { position: absolute; width: 28px; height: 28px; border: 0 solid var(--ov-hud-c); filter: drop-shadow(0 0 6px var(--ov-hud-c)); transition: border-color 0.5s; }
+html.overhaul .ov-br.tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 6px; }
+html.overhaul .ov-br.tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 6px; }
+html.overhaul .ov-br.bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 6px; }
+html.overhaul .ov-br.br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 6px; }
+html.overhaul .ov-reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(62%, 62vh);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 1px dashed rgba(125, 211, 252, 0.12);
+  animation: ov-spin 60s linear infinite;
+}
+html.overhaul .ws-floating.ov-alarm .ov-reticle { border-color: rgba(251, 113, 133, 0.3); }
+html.overhaul .ws-floating.ov-converged .ov-reticle { border: 2px solid rgba(52, 211, 153, 0.7); animation: ov-ring 1.8s var(--ov-ease) both; }
+@keyframes ov-spin { to { rotate: 360deg; } }
+@keyframes ov-ring { from { scale: 0.3; opacity: 1; } to { scale: 1.5; opacity: 0; } }
+html.overhaul .ov-scan {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 16%;
+  background: linear-gradient(180deg, transparent 0%, transparent 70%, rgba(56, 189, 248, 0.04) 94%, rgba(125, 211, 252, 0.16) 100%);
+  animation: ov-scan 7s linear infinite;
+}
+html.overhaul .ws-floating.ov-running .ov-scan { animation-duration: 2.2s; background: linear-gradient(180deg, transparent 0%, transparent 70%, rgba(252, 211, 77, 0.05) 94%, rgba(252, 211, 77, 0.24) 100%); }
+html.overhaul .ws-floating.ov-alarm .ov-scan { background: linear-gradient(180deg, transparent 0%, transparent 70%, rgba(244, 63, 94, 0.05) 94%, rgba(251, 113, 133, 0.26) 100%); }
+@keyframes ov-scan { from { translate: 0 -100%; } to { translate: 0 640%; } }
+html.overhaul .ov-hud-id {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 600 0.62rem/1.2 var(--ov-mono);
+  letter-spacing: 0.2em;
+}
+html.overhaul .ov-hud-id b { color: #e0f2fe; text-shadow: 0 0 12px rgba(56, 189, 248, 0.6); }
+html.overhaul .ov-hud-id b::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+  animation: ov-blink 1.6s ease-in-out infinite;
+}
+html.overhaul .ws-floating.ov-running .ov-hud-id b::before { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; animation-duration: 0.6s; }
+html.overhaul .ws-floating.ov-alarm .ov-hud-id b::before { background: #fb7185; box-shadow: 0 0 12px #fb7185; animation-duration: 0.5s; }
+html.overhaul .ov-hud-id span { color: rgba(148, 197, 255, 0.5); letter-spacing: 0.16em; }
+html.overhaul .ov-hud-clock {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font: 600 0.66rem/1 var(--ov-mono);
+  letter-spacing: 0.18em;
+  color: rgba(186, 230, 253, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Centre stamp: SPIRAL CLOSED / DID NOT CLOSE / RE-RUNNING (overhaul.js adds .show for 3.6s) */
+html.overhaul .ov-hud-stamp {
+  --st: 52, 211, 153;
+  position: absolute;
+  left: 50%;
+  top: 7%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 1rem 1.8rem 1.1rem;
+  border-radius: 14px;
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  background: rgba(3, 12, 16, 0.6);
+  border: 1px solid rgba(var(--st), 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 60px rgba(var(--st), 0.35), inset 0 0 30px rgba(var(--st), 0.12);
+}
+html.overhaul .ov-hud-stamp[data-kind="failed"] { --st: 251, 113, 133; }
+html.overhaul .ov-hud-stamp[data-kind="relax"] { --st: 56, 189, 248; }
+html.overhaul .ov-hud-stamp.show { opacity: 1; visibility: visible; animation: ov-stamp 3.6s var(--ov-ease) both; }
+@keyframes ov-stamp {
+  0% { opacity: 0; scale: 1.3; filter: blur(10px); }
+  12% { opacity: 1; scale: 1; filter: blur(0); }
+  82% { opacity: 1; scale: 1; }
+  100% { opacity: 0; scale: 0.98; }
+}
+html.overhaul .ov-hud-stamp small { font: 600 0.62rem/1 var(--ov-mono); letter-spacing: 0.3em; color: rgba(var(--st), 1); }
+html.overhaul .ov-hud-stamp b {
+  font-size: 1.95rem;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #f8fafc;
+  text-shadow: 0 0 26px rgba(var(--st), 0.95);
+}
+html.overhaul .ov-hud-stamp span { font: 600 0.92rem/1 var(--ov-mono); color: rgba(var(--st), 0.95); font-variant-numeric: tabular-nums; }
+html.overhaul .ov-hud-stamp span:empty { display: none; }
+
+/* Accepting the relaxation: cyan sweep over the viewport, banner rings out */
+html.overhaul .ws-floating .ov-hud::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent 0%, transparent 42%, rgba(56, 189, 248, 0.22) 49%, rgba(224, 242, 254, 0.75) 50%, rgba(56, 189, 248, 0.22) 51%, transparent 58%, transparent 100%);
+  background-size: 260% 100%;
+}
+html.overhaul .ws-floating.ov-relax .ov-hud::after { animation: ov-relax-sweep 1.5s var(--ov-ease) both; }
+@keyframes ov-relax-sweep { 0% { opacity: 1; background-position: 100% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: 0% 0; } }
+html.overhaul .infeasible-banner.ov-accepted:not(.hidden) {
+  border-color: rgba(56, 189, 248, 0.7);
+  animation: ov-accept 1.4s var(--ov-ease) both;
+}
+@keyframes ov-accept {
+  0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.9), 0 0 50px rgba(56, 189, 248, 0.6); }
+  100% { box-shadow: 0 0 0 22px rgba(56, 189, 248, 0), 0 0 30px rgba(56, 189, 248, 0.15); }
+}
+
+/* Converged: the hero KPI flashes emerald */
+html.overhaul .ov-converged #workspace-kpis .kpi-card:nth-child(1) .kpi-val { animation: ov-kpi-win 1.3s ease-in-out 2; }
+@keyframes ov-kpi-win { 50% { color: #ecfdf5; text-shadow: 0 0 34px rgba(52, 211, 153, 0.95), 0 0 4px #a7f3d0; } }
+
+/* Screen 3 pipeline pills, colour bar, lap pills */
+html.overhaul .step-pill { border-radius: 10px; transition: box-shadow 0.3s, background 0.3s; }
+html.overhaul .step-pill.running { background: rgba(245, 158, 11, 0.12); box-shadow: 0 0 18px rgba(245, 158, 11, 0.35); animation: ov-blink 1.2s ease-in-out infinite; }
+html.overhaul .step-pill.done { box-shadow: 0 0 14px rgba(16, 185, 129, 0.25); }
+html.overhaul .step-pill.done::before { content: "\2713\00A0"; }
+html.overhaul .colorbar-gradient { border-radius: 999px; box-shadow: 0 0 16px rgba(244, 63, 94, 0.25), 0 0 16px rgba(56, 189, 248, 0.2); }
+html.overhaul .lap-pill { border-radius: 999px; font-variant-numeric: tabular-nums; transition: box-shadow 0.2s, background 0.2s; }
+html.overhaul .lap-pill.active { box-shadow: 0 0 16px rgba(56, 189, 248, 0.6); }
+
+/* Folded drawers slide open */
+html.overhaul #screen-workspace .sidebar.ov-open > :is(h3, .slider-group, .component-tree),
+html.overhaul #screen-workspace .right-col.ov-open > :is(#agent-log-list, #warnings-box),
+html.overhaul .ov-fold:not(.ov-closed) > :not(h3) { animation: ov-reveal 0.45s var(--ov-ease) both; }
+@keyframes ov-reveal { from { opacity: 0; translate: 0 -6px; } }
+
+/* Screen 4 dossier layout: report dominates, ledger is a sticky folded aside */
+html.overhaul #screen-report .report-grid { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 1.5rem; align-items: start; }
+html.overhaul #screen-report .report-body { max-height: none; overflow: visible; }
+html.overhaul #screen-report .ledger-col { position: sticky; top: calc(var(--ws-top, 68px) + 4px); max-height: calc(100vh - var(--ws-top, 68px) - 24px); overflow-y: auto; }
+html.overhaul #report-markdown > :is(p, ul, ol, blockquote) { max-width: 72ch; }
+html.overhaul #report-markdown blockquote { margin: 1.2rem 0; padding: 0.2rem 0 0.2rem 1rem; border-left: 2px solid rgba(56, 189, 248, 0.5); color: #cbd5e1; font-style: italic; }
+html.overhaul #report-markdown li::marker { color: rgba(56, 189, 248, 0.7); }
+html.overhaul #screen-report .report-toolbar > div:first-child::before {
+  content: "DOSSIER N\00BA\00A0 001  \00B7  SPIRAL AUTONOMOUS DESIGN  \00B7  TRACEABLE";
+  display: block;
+  margin-bottom: 0.6rem;
+  font: 600 0.62rem/1 var(--ov-mono);
+  letter-spacing: 0.28em;
+  color: rgba(56, 189, 248, 0.75);
+}
+html.overhaul #screen-report .report-toolbar .muted { font-family: var(--ov-serif); font-style: italic; font-size: 0.98rem; color: rgba(203, 213, 225, 0.75); }
+html.overhaul #btn-generate-report {
+  background: transparent;
+  color: #e0f2fe;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 999px;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.18);
+}
+html.overhaul #btn-generate-report:hover { background: rgba(56, 189, 248, 0.1); }
+@media (max-width: 900px) {
+  html.overhaul #screen-report .report-grid { grid-template-columns: 1fr; }
+  html.overhaul #screen-report .ledger-col { position: static; max-height: none; }
+}
+
+/* Reduced motion (repeated here so it also covers the bold pass): no animation on Screens 2-4 */
+@media (prefers-reduced-motion: reduce) {
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report),
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report) *,
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report) *::before,
+  html.overhaul :is(#screen-workspace, #screen-detailed, #screen-report) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------------- Fit fixes from headless screenshots ---------------- */
+/* KPI cards: explicit 2-column grid inside the floating panel, labels wrap above their badges */
+html.overhaul .ws-body > :is(#workspace-kpis, #detailed-kpis) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-label { flex-wrap: wrap; gap: 0.3rem 0.4rem; letter-spacing: 0.1em; line-height: 1.25; }
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-label .prov-badge { font-size: 0.56rem; letter-spacing: 0.03em; }
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-val { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.overhaul .ov-status > span { white-space: nowrap; letter-spacing: 0.08em; }
+html.overhaul .ov-status .ov-state { flex: 1; text-align: center; }
+
+/* Screen 2 side column: ladder is compact, its heading duplicates the panel title */
+html.overhaul .ws-body > .sidebar > h3:first-of-type { display: none; }
+html.overhaul #screen-workspace .stage-list li { font-size: 0.78rem; line-height: 1.35; }
+
+/* Screen 3 pipeline: primary action full width, downloads as a compact row */
+html.overhaul .ws-body .detailed-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+html.overhaul .ws-body .detailed-actions > #btn-run-fea { grid-column: 1 / -1; }
+html.overhaul .ws-body .detailed-actions > a.btn { font-size: 0.68rem; padding: 0.45rem 0.3rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.overhaul :is(#workspace-kpis, #detailed-kpis) .kpi-card .kpi-val { font-size: 1.05rem; }
+html.overhaul #workspace-kpis .kpi-card:nth-child(1) .kpi-val,
+html.overhaul #detailed-kpis .kpi-card:nth-child(3) .kpi-val { font-size: 2.15rem; }
+html.overhaul .ws-body .detailed-actions > a.btn { white-space: normal; line-height: 1.15; font-size: 0.66rem; padding: 0.4rem 0.25rem; display: flex; align-items: center; justify-content: center; }
+
+/* Convergence chart panel, moved into the right column by overhaul.js */
+html.overhaul .ws-panel.ov-charts { max-height: none; width: auto; }
+html.overhaul .ov-charts .chart-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem; }
+html.overhaul .ov-charts .chart-tab { font-size: 0.64rem; padding: 0.28rem 0.55rem; border-radius: 999px; }
+html.overhaul .ov-charts .eng-svg { background: rgba(4, 8, 16, 0.55); border-color: rgba(148, 197, 255, 0.12); border-radius: 10px; }
+
+/* Centre the alarm banner over the clear centre (side columns are unequal widths) */
+html.overhaul .ws-floating .infeasible-banner { left: calc(50% + (var(--ws-left, 300px) - var(--ws-right, 340px)) / 2); }
+
+/* Screen 4 cover band (inserted by overhaul.js before .report-grid) */
+html.overhaul .ov-cover {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1.1rem 0 1.4rem;
+  border: 1px solid rgba(148, 197, 255, 0.14);
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(120deg, rgba(56, 189, 248, 0.1), rgba(8, 12, 22, 0.6) 60%);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+html.overhaul .ov-fig { padding: 1.05rem 1.3rem 1.15rem; border-left: 1px solid rgba(148, 197, 255, 0.1); min-width: 0; }
+html.overhaul .ov-fig:first-child { border-left: 0; }
+html.overhaul .ov-fig small { display: block; margin-bottom: 0.55rem; font: 600 0.6rem/1 var(--ov-mono); letter-spacing: 0.22em; text-transform: uppercase; color: rgba(186, 230, 253, 0.6); }
+html.overhaul .ov-fig b {
+  display: block;
+  font: 650 1.6rem/1.1 var(--ov-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ov-ice);
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.overhaul #screen-report.ov-enter .ov-fig { animation: ov-rise 0.7s var(--ov-ease) both; }
+html.overhaul #screen-report.ov-enter .ov-fig:nth-child(2) { animation-delay: 0.08s; }
+html.overhaul #screen-report.ov-enter .ov-fig:nth-child(3) { animation-delay: 0.16s; }
+html.overhaul #screen-report.ov-enter .ov-fig:nth-child(4) { animation-delay: 0.24s; }
+@media (max-width: 900px) { html.overhaul .ov-cover { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
