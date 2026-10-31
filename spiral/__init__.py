@@ -1,0 +1,41 @@
+"""Spiral package: autonomous, traceable aircraft design spiral."""
+
+from spiral.contract import (
+    AgentLogEntry,
+    AircraftGeometry,
+    ComponentStatus,
+    ConceptualSizingResult,
+    DesignState,
+    FeaResult,
+    FeaStationResult,
+    LapRecord,
+    MissionSpec,
+    SparCadResult,
+    SparLoadsResult,
+    SparSizingResult,
+    SparStationLoad,
+    SparStationSection,
+    SpecRelaxationProposal,
+    ToolError,
+    ToolResult,
+)
+
+__all__ = [
+    "AgentLogEntry",
+    "AircraftGeometry",
+    "ComponentStatus",
+    "ConceptualSizingResult",
+    "DesignState",
+    "FeaResult",
+    "FeaStationResult",
+    "LapRecord",
+    "MissionSpec",
+    "SparCadResult",
+    "SparLoadsResult",
+    "SparSizingResult",
+    "SparStationLoad",
+    "SparStationSection",
+    "SpecRelaxationProposal",
+    "ToolError",
+    "ToolResult",
+]

@@ -1,0 +1,33 @@
+# Typical Aircraft Class Values & Valid Ranges (Owner: Tharm)
+# Used to flag out-of-range warnings when user specs exceed historical heuristics.
+
+ga_single_engine:
+  aspect_ratio:
+    typical: 7.5
+    min_valid: 6.0
+    max_valid: 10.0
+    source: "Raymer 6ed, Table 4.1 (p. 64)"
+    verified: true
+  taper_ratio:
+    typical: 0.6
+    min_valid: 0.4
+    max_valid: 1.0
+    source: "Raymer 6ed, Ch. 4.3"
+    verified: true
+  thickness_to_chord:
+    typical: 0.15
+    min_valid: 0.10
+    max_valid: 0.18
+    source: "Raymer 6ed, Ch. 4.2"
+    verified: true
+  ld_max:
+    typical: 11.0
+    min_valid: 8.0
+    max_valid: 14.0
+    source: "Raymer 6ed, Ch. 3.4"
+    verified: true
+  tail_volume_coefficients:
+    c_ht: 0.70
+    c_vt: 0.04
+    source: "Raymer 6ed, Table 6.4 (p. 160)"
+    verified: true

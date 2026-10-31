@@ -99,7 +99,7 @@ Three forms, not one big RAG:
 
 ```
 books/  (PDFs, gitignored)
-   │  scripts/extract_knowledge: split PDF into page chunks → Gemini → JSON
+   │  scripts/extract_knowledge.py: split PDF into page chunks → Gemini → JSON
    ▼
 knowledge/extracted/  (raw JSON per book: equations, tables, heuristics, page refs; gitignored)
    │  engineering side reviews and transcribes in own words, with citations
@@ -128,7 +128,7 @@ spiral/
 ├── books/                       # [both] drop textbook PDFs here — GITIGNORED
 │   └── README.md                # what to put here, copyright note
 │
-├── knowledge/                   # [engineering]
+├── knowledge/                   # [Tharm]
 │   ├── equations.yaml           # curated equation registry with citations (committed)
 │   ├── tables/
 │   │   ├── materials.yaml       # density, E, allowables
@@ -137,109 +137,295 @@ spiral/
 │   └── extracted/               # raw Gemini extraction output — GITIGNORED
 │
 ├── scripts/
-│   └── extract_knowledge        # [Harry] books/ → knowledge/extracted/
+│   └── extract_knowledge.py     # [Harry] books/ → knowledge/extracted/
 │
 ├── spiral/                      # Python package
-│   ├── contract                 # [both, frozen] shared schemas: MissionSpec, ToolResult, ToolError, DesignState, components
-│   ├── tools/                   # [engineering] deterministic tools
-│   │   ├── lookup               # read knowledge tables
-│   │   ├── sizing               # conceptual sizing
-│   │   ├── spar                 # spar loads + spar sizing
-│   │   ├── cad                  # CadQuery spar geometry → STEP/STL
-│   │   ├── fea                  # gmsh + CalculiX check
-│   │   └── geometry             # [Harry] rough aircraft geometry for the 3D render
+│   ├── __init__.py
+│   ├── contract.py              # [both, frozen] shared schemas: MissionSpec, ToolResult, ToolError, DesignState, API payloads
+│   ├── tools/                   # [Tharm] deterministic aerostructures, FEA & geometry tools
+│   │   ├── __init__.py
+│   │   ├── lookup.py            # read knowledge tables
+│   │   ├── sizing.py            # conceptual sizing
+│   │   ├── spar.py              # spar loads (Schrenk) + preliminary I-beam spar sizing
+│   │   ├── cad.py               # CadQuery spar geometry → STEP/STL
+│   │   ├── fea.py               # gmsh + CalculiX static FEA check vs beam theory
+│   │   └── geometry.py          # rough aircraft geometry primitives for the 3D render
 │   └── agent/                   # [Harry]
-│       ├── orchestrator         # deterministic spiral loop + component design (always works)
-│       ├── gemini               # intake parsing, decisions on infeasible, report writing
+│       ├── __init__.py
+│       ├── orchestrator.py      # deterministic spiral loop + component design (always works)
+│       ├── gemini.py            # intake parsing, decisions on infeasible, report writing
 │       └── prompts/             # system prompts
+│           ├── intake.md
+│           ├── infeasible.md
+│           └── report.md
 │
 ├── server/                      # [Harry] FastAPI: parse, run (streamed laps), components, report
-├── web/                         # [Harry] frontend: intake, workspace, detailed, report
-├── tests/                       # [engineering] tools vs hand calcs / Raymer examples; [Harry] end-to-end
-└── artifacts/                   # generated STEP/STL/plots — GITIGNORED
+│   ├── __init__.py
+│   └── app.py
+├── web/                         # [Tharm] frontend: intake, workspace (3D + plots), detailed FEA viewer, report
+│   ├── index.html
+│   ├── styles.css
+│   ├── api_client.js            # typed wrapper around Harry's server endpoints & SSE stream
+│   └── app.js
+├── tests/                       # [Tharm] test_tools.py; [Harry] test_orchestrator.py
+│   ├── test_tools.py
+│   └── test_orchestrator.py
+└── artifacts/                   # generated STEP/STL/mesh JSON — GITIGNORED
 ```
 
 ## 7. Work split
 
-| | **Harry: agent + product** | **Friend: engineering + knowledge** |
+| | **Harry: Agent, Orchestrator & Backend** | **Tharm: Aerostructures, FEA & Frontend** |
 |---|---|---|
-| Owns | Gemini layer, orchestrator, server, frontend, 3D render geometry, extraction script, report, demo | Sizing and spar tools, knowledge tables and equation registry, CadQuery + FEA, engineering tests |
-| Folders | `spiral/agent/`, `server/`, `web/`, `scripts/`, `spiral/tools/geometry` | `spiral/tools/` (except geometry), `knowledge/`, `tests/` (tools) |
-| First deliverable | Orchestrator running end-to-end against stubs | **Stub tools matching the contract**, returning plausible values |
-| Reviews | Friend's tool outputs make sense in the UI | Harry's prompts don't let Gemini invent numbers |
-| Shared | `spiral/contract` (frozen), `books/` | |
+| **Owns** | Gemini layer (intake, infeasible relaxation, report), deterministic spiral orchestrator, FastAPI + SSE server, book extraction script | Frontend UI + 3D aircraft/spar visualisation (`web/`, `geometry.py`), aerostructures & sizing tools (`sizing.py`, `spar.py`), CAD & FEA pipeline (`cad.py`, `fea.py`), knowledge tables (`knowledge/`, `lookup.py`) |
+| **Folders** | `spiral/agent/`, `server/`, `scripts/`, `tests/test_orchestrator.py` | `web/`, `spiral/tools/`, `knowledge/`, `tests/test_tools.py` |
+| **First deliverable** | Orchestrator + FastAPI server running end-to-end against stub tools and streaming SSE events | Stub tools matching `spiral/contract.py` + Frontend shell rendering `DesignState` and 3D primitives |
+| **Reviews** | Prompt hygiene (Gemini never invents numbers outside `DesignState`); API payloads match `spiral/contract.py` | Tool physical plausibility, units (SI), FEA vs beam theory sanity check, UI traceability badges |
+| **Shared** | `spiral/contract.py` (frozen source of truth), `books/` | |
 
-**Rule:** neither person edits the other's folders. Problems go through the contract or a message.
+**Rule:** neither person edits the other's folders. Any boundary change goes through `spiral/contract.py` first.
 
-## 8. The contract
+---
 
-Frozen at the start. Changes need both people to agree. The `spiral/contract` module is the source of truth once written; this section describes it.
+## 8. The Explicit Contract (`spiral/contract.py`)
 
-### Conventions
-- **SI units everywhere** (kg, m, s, N, W, Pa, J). Field names carry units: `mtow_kg`, `span_m`.
-- Tools are **pure, deterministic Python functions**. JSON-serialisable in and out.
-- Every tool returns a **ToolResult**. On failure it raises **ToolError** with a message the agent can act on ("fuel fraction implausible: reduce range or raise L/D").
-- **Never return NaN or silently clamp.** Out-of-range inputs still compute but add a warning.
+`spiral/contract.py` is frozen at the start and serves as the single source of truth for **both boundaries** between Harry and Tharm:
+1. **Python Tool Boundary:** Harry's `spiral/agent/orchestrator.py` calls Tharm's functions in `spiral/tools/`.
+2. **HTTP / SSE Boundary:** Tharm's `web/` frontend calls Harry's `server/app.py` FastAPI endpoints.
 
-### ToolResult (every tool)
-| Field | Meaning |
-|---|---|
-| `value` | Tool-specific payload (below) |
-| `sources` | e.g. "Raymer ch.3", "knowledge/tables/materials.yaml#al_2024_t3" |
-| `assumptions` | e.g. "Cruise at L/D max = 11" |
-| `warnings` | e.g. "AR = 11 outside heuristic range 6–9" |
+### 8.1 Conventions
+- **SI units everywhere** (`kg`, `m`, `s`, `N`, `W`, `Pa`, `J`). Every numeric field name ends with its unit suffix (`mtow_kg`, `span_m`, `root_moment_nm`, `max_bending_stress_pa`).
+- Tools are **pure, deterministic Python functions**. Dataclasses in, `ToolResult[T]` out, 100% JSON-serialisable via `.to_dict()`.
+- On unrecoverable physical/mathematical failure, a tool raises **`ToolError`** with an actionable message for Gemini (`"Fuel fraction 0.62 exceeds plausible limit 0.45: reduce range_m or increase ld_max"`).
+- **Never return `NaN`, `inf`, or silently clamp.** Out-of-range heuristic inputs still compute, and append a human-readable string to `ToolResult.warnings`.
 
-### MissionSpec (Gemini fills, user confirms)
-| Group | Fields (defaults in brackets) |
-|---|---|
-| Payload | crew [1], passengers [3], person_mass_kg [86], baggage_kg [50] |
-| Mission | range_m [1,000 km], cruise_speed_ms [60], cruise_altitude_m [2,500], stall_speed_ms [28], reserve_s [2,700] |
-| Wing / aero | aspect_ratio [7.5], taper_ratio [0.6], thickness_to_chord [0.15], cl_max [1.6], ld_max [11] |
-| Propulsion | prop_efficiency [0.8], bsfc_kg_per_J [6.8e-8] |
-| Structure | limit_load_factor [3.8], ultimate_factor [1.5], spar_material [al_2024_t3] |
-| Layout | wing_position [high] |
-| Meta | name, notes (defaults the parser chose and why) |
+### 8.2 Envelope Types: `ToolResult[T]` and `ToolError`
 
-### Tools
-| Tool | Inputs | `value` returns | Owner |
+```python
+@dataclass
+class ToolResult(Generic[T]):
+    value: T
+    sources: list[str] = field(default_factory=list)      # e.g. ["Raymer 6ed Eq. 3.4 (p. 25)", "knowledge/tables/materials.yaml#al_2024_t3"]
+    assumptions: list[str] = field(default_factory=list)  # e.g. ["Cruise at L/D_max = 11.0"]
+    warnings: list[str] = field(default_factory=list)     # e.g. ["aspect_ratio=11.0 outside typical GA range [6.0, 9.0]"]
+
+class ToolError(Exception):
+    tool_name: str
+    message: str
+    recoverable: bool = True
+    suggested_field: str | None = None
+```
+
+### 8.3 `MissionSpec` (Gemini parses on intake → user confirms in Tharm's UI)
+
+| Group | Field | Type | Default | Description |
+|---|---|---|---|---|
+| **Payload** | `crew_count` | `int` | `1` | Number of flight crew |
+| | `passenger_count` | `int` | `3` | Number of passengers |
+| | `person_mass_kg` | `float` | `86.0` | Mass per person (crew or passenger) |
+| | `baggage_mass_kg` | `float` | `50.0` | Total baggage mass |
+| **Mission** | `range_m` | `float` | `1_000_000.0` | Design cruise range (1,000 km) |
+| | `cruise_speed_ms` | `float` | `60.0` | Cruise true airspeed (~117 kt) |
+| | `cruise_altitude_m` | `float` | `2_500.0` | Cruise altitude above sea level |
+| | `stall_speed_ms` | `float` | `28.0` | Maximum stall speed (~54 kt) |
+| | `reserve_s` | `float` | `2_700.0` | Loiter reserve endurance (45 min) |
+| **Wing / Aero** | `aspect_ratio` | `float` | `7.5` | Wing aspect ratio $b^2 / S$ |
+| | `taper_ratio` | `float` | `0.6` | Wing taper ratio $c_{\text{tip}} / c_{\text{root}}$ |
+| | `thickness_to_chord` | `float` | `0.15` | Airfoil maximum $t/c$ ratio |
+| | `cl_max` | `float` | `1.6` | Maximum clean/landing lift coefficient |
+| | `ld_max` | `float` | `11.0` | Maximum lift-to-drag ratio in cruise |
+| **Propulsion** | `prop_efficiency` | `float` | `0.80` | Propeller efficiency $\eta_p$ |
+| | `bsfc_kg_per_j` | `float` | `6.8e-8` | Brake specific fuel consumption (kg/J) |
+| **Structure** | `limit_load_factor` | `float` | `3.8` | Positive limit manoeuvring load factor $n_{\text{lim}}$ |
+| | `ultimate_factor` | `float` | `1.5` | Factor of safety ($n_{\text{ult}} = n_{\text{lim}} \times 1.5 = 5.7$) |
+| | `spar_material` | `str` | `"al_2024_t3"` | Key in `knowledge/tables/materials.yaml` |
+| **Layout** | `wing_position` | `str` | `"high"` | `"high"`, `"mid"`, or `"low"` |
+| **Meta** | `name` | `str` | `"GA-4 Touring"` | Project title |
+| | `raw_description` | `str` | `""` | Original plain-English prompt |
+| | `defaulted_fields` | `dict[str, str]` | `{}` | Map of `field_name -> reason` for defaults chosen by Gemini |
+
+### 8.4 Python Tool Signatures & Return Schemas (`spiral/tools/` — owned by Tharm)
+
+#### 1. `spiral.tools.lookup.lookup(table: str, key: str) -> ToolResult[dict[str, Any]]`
+Reads `knowledge/tables/{table}.yaml` and returns row `key`. Appends a warning if `verified` is `False`.
+
+#### 2. `spiral.tools.sizing.conceptual_sizing(spec: MissionSpec, spar_mass_kg: float | None = None) -> ToolResult[ConceptualSizingResult]`
+Runs iterative weight closure, Breguet range + loiter fuel fraction, stall wing loading, and cruise/installed power. On lap 0 (`spar_mass_kg=None`), uses statistical spar fraction of empty weight; on lap $\ge 1$, replaces the statistical spar share with `spar_mass_kg`.
+
+`ConceptualSizingResult` fields:
+- `mtow_kg: float`
+- `empty_mass_kg: float`
+- `fuel_mass_kg: float`
+- `payload_mass_kg: float`
+- `empty_fraction: float`
+- `fuel_fraction: float`
+- `spar_mass_used_kg: float`
+- `statistical_spar_mass_kg: float`
+- `wing_loading_pa: float`
+- `wing_area_m2: float`
+- `span_m: float`
+- `root_chord_m: float`
+- `tip_chord_m: float`
+- `mac_m: float`
+- `cruise_power_w: float`
+- `installed_power_w: float`
+- `segment_fractions: dict[str, float]` (`warmup_takeoff`, `climb`, `cruise`, `loiter`, `landing`)
+- `mass_breakdown_kg: dict[str, float]` (`wing_spar`, `remaining_empty`, `fuel`, `crew`, `passengers`, `baggage`)
+
+#### 3. `spiral.tools.spar.spar_loads(mtow_kg: float, span_m: float, root_chord_m: float, tip_chord_m: float, n_ult: float, n_stations: int = 21) -> ToolResult[SparLoadsResult]`
+Computes Schrenk spanwise lift distribution across one semi-span ($y \in [0, b/2]$) at ultimate load ($n_{\text{ult}} \cdot W_0$) and integrates from tip to root for shear force and bending moment.
+
+`SparLoadsResult` fields:
+- `n_ult: float`
+- `semi_span_m: float`
+- `root_shear_n: float`
+- `root_moment_nm: float`
+- `stations: list[SparStationLoad]`
+  - `SparStationLoad`: `y_m`, `chord_m`, `elliptical_lift_n_per_m`, `planform_lift_n_per_m`, `schrenk_lift_n_per_m`, `shear_n`, `moment_nm`
+
+#### 4. `spiral.tools.spar.size_spar(loads: SparLoadsResult, thickness_to_chord: float, material_key: str = "al_2024_t3") -> ToolResult[SparSizingResult]`
+Sizes an I-section main spar (two caps + shear web) along the semi-span with minimum gauge constraints, integrates Euler-Bernoulli curvature for tip deflection, and returns total spar mass for **both wings**.
+
+`SparSizingResult` fields:
+- `material_key: str`
+- `mass_both_wings_kg: float`
+- `semi_span_mass_kg: float`
+- `root_depth_m: float`
+- `tip_depth_m: float`
+- `root_cap_area_m2: float`
+- `root_cap_width_m: float`
+- `root_cap_thickness_m: float`
+- `root_web_thickness_m: float`
+- `max_bending_stress_pa: float`
+- `max_shear_stress_pa: float`
+- `allowable_yield_stress_pa: float`
+- `safety_margin: float` ($\sigma_{\text{allow}} / \sigma_{\max} - 1$)
+- `tip_deflection_m: float`
+- `stations: list[SparStationSection]`
+  - `SparStationSection`: `y_m`, `depth_m`, `cap_area_m2`, `cap_width_m`, `cap_thickness_m`, `web_thickness_m`, `bending_stress_pa`, `shear_stress_pa`, `deflection_m`
+
+#### 5. `spiral.tools.cad.build_spar_cad(spar: SparSizingResult, out_dir: str = "artifacts") -> ToolResult[SparCadResult]`
+Generates tapered I-beam CAD geometry using CadQuery (or fallback mesh exporter) and writes STEP + STL files to `out_dir`.
+
+`SparCadResult` fields:
+- `step_path: str` (e.g. `"artifacts/spar.step"`)
+- `stl_path: str` (e.g. `"artifacts/spar.stl"`)
+- `volume_single_wing_m3: float`
+- `cad_mass_both_wings_kg: float`
+- `bounding_box_m: dict[str, float]` (`x_width_m`, `y_semi_span_m`, `z_depth_m`)
+
+#### 6. `spiral.tools.fea.run_fea(spar: SparSizingResult, loads: SparLoadsResult, cad: SparCadResult, material_key: str = "al_2024_t3", out_dir: str = "artifacts") -> ToolResult[FeaResult]`
+Meshes the CAD geometry (gmsh) and runs linear static FEA under the Schrenk ultimate load (CalculiX), comparing peak von Mises stress and tip deflection against Euler-Bernoulli beam theory. Also outputs station-by-station stress & deflection so Tharm's 3D frontend can colour the spar immediately.
+
+`FeaResult` fields:
+- `solver_name: str` (`"CalculiX + gmsh"` or `"3D-FE-Fallback"`)
+- `fea_max_von_mises_pa: float`
+- `fea_tip_deflection_m: float`
+- `beam_max_stress_pa: float`
+- `beam_tip_deflection_m: float`
+- `stress_agreement_pct: float`
+- `deflection_agreement_pct: float`
+- `safety_margin_fea: float`
+- `stress_mesh_path: str | None` (e.g. `"artifacts/spar_stress_mesh.json"`)
+- `stations: list[FeaStationResult]`
+  - `FeaStationResult`: `y_m`, `fea_von_mises_pa`, `beam_stress_pa`, `fea_deflection_m`, `beam_deflection_m`
+
+#### 7. `spiral.tools.geometry.aircraft_geometry(spec: MissionSpec, sizing: ConceptualSizingResult) -> ToolResult[AircraftGeometry]`
+Computes parametric 3D primitive dimensions (in metres) for Three.js rendering in `web/`.
+
+`AircraftGeometry` fields:
+- `fuselage: dict[str, float]` (`length_m`, `diameter_m`, `nose_length_m`, `cabin_length_m`, `tailcone_length_m`)
+- `wing: dict[str, float | str]` (`span_m`, `root_chord_m`, `tip_chord_m`, `thickness_to_chord`, `x_le_m`, `z_m`, `dihedral_deg`, `position`)
+- `horizontal_tail: dict[str, float]` (`span_m`, `root_chord_m`, `tip_chord_m`, `x_le_m`, `z_m`)
+- `vertical_tail: dict[str, float]` (`height_m`, `root_chord_m`, `tip_chord_m`, `x_le_m`, `z_m`)
+- `propeller: dict[str, float]` (`diameter_m`, `x_m`)
+
+---
+
+### 8.5 `DesignState` (Harry's Orchestrator produces; Tharm's Frontend renders)
+
+```python
+@dataclass
+class LapRecord:
+    lap: int
+    mtow_kg: float
+    empty_mass_kg: float
+    fuel_mass_kg: float
+    spar_mass_kg: float
+    mtow_change_pct: float
+    wing_area_m2: float
+    span_m: float
+    max_bending_stress_pa: float
+    tip_deflection_m: float
+    geometry: AircraftGeometry
+
+@dataclass
+class DesignState:
+    spec: MissionSpec
+    lap: int
+    history: list[LapRecord]
+    latest_sizing: ConceptualSizingResult | None
+    latest_loads: SparLoadsResult | None
+    latest_spar: SparSizingResult | None
+    latest_geometry: AircraftGeometry | None
+    converged: bool
+    infeasible_reason: str | None
+    proposed_relaxation: SpecRelaxationProposal | None
+    sources: list[str]
+    assumptions: list[str]
+    warnings: list[str]
+    log: list[AgentLogEntry]
+    components: dict[str, ComponentStatus]  # "main_wing_spar", "main_landing_gear", "horizontal_tail", "engine_mount", "fuselage_frames"
+    report_markdown: str | None
+```
+
+---
+
+### 8.6 HTTP & SSE API Contract (`server/app.py` ↔ `web/api_client.js`)
+
+Harry's FastAPI server runs on `http://localhost:8000` (with CORS enabled for local dev and static serving for `/artifacts` and `/web`).
+
+| Method & Path | Request JSON | Response / Stream | Description |
 |---|---|---|---|
-| `conceptual_sizing` | spec, spar_mass_kg (none on lap 0) | mtow_kg, empty/fuel/payload mass, fuel & empty fractions, wing_loading_Nm2, wing_area_m2, span_m, root/tip chord, mac_m, cruise & installed power, segment fractions, mass breakdown | Friend |
-| `spar_loads` | mtow_kg, span_m, root/tip chord, n_ult | per station: y_m, chord_m, lift_Npm, shear_N, moment_Nm; root shear and moment | Friend |
-| `size_spar` | loads, thickness_to_chord, material | mass_kg (both wings), root depth / cap area / web thickness, max stress, allowable, margin, tip deflection, per-station arrays | Friend |
-| `build_spar_cad` | spar, out_dir | step_path, stl_path | Friend |
-| `run_fea` | spar, loads, cad, material, out_dir | FEA max stress & tip deflection, beam-theory values, agreement %, stress field file, solver name | Friend |
-| `lookup` | table, key | the row, with its source | Friend |
-| `aircraft_geometry` | spec, sizing | fuselage, wing, tails, engine as simple primitives for three.js | Harry |
+| `POST /api/intake` | `{ "description": str }` | `{ "spec": MissionSpec, "sources": list[str], "assumptions": list[str], "warnings": list[str] }` | Gemini parses plain-English prompt into `MissionSpec` and records defaulted fields. |
+| `POST /api/spiral/run-sync` | `{ "spec": MissionSpec }` | `DesignState` (JSON) | Runs the full conceptual + preliminary spar spiral loop and returns the final `DesignState`. |
+| `POST /api/spiral/stream` | `{ "spec": MissionSpec }` | `text/event-stream` (SSE) | Streams live events (`lap`, `log`, `converged`, `infeasible`) during the spiral loop. |
+| `POST /api/components/spar` | `{ "state": DesignState }` | `DesignState` (with `components["main_wing_spar"]` populated with `cad` and `fea`) | Runs `build_spar_cad` + `run_fea` on the converged spar and updates `DesignState`. |
+| `POST /api/report` | `{ "state": DesignState }` | `{ "report_markdown": str, "state": DesignState }` | Generates the source-cited markdown design report from `DesignState`. |
+| `GET /artifacts/{filename}` | — | Binary/JSON file | Serves generated `spar.step`, `spar.stl`, and `spar_stress_mesh.json`. |
 
-### DesignState (Harry owns; tools never touch it)
-spec · lap · history (per lap: MTOW, spar mass, % change) · latest sizing / loads / spar / geometry · converged · infeasible_reason · accumulated sources, assumptions, warnings · log (decisions + citations) · components (detailed results per component).
+#### SSE Event Payloads (`POST /api/spiral/stream`)
+Each SSE frame is `event: <type>\ndata: <json>\n\n`:
+- `lap`: `{ "lap_record": LapRecord, "sizing": ConceptualSizingResult, "spar": SparSizingResult, "geometry": AircraftGeometry }`
+- `log`: `{ "entry": AgentLogEntry }` (`timestamp`, `stage`, `message`, `citations`, `level`)
+- `converged`: `{ "state": DesignState }`
+- `infeasible`: `{ "reason": str, "proposed_relaxation": SpecRelaxationProposal | None, "state": DesignState }`
+- `component_step`: `{ "component_id": "main_wing_spar", "step": "cad" | "fea", "status": "running" | "done" }`
+- `component_done`: `{ "component_id": "main_wing_spar", "component": ComponentStatus, "state": DesignState }`
 
-### Server events (streamed to the frontend)
-`lap` (MTOW, spar mass, % change, geometry) · `converged` · `infeasible` (reason) · `component_step` (cad / fea) · `component_done` (result) · `log` (agent message).
+---
 
 ## 9. Agent behaviour
 
-1. **Intake:** parse description → spec. State every default chosen. User confirms.
+1. **Intake:** parse description → `MissionSpec`. State every default chosen in `defaulted_fields`. User confirms.
 2. **Layout:** retrieve heuristics, log cited choices.
-3. **Spiral:** sizing → loads → spar → sizing with spar mass, until converged or infeasible.
-4. **If infeasible:** Gemini reads the reason and the history and proposes **one** spec relaxation with reasoning (e.g. "range 2,000 km → 1,400 km closes at 1,150 kg"). User accepts → re-run.
-5. **Detailed:** on user click, spar → CAD → FEA → compare with beam theory.
-6. **Report:** narrative from the DesignState only. Gemini may not introduce numbers that aren't in the state.
+3. **Spiral:** `conceptual_sizing` → `spar_loads` → `size_spar` → `aircraft_geometry` → loop with `spar_mass_kg`, until converged ($|\Delta \text{MTOW}| < 0.5\%$) or infeasible.
+4. **If infeasible:** Gemini reads `infeasible_reason` and `history` and proposes **one** `SpecRelaxationProposal` with reasoning (e.g. "range 2,000 km → 1,400 km closes at 1,150 kg"). User accepts → re-run.
+5. **Detailed:** on user click, `build_spar_cad` → `run_fea` → compare with beam theory.
+6. **Report:** narrative from `DesignState` only. Gemini may not introduce numbers that aren't in the state.
 
 **Fallback:** if Gemini function calling is flaky, the deterministic orchestrator runs steps 3 and 5; Gemini does intake, the infeasible decision and the report only.
 
 ## 10. Timeline (from 12:00)
 
-| Time | Harry | Friend |
+| Time | Harry (Agent & Server) | Tharm (Aerostructures, FEA & Frontend) |
 |---|---|---|
-| 12:00–12:20 | Repo, contract module, skeleton folders | Agree contract; start stub tools |
-| 12:20–13:00 | Orchestrator + server against stubs; Gemini intake | Real `conceptual_sizing` + tables; check vs Raymer example |
-| 13:00–14:00 | Lunch → **Integration 1:** spiral converges end-to-end with real tools | |
-| 14:00–15:00 | Frontend: intake, workspace (3D + convergence plot + log), detailed screen | `spar_loads`, `size_spar`, then CadQuery; FEA if time |
-| 15:00–15:30 | **Integration 2:** detailed spar in UI; demo rehearsal ×2 | |
+| 12:00–12:25 | Repo, frozen `spiral/contract.py`, skeleton folders | Agree contract; verify stub tools & frontend shell |
+| 12:25–13:15 | Orchestrator + FastAPI server against stubs; Gemini intake | Real `conceptual_sizing`, `spar_loads`, `size_spar` + YAML tables |
+| 13:15–14:00 | Lunch → **Integration 1:** spiral converges end-to-end with real sizing & spar tools | |
+| 14:00–15:00 | Gemini infeasible relaxation + report generator + SSE polish | Frontend workspace (Three.js 3D morphing + convergence plot + FEA stress view) + CadQuery/CalculiX FEA |
+| 15:00–15:30 | **Integration 2:** detailed spar CAD/FEA in UI; demo rehearsal ×2 | |
 | 15:30–16:00 | Freeze, README, backup screen recording, **submit** | |
-
-**Extraction pipeline** runs in the background whenever there's a spare moment; it's a nice-to-show, not on the critical path. Tables can be hand-transcribed if it isn't ready.
 
 ## 11. Demo script (3 minutes)
 
@@ -252,10 +438,10 @@ spec · lap · history (per lap: MTOW, spar mass, % change) · latest sizing / l
 
 | Risk | Fallback |
 |---|---|
-| CadQuery / gmsh / CalculiX setup breaks | Show preliminary spar + beam theory; FEA as "next step" |
+| CadQuery / gmsh / CalculiX setup breaks | `cad.py` and `fea.py` fall back to analytical/3D-mesh generator so UI and STL/stress plot still work |
 | Loop doesn't converge with real numbers | Tune spar share and defaults; cap laps; demo the infeasible path deliberately |
 | Gemini mis-parses the spec | Editable spec form with confirmation |
-| Frontend overruns | Minimal page: spec panel + convergence plot + log; drop 3D |
+| Frontend 3D overruns | Three.js primitives consume `AircraftGeometry` directly; fallback to 2D planform + convergence plot |
 | Track turns out unrelated | Reframe: "model proposes, physics verifies" agent pattern |
 
 ## 13. Definition of done

@@ -1,0 +1,28 @@
+# Structural Materials Table (Owner: Tharm)
+# All values in SI units (kg/m3, Pa).
+
+al_2024_t3:
+  name: "Aluminium 2024-T3"
+  density_kg_m3: 2780.0
+  youngs_modulus_pa: 73.1e9
+  poissons_ratio: 0.33
+  yield_strength_pa: 345.0e6
+  ultimate_strength_pa: 483.0e6
+  shear_strength_pa: 283.0e6
+  min_cap_thickness_m: 0.0020
+  min_web_thickness_m: 0.0015
+  source: "MIL-HDBK-5J / MMPDS-01, Table 3.2.3.0(b)"
+  verified: true
+
+al_7075_t6:
+  name: "Aluminium 7075-T6"
+  density_kg_m3: 2810.0
+  youngs_modulus_pa: 71.7e9
+  poissons_ratio: 0.33
+  yield_strength_pa: 503.0e6
+  ultimate_strength_pa: 572.0e6
+  shear_strength_pa: 331.0e6
+  min_cap_thickness_m: 0.0020
+  min_web_thickness_m: 0.0015
+  source: "MIL-HDBK-5J / MMPDS-01, Table 3.7.4.0(b)"
+  verified: true

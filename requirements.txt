@@ -1,0 +1,12 @@
+# Core Server & Agent (Harry)
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+pyyaml>=6.0
+google-genai>=1.0.0
+pypdf>=4.0.0
+
+# Aerostructures, CAD & FEA (Tharm - optional fallback if binary solvers missing)
+numpy>=1.26.0
+# cadquery>=2.4.0
+# gmsh>=4.12.0
+pytest>=8.0.0

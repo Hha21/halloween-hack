@@ -1,0 +1,21 @@
+# Weight Fractions & Statistical Regressions (Owner: Tharm)
+
+ga_single_engine:
+  empty_weight_regression:
+    A_imperial: 2.36
+    C: -0.18
+    note: "Raymer Eq 3.4 Table 3.1 uses W0 in lb: We/W0 = 2.36 * (W0_lb)^(-0.18)"
+    source: "Raymer 6ed, Table 3.1 (p. 26)"
+    verified: true
+  segment_weight_fractions:
+    warmup_takeoff: 0.970
+    climb: 0.985
+    landing: 0.995
+    trapped_reserve_multiplier: 1.06
+    source: "Raymer 6ed, Table 3.2 (p. 28)"
+    verified: true
+  statistical_spar_share_of_empty:
+    fraction: 0.085
+    note: "Assumed main wing spar share of empty weight on Lap 0 before preliminary beam sizing"
+    source: "Raymer 6ed, Ch. 15 statistical wing group breakdown"
+    verified: false

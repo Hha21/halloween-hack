@@ -1,0 +1,22 @@
+# Textbooks & Raw Extractions (Copyright Protected - Never Commit)
+books/*
+!books/README.md
+knowledge/extracted/*
+!knowledge/extracted/.gitkeep
+
+# Generated CAD / FEA / Plot Artifacts
+artifacts/*
+!artifacts/.gitkeep
+
+# Secrets & Environment
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Frontend build / node
+node_modules/
+dist/
