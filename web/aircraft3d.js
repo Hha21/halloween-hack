@@ -645,6 +645,7 @@ export class AircraftScene {
     camera.up.set(0, 0, 1);
 
     const hud = document.createElement("div");
+    hud.className = "aircraft-hud";
     Object.assign(hud.style, {
       position: "absolute",
       left: "12px",
@@ -724,7 +725,7 @@ export class AircraftScene {
     const aspect = this.w / this.h;
     camera.aspect = aspect;
     const tanHalf = Math.tan((camera.fov * Math.PI) / 360);
-    const R = (1.2 * gl.extent) / (2 * tanHalf * Math.min(aspect, 1.6)) / zoom;
+    const R = (1.5 * gl.extent) / (2 * tanHalf * Math.min(aspect, 1.6)) / zoom;
     const cp = Math.cos(pitch);
     const dir = new gl.THREE.Vector3(Math.sin(yaw) * cp, -Math.cos(yaw) * cp, Math.sin(pitch));
     const target = gl.center.clone();

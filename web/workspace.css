@@ -1,0 +1,180 @@
+/* Full-bleed floating layout for Screens 2 and 3 (Owner: Tharm).
+ * Structure comes from floating.js: .ws-floating section, .ws-col side columns
+ * of collapsible .ws-panel glass cards, and a .ws-dock of show/hide chips.
+ */
+:root { --ws-top: 68px; --ws-gap: 14px; --ws-left: 300px; --ws-right: 340px; }
+
+body:has(.ws-floating.active) { overflow: hidden; }
+
+/* The viewport fills the window behind everything */
+.ws-floating .workbench-grid,
+.ws-floating .detailed-grid {
+  position: fixed;
+  inset: 0;
+  display: block;
+  margin: 0;
+  z-index: 1;
+}
+.ws-floating .center-col { display: contents; }
+.ws-floating .viewport-card {
+  position: absolute;
+  inset: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: radial-gradient(ellipse at 50% 45%, #111c2d 0%, #070b14 70%);
+}
+.ws-floating .viewport-canvas { position: absolute; inset: 0; height: auto; }
+
+/* Glass */
+.ws-panel,
+.ws-dock,
+.ws-floating .lap-scrubber-bar,
+.ws-floating .stress-colorbar {
+  background: rgba(13, 17, 24, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Side columns */
+.ws-col {
+  position: fixed;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+  pointer-events: none;
+}
+.ws-floating.active .ws-col { display: flex; }
+.ws-col > * { pointer-events: auto; }
+.ws-left { top: calc(var(--ws-top) + 46px); bottom: var(--ws-gap); left: var(--ws-gap); width: var(--ws-left); }
+.ws-right { top: calc(var(--ws-top) + 46px); bottom: var(--ws-gap); right: var(--ws-gap); width: var(--ws-right); }
+.ws-bottom {
+  bottom: calc(var(--ws-gap) + 56px);
+  left: calc(var(--ws-left) + 2 * var(--ws-gap));
+  right: calc(var(--ws-right) + 2 * var(--ws-gap));
+  align-items: center;
+}
+.ws-bottom .ws-panel { width: min(620px, 100%); max-height: 46vh; }
+
+/* Panels */
+.ws-panel {
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+.ws-panel.grow { flex: 1 1 0; }
+.ws-panel.collapsed { flex: 0 0 auto; }
+.ws-panel.collapsed .ws-body { display: none; }
+.ws-panel.collapsed .ws-chevron { transform: rotate(-90deg); }
+.ws-panel.off { display: none; }
+.ws-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: var(--cyan, #38bdf8);
+  font: 600 0.72rem/1 inherit;
+  font-family: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+}
+.ws-chevron { transition: transform 0.15s ease; color: var(--muted, #94a3b8); }
+.ws-body { overflow-y: auto; min-height: 0; padding: 0.65rem 0.85rem; }
+
+/* Moved nodes lose their own card chrome inside a panel */
+.ws-body > .panel,
+.ws-body > .viewport-toolbar,
+.ws-body > .kpi-strip {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+.ws-body > .kpi-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+.ws-body .kpi-card { padding: 0.45rem 0.6rem; background: rgba(8, 13, 25, 0.7); }
+.ws-body .kpi-val { font-size: 1rem; }
+.ws-body .vp-title { display: none; }
+.ws-body > .viewport-toolbar { display: block; }
+.ws-body .vp-controls { flex-wrap: wrap; }
+.ws-body .agent-log-list { max-height: none; }
+.ws-body > .right-col { display: flex; flex-direction: column; }
+.ws-body > .detailed-header { display: flex; flex-direction: column; align-items: stretch; }
+.ws-body .step-pipeline,
+.ws-body .detailed-actions { flex-direction: column; align-items: stretch; }
+.ws-body > .fea-charts-col { gap: 0.6rem; }
+.ws-body > .fea-charts-col > .panel { background: rgba(8, 13, 25, 0.6); border: 1px solid rgba(148, 163, 184, 0.12); padding: 0.6rem; }
+
+/* Dock of show/hide chips */
+.ws-dock {
+  position: fixed;
+  top: var(--ws-top);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  z-index: 12;
+  max-width: calc(100vw - 2 * var(--ws-gap));
+  overflow-x: auto;
+}
+.ws-floating.active .ws-dock { display: flex; }
+.ws-chip {
+  background: transparent;
+  color: var(--muted, #94a3b8);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ws-chip.on { background: rgba(56, 189, 248, 0.16); color: var(--text, #e2e8f0); border-color: rgba(56, 189, 248, 0.45); }
+
+/* Bottom centre pills */
+.ws-floating .lap-scrubber-bar,
+.ws-floating .stress-colorbar {
+  position: absolute;
+  bottom: var(--ws-gap);
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  z-index: 5;
+  max-width: calc(100% - var(--ws-left) - var(--ws-right) - 4 * var(--ws-gap));
+}
+.ws-floating .stress-colorbar { min-width: 360px; }
+
+/* Scene HUD from aircraft3d.js: bottom right of the clear centre */
+.ws-floating .aircraft-hud {
+  left: auto !important;
+  right: calc(var(--ws-right) + 2 * var(--ws-gap)) !important;
+  bottom: calc(var(--ws-gap) + 52px) !important;
+  text-align: right;
+  max-width: 380px;
+}
+
+/* Infeasible banner floats over the top of the viewport */
+.ws-floating .infeasible-banner {
+  position: fixed;
+  top: calc(var(--ws-top) + 52px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, calc(100vw - var(--ws-left) - var(--ws-right) - 4 * var(--ws-gap)));
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  background: rgba(60, 14, 28, 0.9);
+}
